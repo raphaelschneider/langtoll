@@ -1,9 +1,17 @@
-// Content types for LangLock language packs.
+// Content types for LangPass language packs.
 // A "pack" is a bundled, versioned set of vocab + sentence items for one
 // language/level. Packs ship in the app bundle (no network needed to unlock
 // your phone — the whole point is it works at 7am on the subway).
+//
+// NOTE on the `de` field: for historical reasons the target-language string on
+// every item is named `de` regardless of the pack's language (a Portuguese pack
+// puts Portuguese text in `de`). It's the "word/sentence in the language being
+// learned" slot; renaming it would churn the whole engine for no behavior gain.
 
 export type Level = 'A1' | 'A2' | 'B1';
+
+/** Languages a user can learn. UI names resolve via i18n `lang.*` keys. */
+export type Language = 'de' | 'es' | 'fr' | 'pt' | 'it';
 
 export type PartOfSpeech =
   | 'noun'
@@ -45,10 +53,12 @@ export interface SentenceItem {
 
 export interface LanguagePack {
   id: string; // e.g. 'de-a1'
-  language: 'de';
+  language: Language;
   name: string;
   level: Level;
   version: number;
+  /** BCP-47 locale for on-device TTS, e.g. 'de-DE', 'pt-BR'. */
+  speechLocale: string;
   vocab: VocabItem[];
   sentences: SentenceItem[];
   /**

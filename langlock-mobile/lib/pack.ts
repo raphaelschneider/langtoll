@@ -1,6 +1,6 @@
-// Resolves the pack the user actually trains on: their CEFR level's bundled
-// pack, plus the AI topic pack merged in when one is generated and enabled.
-import { packForLevel, type LanguagePack, type Level } from '@/content/german';
+// Resolves the pack the user actually trains on: their language + CEFR level's
+// bundled pack, plus the AI topic pack merged in when one is generated and enabled.
+import { packFor, type LanguagePack, type Level } from '@/content';
 import { getState } from '@/lib/store';
 
 /** Onboarding difficulty (1–10) → CEFR level. */
@@ -12,7 +12,7 @@ export function levelForDifficulty(d: number): Level {
 
 export function activePack(): LanguagePack {
   const s = getState();
-  const base = packForLevel(s.level);
+  const base = packFor(s.learningLanguage, s.level);
   const topic = s.customTopic;
   if (topic && s.useCustomTopic && topic.vocab.length) {
     return {

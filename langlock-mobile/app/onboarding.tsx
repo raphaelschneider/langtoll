@@ -19,7 +19,9 @@ import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
 import { useTheme, space, radius, font } from '@/design/theme';
-import { activePack, levelForDifficulty } from '@/lib/pack';
+import { levelForDifficulty } from '@/lib/pack';
+import { availableLanguages, packFor } from '@/content';
+import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
 import { useT, type StringKey } from '@/lib/i18n';
 
@@ -42,12 +44,8 @@ type Step = (typeof STEPS)[number];
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 const GOAL_KEYS = ['ob.goalTravel', 'ob.goalLove', 'ob.goalWork', 'ob.goalBrain'] as const;
-const LANGS = [
-  { key: 'de', ready: true },
-  { key: 'es', ready: false },
-  { key: 'fr', ready: false },
-  { key: 'it', ready: false },
-] as const;
+// Languages not yet authored — shown as "SOON" placeholders under the real ones.
+const SOON_LANGS: Language[] = ['es', 'fr', 'it'];
 const FARE_EXERCISES = [3, 5, 8];
 const FARE_MINUTES = [15, 30, 45];
 
@@ -149,14 +147,13 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
 export default function Onboarding() {
   const theme = useTheme();
   const t = useT();
-  const pack = activePack();
-  const lang = t(`lang.${pack.language}` as StringKey);
 
   const [stepIdx, setStepIdx] = useState(0);
   const step: Step = STEPS[stepIdx];
 
   // answers
   const [name, setName] = useState('');
+  const [language, setLanguage] = useState<Language>('de');
   const [difficulty, setDifficulty] = useState(3);
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
@@ -201,11 +198,14 @@ export default function Onboarding() {
     setStepIdx((i) => i - 1);
   }
   const derivedLevel = levelForDifficulty(difficulty);
+  const pack = packFor(language, derivedLevel);
+  const lang = t(`lang.${language}` as StringKey);
 
   function finish() {
     updateProfile({
       onboarded: true,
       name: firstName,
+      learningLanguage: language,
       difficulty,
       level: derivedLevel,
       blockedApps: apps,
@@ -307,13 +307,21 @@ export default function Onboarding() {
               <Entrance key="language">
                 <Text variant="title">{t('ob.langTitle')}</Text>
                 <View style={{ marginTop: space.xl, gap: space.sm }}>
-                  {LANGS.map((l) => (
+                  {availableLanguages().map((l) => (
                     <OptionRow
-                      key={l.key}
-                      label={t(`lang.${l.key}` as StringKey)}
-                      selected={l.key === pack.language}
-                      disabled={!l.ready}
-                      tag={l.ready ? undefined : t('ob.soon')}
+                      key={l}
+                      label={t(`lang.${l}` as StringKey)}
+                      selected={l === language}
+                      onPress={() => setLanguage(l)}
+                    />
+                  ))}
+                  {SOON_LANGS.map((l) => (
+                    <OptionRow
+                      key={l}
+                      label={t(`lang.${l}` as StringKey)}
+                      selected={false}
+                      disabled
+                      tag={t('ob.soon')}
                       onPress={() => {}}
                     />
                   ))}

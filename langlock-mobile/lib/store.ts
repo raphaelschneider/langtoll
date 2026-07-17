@@ -5,7 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 import type { ItemProgressRow } from '@/lib/db/types';
-import type { Level, VocabItem, SentenceItem } from '@/content/german/types';
+import type { Level, Language, VocabItem, SentenceItem } from '@/content/german/types';
 import { todayISO, addDays } from '@/lib/date';
 
 const STORAGE_KEY = 'langpass:v1';
@@ -32,6 +32,8 @@ export interface AppState {
   onboarded: boolean;
   /** First name — printed on the pass, used in copy. */
   name: string | null;
+  /** The language the user is learning (packs resolve via content registry). */
+  learningLanguage: Language;
   /** CEFR level, derived from difficulty at onboarding, adjustable in settings. */
   level: Level;
   /** 1–10 difficulty from onboarding; drives the exercise mix. */
@@ -66,6 +68,7 @@ const initialState: AppState = {
   unlockMinutes: 30,
   onboarded: false,
   name: null,
+  learningLanguage: 'de',
   level: 'A1',
   difficulty: 3,
   soundEnabled: true,
@@ -210,6 +213,7 @@ export function updateProfile(
     Pick<
       AppState,
       | 'name'
+      | 'learningLanguage'
       | 'level'
       | 'difficulty'
       | 'soundEnabled'

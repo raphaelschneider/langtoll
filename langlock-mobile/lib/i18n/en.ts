@@ -13,6 +13,7 @@ export const en = {
   'lang.es': 'Spanish',
   'lang.fr': 'French',
   'lang.it': 'Italian',
+  'lang.pt': 'Portuguese',
 
   // pass card
   'pass.active': 'ACTIVE',

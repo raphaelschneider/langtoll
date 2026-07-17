@@ -10,6 +10,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'lang.es': 'Spanisch',
   'lang.fr': 'Französisch',
   'lang.it': 'Italienisch',
+  'lang.pt': 'Portugiesisch',
 
   'pass.active': 'AKTIV',
   'pass.expired': 'ABGELAUFEN',
