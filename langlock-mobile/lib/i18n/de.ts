@@ -105,6 +105,17 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.payPrice': 'Deine erste Woche ist das volle Erlebnis, gratis. Danach 34,99 $ im Jahr — weniger als ein Monat der Zeit, die dir diese Apps genommen haben.',
   'ob.payCta': 'Gratis-Woche starten',
   'ob.payGhost': 'Mit dem Basis-Fahrpreis weitermachen',
+  'ob.lockOver': 'Sperre aktivieren',
+  'ob.lockTitle': 'Sperre die Apps, die dir die Zeit stehlen.',
+  'ob.lockSub': 'LangPass blockiert sie, bis du eine Session beendest. Genau darum geht es.',
+  'ob.lockCta': 'Diese Apps sperren',
+  'ob.lockCtaWait': 'Erst Apps wählen',
+
+  'lock.enable': 'Bildschirmzeit erlauben',
+  'lock.authBody': 'Erlaube Bildschirmzeit, damit LangPass deine Apps sperren kann. Apple fragt nur einmal.',
+  'lock.choose': 'Apps zum Sperren wählen',
+  'lock.selected': 'Apps gewählt — alles bereit',
+  'lock.simNote': 'Auf deinem iPhone wählst du sie in Apples Bildschirmzeit-Picker (öffnet sich hier automatisch).',
 
   'settings.title': 'Einstellungen',
   'settings.passenger': 'Fahrgast',

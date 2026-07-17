@@ -16,6 +16,8 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
+import { LockSetup } from '@/components/blocking/LockSetup';
+import { lockNow } from '@/lib/blocking';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { activePack, levelForDifficulty } from '@/lib/pack';
 import { updateProfile } from '@/lib/store';
@@ -34,6 +36,7 @@ const STEPS = [
   'printing',
   'summary',
   'paywall',
+  'lock',
 ] as const;
 type Step = (typeof STEPS)[number];
 
@@ -159,6 +162,7 @@ export default function Onboarding() {
   const [goal, setGoal] = useState<string | null>(null);
   const [fareEx, setFareEx] = useState(5);
   const [fareMin, setFareMin] = useState(30);
+  const [lockReady, setLockReady] = useState(false);
 
   // printing-step stage ticker
   const [printStage, setPrintStage] = useState(0);
@@ -209,6 +213,7 @@ export default function Onboarding() {
       exercisesPerUnlock: fareEx,
       unlockMinutes: fareMin,
     });
+    lockNow(); // shield the chosen apps immediately so home lands in the "locked" state
     router.replace('/');
   }
 
@@ -524,9 +529,26 @@ export default function Onboarding() {
                     : t('ob.payTitle', { lang })}
                 </Text>
                 <View style={{ marginTop: space.lg }}>
-                  <PlusOffer onDone={finish} />
+                  <PlusOffer onDone={next} />
                 </View>
               </ScrollView>
+            )}
+
+            {step === 'lock' && (
+              <Entrance key="lock">
+                <Text variant="overline" color="accent">
+                  {t('ob.lockOver')}
+                </Text>
+                <Text variant="title" style={{ marginTop: space.sm }}>
+                  {t('ob.lockTitle')}
+                </Text>
+                <Text variant="serif" color="inkSoft" style={{ marginTop: space.md }}>
+                  {t('ob.lockSub')}
+                </Text>
+                <View style={{ marginTop: space.xl }}>
+                  <LockSetup apps={apps} onReady={setLockReady} />
+                </View>
+              </Entrance>
             )}
           </View>
 
@@ -541,11 +563,16 @@ export default function Onboarding() {
                       ? t('ob.mirrorCta')
                       : step === 'summary'
                         ? t('ob.sumCta')
-                        : t('common.continue')
+                        : step === 'lock'
+                          ? lockReady
+                            ? t('ob.lockCta')
+                            : t('ob.lockCtaWait')
+                          : t('common.continue')
                 }
                 glow
                 full
-                onPress={next}
+                disabled={step === 'lock' && !lockReady}
+                onPress={step === 'lock' ? finish : next}
               />
             </View>
           )}

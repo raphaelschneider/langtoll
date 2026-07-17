@@ -112,6 +112,18 @@ export const en = {
   'ob.payPrice': 'Your first week is the full experience, free. Then $34.99/year — less than one month of the time those apps were taking.',
   'ob.payCta': 'Start my free week',
   'ob.payGhost': 'Continue with the basic fare',
+  'ob.lockOver': 'Arm the lock',
+  'ob.lockTitle': 'Lock the apps that steal your time.',
+  'ob.lockSub': 'LangPass shields these until you finish a session. This is the whole point.',
+  'ob.lockCta': 'Lock these apps',
+  'ob.lockCtaWait': 'Choose apps first',
+
+  // lock setup
+  'lock.enable': 'Enable Screen Time',
+  'lock.authBody': 'Allow Screen Time so LangPass can shield your apps. Apple asks once.',
+  'lock.choose': 'Choose apps to lock',
+  'lock.selected': 'Apps selected — you’re set',
+  'lock.simNote': 'On your iPhone, you’ll pick these in Apple’s Screen Time picker (it opens automatically here).',
 
   // settings
   'settings.title': 'Settings',

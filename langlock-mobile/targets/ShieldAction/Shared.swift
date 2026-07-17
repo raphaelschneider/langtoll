@@ -569,7 +569,7 @@ enum WebContentFilterPolicyError: Error, LocalizedError {
       return "WebContentFilterPolicyError: missing required field `type`."
     case .invalidPolicyType(let value):
       return "WebContentFilterPolicyError: invalid policy type `\(value)`."
-      ExpoModulesCore    case .invalidStringArray(let fieldName):
+    case .invalidStringArray(let fieldName):
       return
         "WebContentFilterPolicyError: field `\(fieldName)` must be an array of strings when provided."
     case .missingRequiredDomains(let fieldName):
