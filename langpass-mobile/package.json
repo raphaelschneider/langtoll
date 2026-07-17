@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "ios": "expo run:ios",
+    "ios": "RCT_USE_PREBUILT_RNCORE=0 expo run:ios",
+    "ios:device": "RCT_USE_PREBUILT_RNCORE=0 expo run:ios --device",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "android": "expo run:android"
