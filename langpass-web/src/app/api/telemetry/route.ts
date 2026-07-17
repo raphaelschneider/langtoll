@@ -1,6 +1,6 @@
 // Anonymous usage telemetry from the mobile app. No personal data — only an anonymous
 // install id (device_id) and coarse product events, so the admin dashboard can show
-// onboarding, engagement, and subscription numbers. All recovery data stays on-device.
+// onboarding, engagement, and subscription numbers. All learning data stays on-device.
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { rateLimit, LIMITS } from '@/lib/ratelimit';
@@ -9,17 +9,24 @@ import { readJsonLimited, BODY_LIMITS } from '@/lib/bodylimit';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Mirror of langpass-mobile/lib/telemetry.ts TelemetryEvent — keep the two in lockstep.
 const KNOWN_EVENTS = new Set([
   'app_open',
   'onboarded',
-  'injury_added',
-  'checkin',
-  'session_logged',
-  'plan_completed',
+  'blocking_enabled',
+  'session_started',
+  'session_completed',
+  'session_abandoned',
+  'locked',
+  'unlocked',
   'badge_earned',
   'paywall_viewed',
-  'subscribed',
+  'purchase_tapped',
+  'purchase_cancelled',
+  'purchase_failed',
+  'purchase_unavailable',
   'restored',
+  'subscribed',
   'unsubscribed',
 ]);
 

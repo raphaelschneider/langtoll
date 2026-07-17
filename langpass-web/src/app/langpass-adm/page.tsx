@@ -3,7 +3,6 @@
 import { query } from '@/lib/db';
 import { getPricing, fmtPrice } from '@/lib/settings';
 import { getUsageByDay, estimateCostUSD } from '@/lib/usage';
-import { regionName } from '@/lib/regions';
 import { updatePricing } from './actions';
 import { BarChart } from './Charts';
 
@@ -73,37 +72,6 @@ async function getStats() {
   return { totals, subs, signups, activity, events, recent };
 }
 
-// Exercise-catalog health — the vocabulary the progressive-program path selects from. If this reads
-// 0 on prod, paying users are silently getting the thin on-device fallback (no sets/reps, lazy
-// instructions) instead of the catalog. This panel exists so that's never invisible again.
-async function getCatalogStats() {
-  const [totals] = await query(`
-    SELECT
-      SUM(is_active = 1) AS active,
-      SUM(is_active = 0) AS inactive,
-      COUNT(DISTINCT CASE WHEN is_active = 1 THEN body_part_id END) AS regions,
-      SUM(is_active = 1 AND (default_sets IS NOT NULL OR hold_seconds IS NOT NULL)) AS with_dose,
-      SUM(is_active = 1 AND default_sets IS NOT NULL) AS with_sets,
-      SUM(is_active = 1 AND hold_seconds IS NOT NULL) AS with_hold
-    FROM exercise_catalog`);
-
-  const byRegion: { id: number; name: string; n: number }[] = (
-    await query(`
-      SELECT body_part_id AS id, COUNT(*) AS n
-      FROM exercise_catalog WHERE is_active = 1
-      GROUP BY body_part_id ORDER BY n DESC, body_part_id`)
-  ).map((r: any) => ({ id: Number(r.id), name: regionName(Number(r.id)), n: Number(r.n) }));
-
-  const byTier: { tier: number; n: number }[] = (
-    await query(`
-      SELECT difficulty_tier AS tier, COUNT(*) AS n
-      FROM exercise_catalog WHERE is_active = 1
-      GROUP BY difficulty_tier ORDER BY difficulty_tier`)
-  ).map((r: any) => ({ tier: Number(r.tier), n: Number(r.n) }));
-
-  return { totals, byRegion, byTier };
-}
-
 function Stat({ label, value, sub, tint, hint }: { label: string; value: string; sub?: string; tint?: string; hint?: string }) {
   return (
     <div
@@ -128,10 +96,9 @@ function Stat({ label, value, sub, tint, hint }: { label: string; value: string;
 }
 
 // Tab bar — server-rendered links (state lives in ?tab=). Each tab fetches only its own data.
-function Tabs({ active }: { active: 'dashboard' | 'system' | 'support' }) {
+function Tabs({ active }: { active: 'dashboard' | 'support' }) {
   const tabs = [
     { key: 'dashboard' as const, label: 'Dashboard', href: '/langpass-adm' },
-    { key: 'system' as const, label: 'System', href: '/langpass-adm?tab=system' },
     { key: 'support' as const, label: 'Support', href: '/langpass-adm?tab=support' },
   ];
   return (
@@ -364,91 +331,22 @@ async function DashboardTab() {
         </div>
 
         <div style={{ marginTop: 24, fontSize: 12, color: BRAND.inkSoft }}>
-          Anonymous telemetry only — recovery data never leaves users’ devices.
+          Anonymous telemetry only — learning data never leaves users’ devices.
         </div>
-    </>
-  );
-}
-
-// SYSTEM tab — content & infrastructure health (exercise catalog now; room for more). Deliberately
-// kept apart from the operational numbers so this view stays a clean "is the product wired right?".
-async function SystemTab() {
-  const catalog = await getCatalogStats();
-  const active = Number(catalog.totals?.active ?? 0);
-  const inactive = Number(catalog.totals?.inactive ?? 0);
-  const regions = Number(catalog.totals?.regions ?? 0);
-  const withDose = Number(catalog.totals?.with_dose ?? 0);
-  const withSets = Number(catalog.totals?.with_sets ?? 0);
-  const withHold = Number(catalog.totals?.with_hold ?? 0);
-  const dosePct = active ? Math.round((withDose / active) * 100) : 0;
-  const maxRegion = Math.max(1, ...catalog.byRegion.map((r) => r.n));
-  const maxTier = Math.max(1, ...catalog.byTier.map((t) => t.n));
-  const empty = active === 0;
-  return (
-    <>
-      <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 24, margin: '0 0 12px' }}>Exercise catalog</h2>
-      {empty && (
-        <div style={{ background: '#FBE9E5', border: `1px solid ${BRAND.accent}`, borderRadius: 14, padding: '14px 18px', marginBottom: 16, color: BRAND.accent, fontSize: 14, fontWeight: 600 }}>
-          ⚠ The catalog is EMPTY — the progressive program can’t run, so paying users fall back to the thin
-          on-device exercise set (no sets/reps, brief instructions). Seed it from database/exercise_catalog_current.sql.
-        </div>
-      )}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <Stat label="Exercises" value={String(active)} sub={`${regions} regions${inactive ? ` · ${inactive} inactive` : ''}`} tint={empty ? BRAND.accent : BRAND.pine} hint={`${active} active exercises across ${regions} body regions${inactive ? `, plus ${inactive} retired` : ''}`} />
-        <Stat label="Regions covered" value={`${regions}/22`} sub="head excluded by design" hint="Body regions with at least one active exercise (head → protect mode, no exercises)" />
-        <Stat label="With explicit dose" value={`${dosePct}%`} sub={`${withDose} of ${active}`} tint={dosePct >= 90 ? BRAND.pine : BRAND.amber} hint={`${withDose} exercises carry a sets/reps scheme or a hold time; ${active - withDose} rely on duration only`} />
-        <Stat label="Sets·reps / holds" value={`${withSets} / ${withHold}`} sub="strength / timed" hint={`${withSets} rep-based (sets×reps) · ${withHold} timed (hold seconds)`} />
-      </div>
-
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16, alignItems: 'flex-start' }}>
-        {/* Per-body-part counts */}
-        <div style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, flex: 1.4, minWidth: 380 }}>
-          <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600, marginBottom: 16 }}>
-            Exercises per body part
-          </div>
-          {catalog.byRegion.length === 0 && <div style={{ color: BRAND.inkSoft, fontSize: 14 }}>No exercises.</div>}
-          {catalog.byRegion.map((r) => (
-            <div key={r.id} title={`${r.name}: ${r.n} active exercises`} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 9, cursor: 'help' }}>
-              <div style={{ width: 110, fontSize: 13, color: BRAND.ink, textTransform: 'capitalize' }}>{r.name}</div>
-              <div style={{ flex: 1, height: 8, background: BRAND.line, borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: `${(r.n / maxRegion) * 100}%`, height: '100%', background: BRAND.pine }} />
-              </div>
-              <div style={{ width: 32, textAlign: 'right', fontSize: 13, color: BRAND.inkSoft }}>{r.n}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* By difficulty tier */}
-        <div style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, flex: 1, minWidth: 280 }}>
-          <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600, marginBottom: 16 }}>
-            By difficulty tier
-          </div>
-          {catalog.byTier.length === 0 && <div style={{ color: BRAND.inkSoft, fontSize: 14 }}>No exercises.</div>}
-          {catalog.byTier.map((t) => (
-            <div key={t.tier} title={`Tier ${t.tier}: ${t.n} exercises`} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 9, cursor: 'help' }}>
-              <div style={{ width: 70, fontSize: 13, color: BRAND.ink }}>Tier {t.tier}</div>
-              <div style={{ flex: 1, height: 8, background: BRAND.line, borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: `${(t.n / maxTier) * 100}%`, height: '100%', background: BRAND.amber }} />
-              </div>
-              <div style={{ width: 32, textAlign: 'right', fontSize: 13, color: BRAND.inkSoft }}>{t.n}</div>
-            </div>
-          ))}
-        </div>
-      </div>
     </>
   );
 }
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string; code?: string }> }) {
   const { tab, code } = await searchParams;
-  const active: 'dashboard' | 'system' | 'support' = tab === 'system' ? 'system' : tab === 'support' ? 'support' : 'dashboard';
+  const active: 'dashboard' | 'support' = tab === 'support' ? 'support' : 'dashboard';
   return (
     <main style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: 'ui-sans-serif, system-ui' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700 }}>LangPass</div>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
         <Tabs active={active} />
-        {active === 'system' ? await SystemTab() : active === 'support' ? await SupportTab(code) : await DashboardTab()}
+        {active === 'support' ? await SupportTab(code) : await DashboardTab()}
       </div>
     </main>
   );

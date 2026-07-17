@@ -14,9 +14,9 @@ const inter = Inter({
 });
 
 const SITE = 'https://langpass.app';
-const TITLE = 'LangPass — Recovery, one good day at a time';
+const TITLE = 'LangPass — Lock the apps. Learn the language.';
 const DESCRIPTION =
-  'A private AI injury-recovery companion. Tap where it hurts, check in each morning, get a plan tuned to how you feel — and keep your comeback as a beautifully illustrated journey. Your data never leaves your phone.';
+  'LangPass locks the apps that eat your nights until you have done your language reps. Five quick exercises buy 30 minutes of phone time, then the wall comes back. A real Screen Time fare gate on your worst habit — German, Spanish, Portuguese and more.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -26,14 +26,14 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   keywords: [
-    'injury recovery app',
-    'rehab exercises',
-    'physical therapy companion',
-    'pain tracking',
-    'recovery plan',
-    'tennis elbow exercises',
-    'AI physiotherapy',
-    'sports injury rehab',
+    'language learning app',
+    'learn German',
+    'app blocker',
+    'screen time',
+    'focus app',
+    'digital wellbeing',
+    'vocabulary trainer',
+    'CEFR German A1',
   ],
   alternates: { canonical: '/' },
   openGraph: {
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: 'LangPass',
     title: TITLE,
     description: DESCRIPTION,
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'LangPass — recovery, one good day at a time' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'LangPass — lock the apps, learn the language.' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,11 +56,11 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   appleWebApp: { title: 'LangPass' },
-  category: 'health & fitness',
+  category: 'education',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#F6F3EE',
+  themeColor: '#0a0a0c',
 };
 
 export default function RootLayout({

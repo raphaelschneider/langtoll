@@ -1,75 +1,17 @@
-// LangPass landing page — the app's editorial quiet-luxury language, on the web.
-// Server-rendered, CSS-only motion (aurora drift, entrance fades), real app screenshots.
+// LangPass landing page — the "fare gate" pass metaphor, ported from the app's
+// approved landing design. Dark graphite + acid lime, Fraunces + Inter (loaded in
+// layout.tsx as CSS vars). Server-rendered; the pricing card reads the live price
+// from MySQL, everything else is static CSS/JS motion.
 /* eslint-disable @next/next/no-img-element */
 import { getPricing, fmtPrice, yearlyDiscountPct, type Pricing } from '@/lib/settings';
+import { Pass } from '@/components/landing/Pass';
+import { ScrollReveals } from '@/components/landing/ScrollReveals';
+import { HeroRotator } from '@/components/landing/HeroRotator';
 
 // Statically cached, re-rendered in the background at most once an hour — so the MySQL price
 // read happens ~once/hour regardless of traffic, never per visitor. The admin "Save" calls
 // revalidatePath('/'), so price edits show up immediately rather than waiting for the window.
 export const revalidate = 3600;
-
-const C = {
-  ink: '#14110E',
-  soft: '#6B6258',
-  faint: '#9C9488',
-  paper: '#F6F3EE',
-  surface: '#FFFFFF',
-  line: '#E7E1D8',
-  accent: '#C8553D',
-  pine: '#2E5E4E',
-};
-
-function Phone({ src, alt, tilt = 0, poster }: { src: string; alt: string; tilt?: number; poster?: string }) {
-  return (
-    <div className="phone" style={{ transform: `rotate(${tilt}deg)` }}>
-      {src.endsWith('.mp4') ? (
-        // Muted + playsInline are what allow autoplay on iOS Safari; the poster (the video's own
-        // first frame) paints instantly and stands in entirely for users with autoplay off.
-        <video src={src} poster={poster} autoPlay muted loop playsInline preload="metadata" aria-label={alt} />
-      ) : (
-        <img src={src} alt={alt} loading="lazy" decoding="async" />
-      )}
-    </div>
-  );
-}
-
-function Feature({
-  overline,
-  title,
-  body,
-  bullets,
-  shot,
-  poster,
-  flip = false,
-}: {
-  overline: string;
-  title: string;
-  body: string;
-  bullets: string[];
-  shot: string;
-  poster?: string;
-  flip?: boolean;
-}) {
-  return (
-    <section className={`feature ${flip ? 'flip' : ''}`}>
-      <div className="feature-text">
-        <div className="overline">{overline}</div>
-        <h3 className="serif">{title}</h3>
-        <p>{body}</p>
-        <ul>
-          {bullets.map((b) => (
-            <li key={b}>
-              <span className="tick">✓</span> {b}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="feature-shot">
-        <Phone src={shot} alt={title} poster={poster} tilt={flip ? 2.5 : -2.5} />
-      </div>
-    </section>
-  );
-}
 
 function buildJsonLd(p: Pricing) {
   return {
@@ -77,11 +19,11 @@ function buildJsonLd(p: Pricing) {
     '@type': 'MobileApplication',
     name: 'LangPass',
     operatingSystem: 'iOS',
-    applicationCategory: 'HealthApplication',
+    applicationCategory: 'EducationalApplication',
     description:
-      'A private AI injury-recovery companion. Tap where it hurts, check in daily, get adaptive exercise plans, and keep your comeback as an illustrated journey — all stored on your device.',
+      'LangPass locks the apps that eat your nights until you have done your language reps. Five quick exercises buy 30 minutes of phone time, then the wall comes back — a real Screen Time fare gate on your worst habit. German, Spanish, Portuguese and more.',
     offers: [
-      { '@type': 'Offer', price: '0', priceCurrency: p.currency, name: 'Free' },
+      { '@type': 'Offer', price: '0', priceCurrency: p.currency, name: 'Free (the lock, forever)' },
       { '@type': 'Offer', price: String(p.monthly), priceCurrency: p.currency, name: 'LangPass Plus (monthly)' },
       { '@type': 'Offer', price: String(p.yearly), priceCurrency: p.currency, name: 'LangPass Plus (yearly)' },
     ],
@@ -94,515 +36,380 @@ export default async function Home() {
   const pricing = await getPricing();
   const discount = yearlyDiscountPct(pricing);
   return (
-    <main className="page">
+    <div className="wrap">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(pricing)) }} />
       <style>{css}</style>
 
-      {/* aurora */}
-      <div className="aurora" aria-hidden />
-
-      {/* nav */}
-      <header className="nav">
-        <a className="brand" href="#top">
-          <img src="/logo.png" alt="LangPass" />
-          <span>LangPass</span>
-        </a>
-        <nav>
-          <a href="#features">Features</a>
-          <a href="#memory">Memory</a>
-          <a href="#privacy">Privacy</a>
-          <a href="#pricing">Pricing</a>
-        </nav>
-        <a className="cta-pill" href="#download">
-          Get the app
-        </a>
-      </header>
+      <nav>
+        <span className="brand">
+          <svg className="brand-mark" width="30" height="23" viewBox="0 0 40 30" aria-hidden="true">
+            <rect x="1" y="4" width="38" height="22" rx="6" fill="#c8ff4d" />
+            <circle cx="1" cy="15" r="4" fill="#0a0a0c" />
+            <circle cx="39" cy="15" r="4" fill="#0a0a0c" />
+            <rect x="9" y="11" width="22" height="2.6" rx="1.3" fill="#0a0a0c" opacity="0.72" />
+            <rect x="9" y="17.4" width="14" height="2.6" rx="1.3" fill="#0a0a0c" opacity="0.72" />
+          </svg>
+          <span className="wordmark">langpass</span>
+        </span>
+        <a className="nav-cta" href="#pricing">Get early access</a>
+      </nav>
 
       {/* hero */}
-      <section className="hero" id="top">
-        <div className="hero-text">
-          <div className="overline">Injury recovery, reimagined</div>
-          <h1 className="serif">
-            Recovery,
-            <br />
-            one good day
-            <br />
-            at a time.
-          </h1>
-          <p className="lede">
-            A thoughtful recovery companion for anyone with a body that&apos;s mending — from a first
-            gentle comeback to a seasoned athlete&apos;s return. Check in each morning, get a plan tuned
-            to how you actually feel, and watch your comeback become a story worth keeping.
-          </p>
-          <div className="hero-ctas" id="download">
-            <a className="store-badge" href="#" aria-label="Coming soon to the App Store">
-              <span aria-hidden="true">
-                <svg viewBox="0 0 384 512" width="22" height="22" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C61.2 141.4 0 184.6 0 272.3c0 25.9 4.7 52.7 14.2 80.3 12.6 36.3 58.1 125.5 105.6 124.1 24.8-.6 42.3-17.6 74.6-17.6 31.3 0 47.5 17.6 74.6 17.6 47.9-.7 89.1-81.7 101.1-118.1-64.3-30.3-61-88.8-61-89.9zm-44.7-179c21.6-25.7 19.6-49.1 19-57.6-19.1 1.1-41.2 13-53.8 27.7-13.9 15.8-22.1 35.3-20.3 56.8 20.7 1.6 39.5-9 55.1-26.9z" /></svg>
-              </span>
-              <span>
-                <small>Coming soon to the</small>
-                App Store
-              </span>
-            </a>
-            <a className="ghost-link" href="#equipment">
-              See how it works ↓
-            </a>
-          </div>
-          <div className="chips">
-            <span>Private by design</span>
-            <span>AI recovery companion</span>
-            <span>Your journey, illustrated</span>
+      <header className="hero">
+        <div>
+          <p className="eyebrow">Your apps, behind a fare gate</p>
+          <HeroRotator />
+          <div className="cta-row">
+            <a className="btn btn-lime" href="#pricing">Start my free week</a>
+            <a className="btn btn-ghost" href="#how">See the deal</a>
           </div>
         </div>
-        <div className="hero-shot">
-          <div className="phone" style={{ transform: 'rotate(-4deg)' }}>
-            {/* Above the fold: preload in full; the poster (its own first frame) paints first. */}
-            <video
-              src="/shots/hero-scroll.mp4"
-              poster="/shots/hero-scroll-poster.jpg"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-label="LangPass Today — your daily recovery conversation"
-            />
+
+        <Pass />
+      </header>
+
+      {/* how it works */}
+      <section id="how">
+        <div className="sec-head reveal">
+          <p className="eyebrow">The deal</p>
+          <h2>Your dopamine now charges a fare.</h2>
+          <p className="lede">
+            Every unlock costs exercises. Not a daily quota you can binge past at 8am — a toll,
+            every single time.
+          </p>
+        </div>
+        <div className="stubs">
+          <div className="stub reveal">
+            <span className="label">Fare gate · 1</span>
+            <h3>Your feeds get a lock</h3>
+            <p>
+              Pick the apps that steal your time. iOS shields them at the system level — a real
+              Screen Time wall, not a nag you can swipe away.
+            </p>
+          </div>
+          <div className="stub reveal">
+            <span className="label">Fare gate · 2</span>
+            <h3>90 seconds of practice pays it</h3>
+            <p>
+              Real vocabulary and sentences in the language you&apos;re learning, tuned to your level.
+              Answer well and your pass prints — stamped, numbered, with your name on it.
+            </p>
+          </div>
+          <div className="stub reveal">
+            <span className="label">Fare gate · 3</span>
+            <h3>The pass expires</h3>
+            <p>
+              30 minutes later the wall is back — even if you never reopen LangPass. Scroll enough
+              and you&apos;ll be fluent out of spite.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* equipment — straight after the hero */}
-      <section className="equipment" id="equipment">
-        <div className="overline">Your gear, your rules</div>
-        <h2 className="serif">A band on the floor, or a full rack.</h2>
-        <p className="equipment-lede">
-          Tell LangPass what you have to hand — nothing but bodyweight, a single resistance band, a
-          couple of dumbbells, or the run of a gym — and every plan is built from only that. Never a
-          movement you can&apos;t set up, never a machine you don&apos;t own. Travelling with empty
-          hands today? Say so, and tomorrow bends to match.
-        </p>
-        <div className="equipment-duo">
-          <figure>
-            <Phone src="/shots/equipment-home.jpg?v=250705d" alt="A band exercise built for home" tilt={-2.5} />
-            <figcaption>At home, with a single band</figcaption>
+      {/* screenshots */}
+      <section>
+        <div className="sec-head reveal">
+          <p className="eyebrow">The app</p>
+          <h2>Built like a members club, not a classroom.</h2>
+          <p className="lede">Graphite glass, one acid accent, and a ticket you&apos;ll actually want to earn.</p>
+        </div>
+        <div className="shots">
+          <figure className="phone reveal" style={{ margin: 0 }}>
+            <img
+              src="/shots/pass-home.png"
+              alt="LangPass home screen: an expired pass with the fare — 5 exercises for 30 minutes of phone time"
+              loading="lazy"
+              decoding="async"
+            />
+            <figcaption>The pass — expired, stamped, waiting.</figcaption>
           </figure>
-          <figure>
-            <Phone src="/shots/equipment-gym.jpg?v=250705b" alt="A machine exercise built for the gym" tilt={2.5} />
-            <figcaption>At the gym, on the machines</figcaption>
+          <figure className="phone reveal" style={{ margin: 0 }}>
+            <img
+              src="/shots/practice.png"
+              alt="LangPass practice session: a German vocabulary exercise with voice playback"
+              loading="lazy"
+              decoding="async"
+            />
+            <figcaption>Practice — with a voice that speaks your language.</figcaption>
           </figure>
         </div>
       </section>
 
       {/* features */}
-      <div id="features">
-        <Feature
-          overline="Every morning"
-          title="A companion who actually listens."
-          body="Meet Sage! Tell him you slept badly, that your elbow's at a five, that you've only got a band today, that you're motivated anyway — and today's plan bends around you. Gentle on the hard days, ambitious on the good ones."
-          bullets={['Daily check-ins in your own words', 'Plans that adapt to pain, energy, sleep & the gear you have', 'Just talk — no forms, no tapping required']}
-          shot="/shots/companion-scroll.mp4"
-          poster="/shots/companion-scroll-poster.jpg"
-        />
-        {/* memory — the headline new capability: Sage remembers, and follows up unprompted */}
-        <section className="memory" id="memory">
-          <div className="memory-text">
-            <div className="overline">Sage remembers</div>
-            <h3 className="serif">A coach who never forgets you.</h3>
-            <p>
-              Tell Sage something once and it sticks — the single band you train with, the desk days
-              that set your elbow off, the eccentric lowers that finally helped. Every plan quietly
-              bends around what Sage knows, so you never repeat yourself.
-            </p>
-            <p className="memory-follow">
-              And when you mention Saturday tennis with Jonas, Sage writes it down — then opens the
-              week with <em>&ldquo;how did tennis go — did the elbow speak up afterwards?&rdquo;</em>{' '}
-              It&apos;s the difference between an app and someone in your corner.
-            </p>
-            <div className="mem-chips">
-              <span className="mc mc-pref">♥ Prefers short morning sessions</span>
-              <span className="mc mc-trig">⚡ Elbow flares at the keyboard</span>
-              <span className="mc mc-help">✓ Eccentric lowers helped</span>
-              <span className="mc mc-fu">🗓 Ask about Saturday tennis</span>
-            </div>
-            <p className="memory-note">Every memory lives only on your phone — yours to see, and to make Sage forget with one tap.</p>
+      <section>
+        <div className="sec-head reveal">
+          <p className="eyebrow">What&apos;s inside</p>
+          <h2>Small sessions. Serious curriculum.</h2>
+        </div>
+        <div className="grid">
+          <div className="card reveal">
+            <span className="tag">OS-level</span>
+            <h3>A wall, not a widget</h3>
+            <p>Apple Screen Time shielding. Your apps stay locked until the fare is paid — no snooze, no swipe-away.</p>
           </div>
-          <div className="memory-shot">
-            <Phone src="/shots/memories.jpg?v=250705" alt="What Sage remembers about you — kept on your device" tilt={2.5} />
+          <div className="card reveal">
+            <span className="tag">A1 → B1</span>
+            <h3>Levels that grow with you</h3>
+            <p>Curated packs from first words to real conversations, per language. Onboarding reads your difficulty and starts you at the right one.</p>
           </div>
-        </section>
+          <div className="card reveal">
+            <span className="tag">7 drill types</span>
+            <h3>Not just word-matching</h3>
+            <p>Multiple choice, gendered-article drills, typed answers with accent-forgiving grading, cloze, sentence building, listening.</p>
+          </div>
+          <div className="card reveal">
+            <span className="tag">Voice</span>
+            <h3>Spoken natively, out loud</h3>
+            <p>Every word and sentence read aloud on-device in the target language. Tap anything to hear it. Toggle it off in the library, obviously.</p>
+          </div>
+          <div className="card reveal">
+            <span className="tag">Offline</span>
+            <h3>Works with no signal</h3>
+            <p>The whole curriculum ships in the app. Your 7am unlock doesn&apos;t care about your reception.</p>
+          </div>
+          <div className="card reveal">
+            <span className="tag plus">Plus</span>
+            <h3>AI topic packs &amp; strict mode</h3>
+            <p>Generate vocabulary for your world — brunch orders, match-day slang, your job&apos;s jargon. And strict mode: no skips, no mercy.</p>
+          </div>
+        </div>
+      </section>
 
-        <Feature
-          overline="Where it hurts"
-          title="Show it. Don't spell it."
-          body="Tap the exact muscle on a sculpted, rotatable body. LangPass surfaces the common conditions for that spot — to explore, never a diagnosis. Left and right detected automatically."
-          bullets={['Anatomically real, individually tappable muscles', 'Female and male models', 'Pain and duration, captured in seconds']}
-          shot="/shots/bodymap.jpg?v=250705"
-          flip
-        />
-        <Feature
-          overline="The journey"
-          title="A recovery worth remembering."
-          body="Every day becomes a page: your words, your numbers, and studio illustrations generated for your exercises and your anatomy. A magazine of your comeback — one journey per injury."
-          bullets={['Magazine-style timeline', 'Art generated for your movements', 'Milestones woven into the story']}
-          shot="/shots/journey.jpg"
-        />
-        <Feature
-          overline="Momentum"
-          title="Progress you can feel."
-          body="Streaks that forgive, badges earned by showing up, and pain trends that quietly prove it's working — even when it doesn't feel like it."
-          bullets={['Streak ring & weekly rhythm', 'Badges for grit, not vanity', 'Pain trending, week over week']}
-          shot="/shots/progress.jpg?v=250708"
-          flip
-        />
-      </div>
-
-      {/* privacy band */}
-      <section className="privacy" id="privacy">
-        <div className="privacy-inner">
-          <div className="overline">Private by design</div>
-          <h2 className="serif">Your recovery is your business.</h2>
-          <div className="privacy-grid">
-            <div>
-              <h4>Lives on your phone</h4>
-              <p>Your injuries, your whole program, daily plans, progress, pain logs and conversations are stored only on your device. No account. No cloud profile. Nothing to leak — and since we never ask for your email, we couldn&apos;t send you a marketing blast if we wanted to.</p>
-            </div>
-            <div>
-              <h4>AI on a need-to-know basis</h4>
-              <p>Each reply sends only the slice of context it needs, and we keep none of it — our servers count tokens, never store words. Nothing you share is ever used to train AI models. Everything Sage knows about you lives on your phone, not in a data center: the intelligence visits, your story stays home.</p>
-            </div>
-            <div>
-              <h4>Yours to take or destroy</h4>
-              <p>Back up everything as a file you keep — sealed, if you choose, with a passphrase only you know (we couldn&apos;t open it if we tried) — and restore it on a new phone. Or erase it all in one tap. Deleting really deletes — no soft-delete flag, no thirty-day grace period, no copy quietly lingering. When it&apos;s gone, it&apos;s gone for good.</p>
-            </div>
+      {/* versus */}
+      <section>
+        <div className="sec-head reveal">
+          <p className="eyebrow">Why it works</p>
+          <h2>Every other app begs you to open it.</h2>
+          <p className="lede">LangPass owns the door to the apps you were opening anyway. Motivation is optional by design.</p>
+        </div>
+        <div className="versus">
+          <div className="card them reveal">
+            <h3>The streak-and-guilt model</h3>
+            <ul>
+              <li>Needs you to remember it exists</li>
+              <li>One sad owl notification, easily ignored</li>
+              <li>Daily goal binged at breakfast, forgotten by lunch</li>
+            </ul>
           </div>
-          <a className="ghost-link" href="/privacy">
-            Read the privacy policy →
-          </a>
+          <div className="card us reveal">
+            <h3>The fare-gate model</h3>
+            <ul>
+              <li>Interrupts you at peak craving — 10× a day</li>
+              <li>Re-locks automatically. There is no &ldquo;done for today&rdquo;</li>
+              <li>Your worst habit becomes your study schedule</li>
+            </ul>
+          </div>
         </div>
       </section>
 
       {/* pricing */}
-      <section className="pricing" id="pricing">
-        <div className="overline">Pricing</div>
-        <h2 className="serif">Start free. Stay because it works.</h2>
-        <p className="pricing-sub">Every recovery starts with <strong>7 days of full LangPass+</strong>, on us — the whole progressive program, unlimited Sage, every illustration. Keep it, or drop to Free anytime. No card to try it.</p>
-        <div className="cards">
-          <div className="card">
-            <h4>Free</h4>
-            <div className="price">$0</div>
-            <ul>
-              <li>One tracked injury</li>
-              <li>A basic daily plan from your check-in</li>
-              <li>Up to three exercises a day</li>
-              <li>Bodyweight exercises only</li>
-              <li>Live chat with Sage is LangPass+</li>
-              <li>Tap-the-muscle injury finder</li>
-              <li>Journey, streaks & badges</li>
-            </ul>
+      <section id="pricing">
+        <div className="sec-head reveal">
+          <p className="eyebrow">Fare table</p>
+          <h2>Week one is the full experience. Free.</h2>
+        </div>
+        <div className="price-card reveal">
+          <div>
+            <h3>LangPass Plus</h3>
+            <p className="fine">
+              Custom fares, strict mode, the full curriculum, AI topic packs, and every language we
+              add. The lock itself stays free forever.
+            </p>
           </div>
-          <div className="card plus">
-            {discount > 0 && <div className="ribbon">🎁 LAUNCH DEAL</div>}
-            <h4>LangPass Plus</h4>
-            <div className="price">
-              {fmtPrice(pricing.monthly, pricing.currency)}<small>/mo</small> <span className="or">or</span>{' '}
-              {fmtPrice(pricing.yearly, pricing.currency)}<small>/yr</small>
+          <div className="price-side">
+            <div className="price-num">
+              {fmtPrice(pricing.yearly, pricing.currency)}<small> / year</small>
             </div>
-            {discount > 0 && <div className="plus-save">🎁 Launch deal — save {discount}% on the annual plan!</div>}
-            <ul>
-              <li>Your progressive program — adapts &amp; advances as you heal</li>
-              <li>Unlimited daily conversations</li>
-              <li>Your full daily plan — no exercise cap</li>
-              <li>Unlimited injuries &amp; journeys</li>
-              <li>Plans for any equipment — bands, dumbbells, full gym</li>
-              <li>Studio illustrations for every exercise</li>
-              <li>Full history &amp; weekly trends</li>
-            </ul>
+            <p className="fine">
+              or {fmtPrice(pricing.monthly, pricing.currency)}/mo
+              {discount > 0 ? ` — save ${discount}% on the year` : ''}. 7-day free trial, no card to start.
+            </p>
+            <div className="cta-row" style={{ justifyContent: 'flex-end' }}>
+              <a className="btn btn-lime" href="mailto:hello@langpass.app?subject=Early%20access">Get early access</a>
+            </div>
           </div>
         </div>
-        <p className="pt-anchor">
-          Most people see a physio just a handful of times — often <strong>$50–150 a visit</strong>.
-          LangPass Plus is there every day in between, for <strong>{fmtPrice(pricing.monthly, pricing.currency)} a month</strong>.
-        </p>
       </section>
 
-      {/* final cta */}
-      <section className="final">
-        <h2 className="serif">Be kind to your body.</h2>
-        <p>It&apos;s the only one doing the recovering.</p>
-        <a className="store-badge dark" href="#download">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 384 512" width="22" height="22" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C61.2 141.4 0 184.6 0 272.3c0 25.9 4.7 52.7 14.2 80.3 12.6 36.3 58.1 125.5 105.6 124.1 24.8-.6 42.3-17.6 74.6-17.6 31.3 0 47.5 17.6 74.6 17.6 47.9-.7 89.1-81.7 101.1-118.1-64.3-30.3-61-88.8-61-89.9zm-44.7-179c21.6-25.7 19.6-49.1 19-57.6-19.1 1.1-41.2 13-53.8 27.7-13.9 15.8-22.1 35.3-20.3 56.8 20.7 1.6 39.5-9 55.1-26.9z" /></svg>
-          </span>
-          <span>
-            <small>Coming soon to the</small>
-            App Store
-          </span>
-        </a>
-      </section>
-
-      {/* footer */}
-      <footer className="footer">
-        <div>
-          <img src="/logo.png" alt="" width={28} height={28} style={{ borderRadius: 7 }} />
-          <span>© 2026 LangPass</span>
-        </div>
-        <nav>
-          <a href="/privacy">Privacy</a>
-          <a href="/terms">Terms</a>
-        </nav>
-        <p>LangPass is a wellness companion, not a medical device. Always consult a healthcare professional about injuries.</p>
+      <footer>
+        <span className="wordmark">langpass</span>
+        <span className="fine">
+          Learn first, scroll later. · German, Spanish &amp; Portuguese — new languages every month ·{' '}
+          <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · © 2026 LangPass
+        </span>
       </footer>
-    </main>
+
+      <ScrollReveals />
+    </div>
   );
 }
 
 const css = `
-:root { color-scheme: light; }
+:root {
+  --bg: #0a0a0c;
+  --surface: #141417;
+  --surface2: #1b1b1f;
+  --ink: #f2f2f4;
+  --soft: #a6a6b0;
+  --faint: #63636e;
+  --line: rgba(255, 255, 255, 0.09);
+  --lime: #c8ff4d;
+  --lime-soft: rgba(200, 255, 77, 0.12);
+  --lime-line: rgba(200, 255, 77, 0.4);
+  --lime-text: #c8ff4d;
+  --on-lime: #101403;
+  --coral: #ff5c7a;
+  --coral-soft: rgba(255, 92, 122, 0.12);
+  --glow: 0 0 48px rgba(200, 255, 77, 0.25);
+  --radius: 24px;
+}
 * { box-sizing: border-box; }
-.page {
-  font-family: var(--font-inter), ui-sans-serif, system-ui;
-  background: ${C.paper};
-  color: ${C.ink};
-  overflow-x: hidden;
-  position: relative;
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-inter), -apple-system, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
-.serif { font-family: var(--font-fraunces), Georgia, serif; font-weight: 600; letter-spacing: -0.5px; }
+.wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+h1, h2, h3 { font-family: var(--font-fraunces), Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
 
-/* aurora — a slow, living warm gradient across the whole page (two layers drifting apart) */
-.aurora {
-  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
-  background:
-    radial-gradient(48% 22% at 84% 3%, rgba(200,85,61,0.20), transparent 70%),
-    radial-gradient(44% 20% at 6% 13%, rgba(217,154,78,0.17), transparent 70%),
-    radial-gradient(60% 28% at 50% 44%, rgba(232,167,147,0.12), transparent 72%),
-    radial-gradient(50% 24% at 92% 80%, rgba(46,94,78,0.11), transparent 72%);
-  animation: drift1 30s ease-in-out infinite alternate;
-}
-.aurora::after {
-  content: ""; position: absolute; inset: 0;
-  background:
-    radial-gradient(40% 18% at 16% 62%, rgba(200,85,61,0.10), transparent 70%),
-    radial-gradient(46% 22% at 80% 34%, rgba(217,154,78,0.10), transparent 72%);
-  animation: drift2 42s ease-in-out infinite alternate;
-}
-@keyframes drift1 { from { transform: translate3d(0,0,0) } to { transform: translate3d(0,-24px,0) } }
-@keyframes drift2 { from { transform: translate3d(0,0,0) } to { transform: translate3d(22px,18px,0) } }
-@keyframes rise { from { opacity: 0; transform: translateY(22px) } to { opacity: 1; transform: none } }
-@keyframes float { from { transform: translateY(0) } to { transform: translateY(-14px) } }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--lime-text); }
+.label { font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); }
 
-/* nav */
-.nav {
-  position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 14px clamp(20px, 5vw, 56px);
-  background: rgba(246,243,238,0.72); backdrop-filter: blur(14px);
-  border-bottom: 1px solid ${C.line};
-}
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: ${C.ink};
-  font-family: var(--font-fraunces), serif; font-weight: 600; font-size: 20px; }
-.brand img { width: 34px; height: 34px; border-radius: 9px; }
-.nav nav { display: flex; gap: 26px; }
-.nav nav a { color: ${C.soft}; text-decoration: none; font-size: 14.5px; }
-.nav nav a:hover { color: ${C.ink}; }
-.cta-pill {
-  background: ${C.accent}; color: #fff; text-decoration: none; font-size: 14.5px; font-weight: 500;
-  padding: 10px 18px; border-radius: 999px; transition: transform .15s ease, box-shadow .15s ease;
-}
-.cta-pill:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(200,85,61,0.35); }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 0 0; }
+.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand-mark { display: block; flex: none; }
+.wordmark { font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-size: 22px; letter-spacing: -0.01em; }
+.nav-cta { font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 9px 18px; transition: border-color 0.2s ease; }
+.nav-cta:hover { border-color: var(--lime-line); color: var(--lime-text); }
 
-/* hero */
-.hero {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center;
-  gap: clamp(24px, 5vw, 64px);
-  padding: clamp(48px, 8vw, 110px) clamp(20px, 6vw, 72px) clamp(40px, 6vw, 90px);
-  max-width: 1200px; margin: 0 auto;
-}
-.hero-text { animation: rise .8s ease both; }
-.overline { font-size: 12px; letter-spacing: 2.2px; text-transform: uppercase; color: ${C.accent}; font-weight: 700; }
-.hero h1 { font-size: clamp(44px, 6.5vw, 76px); line-height: 1.02; margin: 14px 0 20px; }
-.lede { font-size: clamp(16px, 1.6vw, 19px); line-height: 1.65; color: ${C.soft}; max-width: 480px; margin: 0 0 28px; }
-.hero-ctas { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.store-badge {
-  display: inline-flex; align-items: center; gap: 10px;
-  background: ${C.ink}; color: #fff; text-decoration: none;
-  padding: 11px 20px; border-radius: 14px; line-height: 1.15;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-.store-badge:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(20,17,14,0.3); }
-.store-badge span:first-child { font-size: 26px; }
-.store-badge small { display: block; font-size: 10.5px; opacity: .75; }
-.store-badge span:last-child { font-size: 17px; font-weight: 600; }
-.ghost-link { color: ${C.ink}; text-decoration: none; font-size: 15px; border-bottom: 1px solid ${C.line}; padding-bottom: 2px; }
-.chips { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
-.chips span {
-  font-size: 12.5px; color: ${C.soft};
-  background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 4px 14px rgba(59,42,26,0.06);
-  padding: 7px 13px; border-radius: 999px;
-}
+/* minmax(0, …) so a longer rotating headline can't steal width from the pass column (the
+   pass stays put; only the text wraps). */
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 56px; align-items: center; padding: 96px 0 72px; }
+.hero h1 { font-size: clamp(44px, 6.4vw, 76px); line-height: 1.02; letter-spacing: -0.02em; margin: 0; }
+/* Every headline variant occupies the SAME grid cell, so the headline box is always as
+   tall as the tallest variant — the sub-paragraph and CTAs below never move as it rotates.
+   Shorter variants are vertically centered in that reserved box so they're not stuck at the
+   top with a gap underneath. */
+.hero-headline { display: grid; align-items: center; }
+.hero-headline > h1 { grid-area: 1 / 1; }
+.hero .sub { margin-top: 24px; font-size: 18px; color: var(--soft); max-width: 34em; }
+.hero .sub strong { color: var(--ink); font-weight: 600; }
+/* Fixed-width, centered slot: the rotating language word can never reflow or wrap the
+   sentence, so the sub stays pinned in place. */
+.hero .sub .lang { display: inline-block; width: 5.9em; text-align: center; white-space: nowrap; color: var(--lime-text); font-weight: 600; }
+/* cross-fade the rotating headline + the language word (in sync) */
+.hero-rot { transition: opacity 0.36s ease; }
+@media (prefers-reduced-motion: reduce) { .hero-rot { transition: none; } }
+.cta-row { display: flex; gap: 14px; margin-top: 36px; flex-wrap: wrap; }
+.btn { display: inline-block; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 999px; padding: 15px 28px; transition: transform 0.15s ease; }
+.btn:active { transform: scale(0.97); }
+.btn-lime { background: var(--lime); color: var(--on-lime); box-shadow: var(--glow); }
+.btn-ghost { border: 1px solid var(--line); color: var(--ink); }
+.btn-ghost:hover { border-color: var(--lime-line); }
 
-/* phone frame — gently floating for soft depth (the tilt stays via the inline transform) */
-.hero-shot { display: flex; justify-content: center; animation: float 8s ease-in-out infinite alternate; }
-.phone {
-  background: ${C.ink}; border-radius: 46px; padding: 11px;
-  box-shadow: 0 36px 90px rgba(59,42,26,0.26), 0 8px 24px rgba(59,42,26,0.14);
-  width: min(330px, 80vw); transition: transform .3s ease;
+.pass-scene { perspective: 1100px; }
+.pass { position: relative; overflow: hidden; cursor: pointer; background: linear-gradient(160deg, var(--surface2), var(--surface)); border: 1px solid var(--lime-line); border-radius: var(--radius); padding: 26px; box-shadow: var(--glow); transform-style: preserve-3d; transition: transform 0.2s ease, border-color 0.4s ease, box-shadow 0.4s ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .pass.print { animation: print 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @keyframes print { from { opacity: 0; transform: translateY(120px) rotate(-4deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
+  .pass::after { content: ''; position: absolute; top: -60%; bottom: -60%; left: -30%; width: 80px; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.09), transparent); transform: rotate(18deg); animation: shimmer 3.4s ease-in-out 1.4s infinite; }
+  @keyframes shimmer { 0% { left: -30%; } 55% { left: 115%; } 100% { left: 115%; } }
 }
-.phone:hover { transform: rotate(0deg) translateY(-6px) !important; }
-.phone img, .phone video { width: 100%; display: block; border-radius: 36px; }
+/* expired state — chip, timer, track shift to coral/faint; shimmer stops; stamp slams in */
+.pass.expired { border-color: var(--coral-soft); box-shadow: 0 0 40px rgba(255, 92, 122, 0.18); }
+.pass.expired::after { animation: none; opacity: 0; }
+.pass-head { display: flex; align-items: center; justify-content: space-between; }
+.chip { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--lime-text); background: var(--lime-soft); border: 1px solid var(--lime-line); border-radius: 999px; padding: 5px 12px; transition: color 0.4s ease, background 0.4s ease, border-color 0.4s ease; }
+.chip .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--lime-text); transition: background 0.4s ease; }
+.pass.expired .chip { color: var(--coral); background: var(--coral-soft); border-color: var(--coral-soft); }
+.pass.expired .chip .dot { background: var(--coral); }
+.pass-timer { font-family: var(--font-fraunces), Georgia, serif; font-weight: 600; font-size: 58px; line-height: 1; color: var(--lime-text); margin-top: 22px; font-variant-numeric: tabular-nums; transition: color 0.4s ease; }
+.pass.expired .pass-timer { color: var(--faint); }
+.pass-note { color: var(--soft); font-size: 15px; margin-top: 4px; }
+.pass-track { height: 4px; border-radius: 2px; background: var(--line); margin-top: 20px; overflow: hidden; }
+.pass-fill { height: 100%; border-radius: 2px; background: var(--lime); transition: width 0.5s ease, background 0.4s ease; }
+.pass.expired .pass-fill { background: var(--faint); }
+.stamp {
+  position: absolute; top: 46%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-13deg) scale(1.5);
+  font-family: var(--font-fraunces), Georgia, serif; font-weight: 700;
+  font-size: 44px; letter-spacing: 0.06em; color: var(--coral);
+  border: 3px solid var(--coral); border-radius: 10px; padding: 4px 18px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pass.expired .stamp { opacity: 0.92; transform: translate(-50%, -50%) rotate(-13deg) scale(1); }
+@media (prefers-reduced-motion: reduce) { .stamp { transition: opacity 0.2s ease; transform: translate(-50%, -50%) rotate(-13deg); } }
+.pass-passenger { margin-top: 18px; }
+.pass-passenger .who { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; margin-top: 2px; }
+.perf { display: flex; gap: 6px; margin: 20px 0; }
+.perf i { flex: 1; height: 1px; background: var(--line); }
+.pass-stub { display: flex; align-items: flex-end; justify-content: space-between; }
+.barcode { display: flex; align-items: flex-end; gap: 2px; height: 24px; }
+.barcode i { background: var(--soft); opacity: 0.85; height: 100%; }
+.stub-meta { text-align: right; font-size: 12px; color: var(--faint); letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
 
-/* features */
-.feature {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
-  gap: clamp(24px, 5vw, 72px);
-  padding: clamp(40px, 6vw, 84px) clamp(20px, 6vw, 72px);
-  max-width: 1140px; margin: 0 auto;
-}
-.feature.flip .feature-text { order: 2; }
-.feature.flip .feature-shot { order: 1; }
-.feature h3 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; margin: 12px 0 14px; }
-.feature p { color: ${C.soft}; line-height: 1.7; font-size: 16.5px; max-width: 440px; }
-.feature ul { list-style: none; padding: 0; margin: 22px 0 0; }
-.feature li { color: ${C.ink}; margin-bottom: 10px; font-size: 15.5px; }
-.tick { color: ${C.pine}; font-weight: 700; margin-right: 8px; }
-.feature-shot { display: flex; justify-content: center; animation: float 9s ease-in-out infinite alternate; }
-.feature.flip .feature-shot { animation-duration: 10.5s; }
+section { padding: 72px 0; border-top: 1px solid var(--line); }
+.sec-head { max-width: 620px; }
+.sec-head h2 { font-size: clamp(30px, 4vw, 44px); line-height: 1.1; letter-spacing: -0.015em; margin-top: 14px; }
+.sec-head .lede { color: var(--soft); margin-top: 16px; font-size: 17px; }
 
-/* equipment */
-.equipment { max-width: 1040px; margin: 0 auto; padding: clamp(40px, 6vw, 84px) clamp(20px, 6vw, 72px); text-align: center; position: relative; z-index: 1; }
-.equipment h2 { font-size: clamp(30px, 4vw, 48px); margin: 12px 0 16px; }
-.equipment-lede { color: ${C.soft}; line-height: 1.7; font-size: 16.5px; max-width: 560px; margin: 0 auto 44px; }
-.equipment-duo { display: flex; justify-content: center; gap: clamp(24px, 5vw, 64px); flex-wrap: wrap; }
-.equipment-duo figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; animation: float 8.5s ease-in-out infinite alternate; }
-.equipment-duo figure:nth-child(2) { animation-duration: 10s; }
-.equipment-duo figcaption { font-size: 12.5px; letter-spacing: 1.8px; text-transform: uppercase; color: ${C.faint}; font-weight: 700; }
+.stubs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+.stub { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 24px; position: relative; }
+.stub .label { color: var(--lime-text); }
+.stub h3 { font-size: 21px; margin-top: 10px; }
+.stub p { color: var(--soft); font-size: 15px; margin-top: 8px; }
 
-/* memory — the standout new capability: a warm panel, chips that read like real memories */
-.memory {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center;
-  gap: clamp(24px, 5vw, 72px);
-  max-width: 1140px; margin: clamp(22px, 3.5vw, 44px) auto;
-  padding: clamp(36px, 5vw, 72px) clamp(24px, 6vw, 64px);
-  background: linear-gradient(135deg, rgba(46,94,78,0.06), rgba(200,85,61,0.06));
-  border: 1px solid ${C.line}; border-radius: 32px;
-  box-shadow: 0 28px 72px rgba(59,42,26,0.10);
-}
-.memory h3 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; margin: 12px 0 14px; }
-.memory p { color: ${C.soft}; line-height: 1.7; font-size: 16.5px; max-width: 460px; }
-.memory-follow { margin-top: 14px; }
-.memory-follow em { color: ${C.pine}; font-style: italic; }
-.mem-chips { display: flex; flex-wrap: wrap; gap: 9px; margin: 24px 0 18px; }
-.mc {
-  font-size: 13px; padding: 8px 13px; border-radius: 999px; font-weight: 500;
-  background: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.7);
-  box-shadow: 0 4px 14px rgba(59,42,26,0.06); color: ${C.ink};
-}
-.mc-pref { color: ${C.accent}; } .mc-trig { color: #B0781F; }
-.mc-help { color: ${C.pine}; } .mc-fu { color: ${C.pine}; border-color: rgba(46,94,78,0.3); background: rgba(46,94,78,0.08); }
-.memory-note { font-size: 14px !important; color: ${C.faint} !important; margin-top: 4px; }
-.memory-shot { display: flex; justify-content: center; animation: float 9.5s ease-in-out infinite alternate; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 24px; transition: border-color 0.2s ease; }
+.card:hover { border-color: var(--lime-line); }
+.card h3 { font-size: 19px; }
+.card p { color: var(--soft); font-size: 14.5px; margin-top: 8px; }
+.card .tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--lime-text); border: 1px solid var(--lime-line); border-radius: 999px; padding: 3px 9px; margin-bottom: 12px; text-transform: uppercase; }
+.card .tag.plus { color: var(--coral); border-color: var(--coral-soft); background: var(--coral-soft); }
 
-/* privacy — a light raised panel matching the rest of the page, with soft sub-cards */
-.privacy {
-  background: ${C.surface}; color: ${C.ink}; position: relative; z-index: 1;
-  max-width: 1140px; margin: clamp(22px, 3.5vw, 44px) auto;
-  border: 1px solid ${C.line}; border-radius: 32px;
-  box-shadow: 0 28px 72px rgba(59,42,26,0.10);
-}
-.privacy-inner { max-width: 1040px; margin: 0 auto; padding: clamp(40px, 6vw, 76px) clamp(20px, 6vw, 60px); }
-.privacy h2 { font-size: clamp(34px, 4.4vw, 54px); margin: 12px 0 36px; }
-.privacy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 3vw, 28px); margin-bottom: 36px; }
-.privacy-grid > div {
-  background: ${C.paper}; border: 1px solid ${C.line};
-  border-radius: 18px; padding: clamp(18px, 2.4vw, 26px);
-}
-.privacy h4 { font-size: 17px; margin: 0 0 8px; color: ${C.ink}; }
-.privacy p { color: ${C.soft}; line-height: 1.65; font-size: 15px; margin: 0; }
+.shots { display: flex; gap: 40px; justify-content: center; margin-top: 48px; flex-wrap: wrap; }
+.phone { width: 290px; border-radius: 42px; padding: 10px; background: var(--surface2); border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45); }
+.phone img { width: 100%; display: block; border-radius: 34px; }
+.phone figcaption { text-align: center; font-size: 13px; color: var(--faint); padding: 12px 0 6px; }
 
-/* pricing */
-.pricing { max-width: 1040px; margin: 0 auto; padding: clamp(56px, 7vw, 96px) clamp(20px, 6vw, 72px); text-align: center; position: relative; z-index: 1; }
-.pricing h2 { font-size: clamp(32px, 4vw, 48px); margin: 12px 0 14px; }
-.pricing-sub { max-width: 600px; margin: 0 auto 38px; color: ${C.soft}; font-size: 16px; line-height: 1.6; }
-.pricing-sub strong { color: ${C.accent}; font-weight: 600; }
-.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 380px)); gap: 24px; justify-content: center; }
-.card {
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(10px) saturate(1.06); -webkit-backdrop-filter: blur(10px) saturate(1.06);
-  border: 1px solid rgba(255,255,255,0.65); border-radius: 24px;
-  padding: 32px 28px; text-align: left; position: relative;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 18px 50px rgba(59,42,26,0.10);
-  transition: transform .3s ease, box-shadow .3s ease;
-}
-.card:hover { transform: translateY(-6px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 30px 70px rgba(59,42,26,0.16); }
-.card h4 { margin: 0 0 6px; font-size: 15px; letter-spacing: 1.4px; text-transform: uppercase; color: ${C.soft}; }
-.card .price { font-family: var(--font-fraunces), serif; font-size: 38px; font-weight: 600; margin-bottom: 18px; }
-.card .price small { font-size: 17px; color: ${C.soft}; font-weight: 400; }
-.card .or { font-size: 15px; color: ${C.faint}; font-family: var(--font-inter); }
-.card ul { list-style: none; padding: 0; margin: 0; }
-.card li { padding: 9px 0; border-top: 1px solid ${C.line}; color: ${C.soft}; font-size: 15px; }
-.card.plus {
-  border: 1px solid rgba(200,85,61,0.45);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 28px 70px rgba(200,85,61,0.18);
-  transform: translateY(-10px) scale(1.015);
-  overflow: hidden; /* clips the diagonal launch-deal ribbon into a corner banner */
-}
-.card.plus:hover { transform: translateY(-16px) scale(1.015); }
-.card.plus h4 { color: ${C.accent}; }
-.pt-anchor { max-width: 560px; margin: 36px auto 0; color: ${C.soft}; font-size: 16px; line-height: 1.6; }
-.pt-anchor strong { color: ${C.ink}; font-weight: 600; }
-.plus-save { margin-top: -8px; margin-bottom: 14px; color: ${C.accent}; font-size: 13.5px; font-weight: 600; }
-/* festive diagonal corner banner */
-.ribbon {
-  position: absolute; top: 26px; right: -52px; width: 190px;
-  text-align: center; transform: rotate(45deg);
-  background: linear-gradient(135deg, ${C.accent}, #E8A24A);
-  color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .4px;
-  padding: 7px 0; box-shadow: 0 6px 16px rgba(200,85,61,0.30);
-}
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 44px; }
+.versus .card h3 { font-size: 18px; }
+.versus .them h3 { color: var(--soft); }
+.versus ul { margin: 12px 0 0; padding: 0 0 0 18px; color: var(--soft); font-size: 14.5px; }
+.versus li { margin-top: 6px; }
+.versus .us { border-color: var(--lime-line); }
 
-/* final */
-.final { text-align: center; padding: clamp(48px, 7vw, 90px) 20px; position: relative; z-index: 1; }
-.final h2 { font-size: clamp(34px, 4.6vw, 56px); margin: 0 0 8px; }
-.final p { color: ${C.soft}; margin: 0 0 28px; font-size: 17px; }
+.price-card { margin-top: 44px; border-radius: var(--radius); border: 1px solid var(--lime-line); background: var(--surface); padding: 36px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: center; box-shadow: var(--glow); }
+.price-card h3 { font-size: 26px; }
+.price-card .fine { color: var(--soft); font-size: 15px; margin-top: 12px; }
+.price-num { font-family: var(--font-fraunces), Georgia, serif; font-size: 52px; font-weight: 600; line-height: 1; }
+.price-num small { font-size: 17px; color: var(--soft); font-family: var(--font-inter), sans-serif; font-weight: 400; }
+.price-side { text-align: right; }
 
-/* footer */
-.footer {
-  border-top: 1px solid ${C.line};
-  padding: 28px clamp(20px, 6vw, 72px) 40px;
-  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-  color: ${C.soft}; font-size: 13.5px; position: relative; z-index: 1;
-}
-.footer > div { display: flex; align-items: center; gap: 10px; }
-.footer nav { display: flex; gap: 18px; }
-.footer a { color: ${C.soft}; text-decoration: none; }
-.footer a:hover { color: ${C.ink}; }
-.footer p { margin: 0; flex-basis: 100%; color: ${C.faint}; }
+footer { border-top: 1px solid var(--line); padding: 40px 0 64px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; }
+footer .fine { color: var(--faint); font-size: 13px; }
+footer .fine a { text-decoration: none; border-bottom: 1px solid var(--line); }
+footer .fine a:hover { color: var(--lime-text); }
 
-/* responsive */
-@media (max-width: 880px) {
-  .nav nav { display: none; }
-  .hero { grid-template-columns: 1fr; text-align: center; padding-top: 44px; }
-  .lede { margin-inline: auto; }
-  .hero-ctas, .chips { justify-content: center; }
-  .feature { grid-template-columns: 1fr; text-align: center; }
-  .feature.flip .feature-text { order: 1; }
-  .feature.flip .feature-shot { order: 2; }
-  .feature p { margin-inline: auto; }
-  .feature ul { display: inline-block; text-align: left; }
-  .memory { grid-template-columns: 1fr; text-align: center; }
-  .memory-text { order: 1; }
-  .memory-shot { order: 2; }
-  .memory p { margin-inline: auto; }
-  .mem-chips { justify-content: center; }
-  .privacy-grid { grid-template-columns: 1fr; }
-  .cards { grid-template-columns: minmax(0, 420px); }
-  .card.plus { transform: none; }
-}
+/* Visible by default (no-JS safe). ScrollReveals only arms below-the-fold elements. */
+.reveal.armed { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.armed.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal.armed { opacity: 1; transform: none; transition: none; } }
 
-@media (prefers-reduced-motion: reduce) {
-  .aurora, .aurora::after, .hero-shot, .feature-shot, .equipment-duo figure, .memory-shot { animation: none !important; }
+:focus-visible { outline: 2px solid var(--lime-text); outline-offset: 3px; border-radius: 6px; }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-top: 56px; gap: 44px; }
+  .stubs, .grid, .versus { grid-template-columns: 1fr; }
+  .price-card { grid-template-columns: 1fr; }
+  .price-side { text-align: left; }
 }
 `;

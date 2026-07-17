@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-export type UsageKind = 'image' | 'chat';
+export type UsageKind = 'image' | 'chat' | 'topics';
 
 /** Fire-and-forget: record one billable call. Never throws. */
 export async function logUsage(
@@ -109,7 +109,7 @@ export async function getUsageByDay(days = 30): Promise<UsageDay[]> {
     const rows = await query(
       `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS day,
               SUM(kind = 'image') AS images,
-              SUM(kind = 'chat')  AS chats,
+              SUM(kind IN ('chat', 'topics')) AS chats,
               COALESCE(SUM(tokens_in), 0)  AS tin,
               COALESCE(SUM(tokens_out), 0) AS tout
        FROM usage_log

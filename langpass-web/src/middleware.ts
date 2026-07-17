@@ -36,7 +36,7 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export function middleware(req: NextRequest): NextResponse {
-  const { pathname, hostname } = req.nextUrl;
+  const { pathname } = req.nextUrl;
   const isAppSurface = pathname.startsWith('/api') || pathname.startsWith(ADMIN_PATH);
 
   // Landing deployment: hide the app surface (404 — these routes shouldn't exist here).
@@ -52,7 +52,10 @@ export function middleware(req: NextRequest): NextResponse {
 
   // Admin Basic-auth gate (only reached on the API deployment).
   if (pathname.startsWith(ADMIN_PATH)) {
-    if (hostname === 'localhost' || hostname === '127.0.0.1') return NextResponse.next();
+    // Dev-only bypass. Deliberately NOT hostname-based: behind a reverse proxy the hostname the
+    // middleware sees is proxy/header-controlled and read as localhost in production, which left
+    // the dashboard wide open.
+    if (process.env.NODE_ENV === 'development') return NextResponse.next();
 
     const user = process.env.ADMIN_USER || '';
     const pass = process.env.ADMIN_PASSWORD || '';
@@ -61,9 +64,13 @@ export function middleware(req: NextRequest): NextResponse {
     const header = req.headers.get('authorization') || '';
     const [scheme, encoded] = header.split(' ');
     if (scheme === 'Basic' && encoded) {
-      // atob is available in the edge runtime; Buffer is not.
-      const [u, p] = atob(encoded).split(':');
-      if (safeEqual(u ?? '', user) && safeEqual(p ?? '', pass)) return NextResponse.next();
+      // atob is available in the edge runtime; Buffer is not. Split on the FIRST colon only —
+      // RFC 7617 allows colons in the password.
+      const decoded = atob(encoded);
+      const sep = decoded.indexOf(':');
+      const u = sep < 0 ? decoded : decoded.slice(0, sep);
+      const p = sep < 0 ? '' : decoded.slice(sep + 1);
+      if (safeEqual(u, user) && safeEqual(p, pass)) return NextResponse.next();
     }
     return unauthorized();
   }
