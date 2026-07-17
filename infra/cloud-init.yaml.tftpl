@@ -1,0 +1,139 @@
+#cloud-config
+# Provisions the LangPass single-droplet stack: MySQL, the Next.js service on :3000, and
+# Caddy serving HTTPS (auto Let's Encrypt) for ${api_domain}. No inline schema here -
+# langpass-web self-heals its tables on first DB use (src/lib/schema.ts); cloud-init only
+# creates the database + user. Secrets note: the DB password rendered here is visible in
+# DO droplet metadata - acceptable for test stage.
+package_update: true
+packages:
+  - mysql-server
+  - rsync
+  - debian-keyring
+  - debian-archive-keyring
+  - apt-transport-https
+
+write_files:
+  # systemd unit for the Next.js service (code arrives via deploy.sh)
+  - path: /etc/systemd/system/langpass-web.service
+    content: |
+      [Unit]
+      Description=LangPass service (Next.js)
+      After=network.target mysql.service
+
+      [Service]
+      WorkingDirectory=/opt/langpass/web
+      EnvironmentFile=/etc/langpass/env
+      ExecStart=/usr/bin/npm run start
+      Restart=always
+      RestartSec=3
+      User=langpass
+      Group=langpass
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # Caddy: automatic HTTPS (Let's Encrypt) for the API host, reverse-proxy to :3000.
+  # flush_interval -1 disables buffering so streamed AI responses flow in real time.
+  - path: /etc/caddy/Caddyfile
+    content: |
+      ${api_domain} {
+        reverse_proxy 127.0.0.1:3000 {
+          flush_interval -1
+        }
+        request_body {
+          max_size 10MB
+        }
+      }
+
+      # Public landing + legal site (privacy, terms). Same Next.js app on :3000, different
+      # host -- Caddy gets a separate Let's Encrypt cert once ${web_domain} resolves here.
+      # The www -> apex redirect only applies to the prod apex (dev uses a subdomain).
+      ${web_domain} {
+        reverse_proxy 127.0.0.1:3000 {
+          flush_interval -1
+        }
+      }
+%{ if is_prod ~}
+      www.${web_domain} {
+        redir https://${web_domain}{uri} permanent
+      }
+%{ endif ~}
+
+  # app environment (deploy.sh appends OPENAI_API_KEY / REVENUECAT_SECRET_KEY so they
+  # never touch DO metadata)
+  - path: /etc/langpass/env
+    permissions: "0600"
+    content: |
+      NODE_ENV=production
+      PORT=3000
+      DB_HOST=127.0.0.1
+      DB_USER=langpass
+      DB_PASSWORD=${db_password}
+      DB_NAME=langpass
+      LANDING_URL=https://${web_domain}
+      # App Attest (API gate). Leave ATTEST_ENFORCE off until the native client ships, then set
+      # ATTEST_ENFORCE=1. APPLE_TEAM_ID + a long random ATTEST_HMAC_SECRET are required to enforce.
+      # ATTEST_ALLOW_DEV=1 accepts development-environment attestations (dev builds); 0 for prod.
+      APP_BUNDLE_ID=com.langpass.app
+      APPLE_TEAM_ID=${apple_team_id}
+      ATTEST_HMAC_SECRET=${attest_hmac_secret}
+      ATTEST_ALLOW_DEV=${is_prod ? 0 : 1}
+      ATTEST_ENFORCE=0
+      # Admin dashboard (/langpass-adm) is HTTP Basic-auth gated, fail-closed while these are
+      # unset. Set both (ssh, edit this file, systemctl restart langpass-web) before using it.
+      # ADMIN_USER=
+      # ADMIN_PASSWORD=
+
+  # Nightly MySQL dump (03:12, 7-day retention). On-box only - the prod droplet's weekly DO
+  # snapshot carries it off-box; the honeymoon/attest ledger is what makes this worth having.
+  - path: /etc/cron.d/langpass-db-backup
+    content: |
+      12 3 * * * root /usr/local/bin/langpass-db-backup >/dev/null 2>&1
+  - path: /usr/local/bin/langpass-db-backup
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      mkdir -p /var/backups/mysql
+      mysqldump --single-transaction langpass | gzip > "/var/backups/mysql/langpass-$(date +%F).sql.gz"
+      find /var/backups/mysql -name 'langpass-*.sql.gz' -mtime +7 -delete
+
+runcmd:
+  # 2G swap so `next build` never OOMs next to MySQL
+  - fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  # Node 22 (NodeSource)
+  - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+  - apt-get install -y nodejs
+
+  # app user + dirs
+  - useradd --system --create-home --shell /usr/sbin/nologin langpass || true
+  - mkdir -p /opt/langpass/web
+  - chown -R langpass:langpass /opt/langpass /etc/langpass
+
+  # MySQL: database + app user (localhost only). Tables self-heal from the app on first use.
+  - systemctl enable --now mysql
+  - mysql -e "CREATE DATABASE IF NOT EXISTS langpass;"
+  - mysql -e "CREATE USER IF NOT EXISTS 'langpass'@'localhost' IDENTIFIED BY '${db_password}'; GRANT ALL PRIVILEGES ON langpass.* TO 'langpass'@'localhost'; FLUSH PRIVILEGES;"
+
+  # Caddy (automatic HTTPS). It obtains a cert once api_domain resolves to this droplet.
+  # NOTE: our Caddyfile is written above (write_files), which means the caddy package's
+  # postinst would hit an interactive dpkg conffile prompt and FAIL under cloud-init.
+  # --force-confold keeps our file without prompting; DEBIAN_FRONTEND=noninteractive is
+  # belt-and-braces. (Without this the caddy user/service never gets created -> 217/USER.)
+  - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confold" caddy
+  - systemctl enable --now caddy
+
+  # firewall (80 needed for the ACME HTTP challenge + HTTP-to-HTTPS redirect)
+  - ufw allow OpenSSH
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+
+  # service registered; starts after the first deploy ships code
+  - systemctl daemon-reload
+  - systemctl enable langpass-web
