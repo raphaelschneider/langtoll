@@ -1,0 +1,24 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib/db/connection.ts",
+    "lib/db/queries.ts",
+    "lib/db/schema.ts",
+    "lib/db/index.ts",
+    "lib/telemetry.ts",
+    "components/ui/Celebration.tsx"
+  ]
+}
