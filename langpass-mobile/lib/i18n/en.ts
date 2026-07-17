@@ -150,7 +150,7 @@ export const en = {
   'settings.generate': 'Generate',
   'settings.generating': 'Generating…',
   'settings.topicHint': 'Generates a custom vocabulary pack for your level and mixes it into your sessions.',
-  'settings.noKey': 'Demo mode — set EXPO_PUBLIC_OPENAI_API_KEY for real AI generation.',
+  'settings.noKey': 'Demo mode — set EXPO_PUBLIC_API_URL for real AI generation.',
   'settings.aiError': 'Generation failed — try again.',
   'settings.trainTopic': 'Mix into sessions',
   'settings.reset': 'Reset profile (dev)',

@@ -97,7 +97,7 @@ export default function Settings() {
     setGenerating(true);
     setAiError(false);
     try {
-      const pack = await generateTopicPack(topic, state.level);
+      const pack = await generateTopicPack(topic, state.level, state.learningLanguage);
       updateProfile({ customTopic: pack, useCustomTopic: true });
       setTopicDraft('');
     } catch {
@@ -122,6 +122,9 @@ export default function Settings() {
           style={{ flex: 1 }}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
         >
           {/* plan */}
           <Section title={t('settings.plan')}>

@@ -141,7 +141,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'settings.generate': 'Erstellen',
   'settings.generating': 'Wird erstellt…',
   'settings.topicHint': 'Erstellt ein eigenes Vokabelpaket für dein Niveau und mischt es in deine Sessions.',
-  'settings.noKey': 'Demo-Modus — setze EXPO_PUBLIC_OPENAI_API_KEY für echte KI-Generierung.',
+  'settings.noKey': 'Demo-Modus — setze EXPO_PUBLIC_API_URL für echte KI-Generierung.',
   'settings.aiError': 'Erstellen fehlgeschlagen — versuch es noch mal.',
   'settings.trainTopic': 'In Sessions mischen',
   'settings.reset': 'Profil zurücksetzen (Dev)',

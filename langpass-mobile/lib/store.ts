@@ -246,6 +246,20 @@ export function applyEntitlement(active: boolean): void {
     setState({ plan: 'plus', planSince: state.planSince ?? new Date().toISOString() });
   } else {
     setState({ plan: 'free', planSince: null });
+    // Lapse edge: a former Plus user may be blocking multiple apps / a whole category / websites,
+    // which the free tier doesn't allow. A Family Controls selection is opaque, so we can't trim it
+    // to one app — we clear it and let them re-pick a single app. No-op in stub/sim (counts null) and
+    // for legit free selections (≤1 app). Lazy require avoids a store↔blocking/plans import cycle.
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const blocking = require('./blocking');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { selectionExceedsFreeLimit } = require('./plans');
+      const counts = blocking.selectionCounts?.();
+      if (counts && selectionExceedsFreeLimit(counts, false)) blocking.clearSelection?.();
+    } catch {
+      // native module absent (Expo Go / simulator) — nothing to enforce
+    }
   }
 }
 

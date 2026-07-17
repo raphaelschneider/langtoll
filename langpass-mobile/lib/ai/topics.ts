@@ -1,26 +1,25 @@
 // AI topic packs — the LingoLock-style "generate your own content" feature,
-// behind a clean seam. generateTopicPack() asks an OpenAI-compatible endpoint
-// for level-appropriate German vocab + cloze sentences on a user topic and
-// returns a validated CustomTopic ready for lib/pack to merge into training.
+// behind a clean seam. generateTopicPack() asks OUR backend proxy
+// (langpass-web /api/topics/generate) for level-appropriate vocab + cloze
+// sentences on a user topic and returns a validated CustomTopic ready for
+// lib/pack to merge into training.
 //
-// Config (all optional — without a key the seam falls back to a bundled demo
-// pack so the whole flow is testable in the simulator):
-//   EXPO_PUBLIC_OPENAI_API_KEY   the API key
-//   EXPO_PUBLIC_OPENAI_BASE_URL  default https://api.openai.com/v1
-//   EXPO_PUBLIC_OPENAI_MODEL     default gpt-4o-mini
+// The OpenAI key lives ONLY on the server now — the app never sees it. The
+// proxy also meters usage, caches each (language, level, topic) once for
+// everyone, and enforces the paid-feature gates (App Attest + entitlement).
 //
-// Note for later: shipping a raw API key inside a mobile bundle is fine for
-// dev, wrong for production — the real build should call a tiny proxy we own
-// (also lets us meter usage per subscription).
-import type { Level, VocabItem, SentenceItem, PartOfSpeech } from '@/content/german/types';
+// Config:
+//   EXPO_PUBLIC_API_URL   base URL of the backend, e.g. https://api.langpass.app
+//                         Without it the seam falls back to a bundled demo pack
+//                         so the flow is still demonstrable fully offline.
+import type { Level, VocabItem, SentenceItem, PartOfSpeech, Language } from '@/content/german/types';
 import type { CustomTopic } from '@/lib/store';
+import { getDeviceId } from '@/lib/db/queries';
 
-const API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY ?? null;
-const BASE_URL = process.env.EXPO_PUBLIC_OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
-const MODEL = process.env.EXPO_PUBLIC_OPENAI_MODEL ?? 'gpt-4o-mini';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 
 export function aiAvailable(): boolean {
-  return !!API_KEY;
+  return !!API_BASE;
 }
 
 const POS_VALUES: PartOfSpeech[] = [
@@ -29,29 +28,6 @@ const POS_VALUES: PartOfSpeech[] = [
 
 function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'topic';
-}
-
-function prompt(topic: string, level: Level, vocabCount: number, sentenceCount: number): string {
-  return `You are a German language curriculum author. Create learning content for the topic "${topic}" at CEFR level ${level}.
-
-Return ONLY a JSON object with this exact shape (no markdown, no commentary):
-{
-  "vocab": [
-    { "de": "die Rechnung", "en": ["the bill", "the check"], "pos": "noun", "category": "<topic slug>" }
-  ],
-  "sentences": [
-    { "de": "Können wir bitte die Rechnung haben?", "en": "Can we have the bill, please?", "clozeIndex": 4, "clozeDistractors": ["Speisekarte", "Küche", "Gabel"] }
-  ]
-}
-
-Rules:
-- Exactly ${vocabCount} vocab items and ${sentenceCount} sentences.
-- Nouns MUST include the article (der/die/das) in "de".
-- "pos" is one of: ${POS_VALUES.join(', ')}.
-- "en" is an array; the first entry is the canonical translation.
-- "clozeIndex" is the 0-based index (splitting "de" on spaces) of the most interesting word to blank — never an article.
-- "clozeDistractors" are 3 wrong-but-plausible German words for that blank.
-- Difficulty, word choice and grammar must match ${level}. Umlauts and ß written properly.`;
 }
 
 interface RawVocab {
@@ -111,43 +87,51 @@ function validate(topic: string, level: Level, data: any): CustomTopic {
 }
 
 /**
- * Generate a topic pack. With no API key configured this resolves to a small
- * bundled demo pack (so the product flow is demonstrable offline).
+ * Generate a topic pack via the backend proxy. With no EXPO_PUBLIC_API_URL
+ * configured this resolves to a small bundled demo pack (so the product flow
+ * is demonstrable offline). On a real backend error it throws, so the caller
+ * can surface a retry state.
  */
 export async function generateTopicPack(
   topic: string,
   level: Level,
-  opts: { vocabCount?: number; sentenceCount?: number } = {}
+  language: Language = 'de'
 ): Promise<CustomTopic> {
-  const vocabCount = opts.vocabCount ?? 14;
-  const sentenceCount = opts.sentenceCount ?? 4;
-
-  if (!API_KEY) return demoPack(topic, level);
+  if (!API_BASE) return demoPack(topic, level);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   try {
-    const res = await fetch(`${BASE_URL}/chat/completions`, {
+    const res = await fetch(`${API_BASE}/api/topics/generate`, {
       method: 'POST',
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
+        // Rate-limit bucket + future support lookup. The paid gates (App Attest,
+        // entitlement) add their own headers once the native client ships; until
+        // then they're dormant server-side, so this call succeeds without them.
+        'x-device-id': safeDeviceId(),
       },
-      body: JSON.stringify({
-        model: MODEL,
-        response_format: { type: 'json_object' },
-        messages: [{ role: 'user', content: prompt(topic, level, vocabCount, sentenceCount) }],
-        temperature: 0.4,
-      }),
+      body: JSON.stringify({ topic, language, level }),
     });
-    if (!res.ok) throw new Error(`OpenAI ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    if (res.status === 429) throw new Error('Too many requests — give it a minute and try again.');
+    if (res.status === 402 || res.status === 403) throw new Error('AI topics are a Plus feature.');
+    if (!res.ok) throw new Error(`topics ${res.status}: ${(await res.text()).slice(0, 160)}`);
     const json = await res.json();
-    const content = json?.choices?.[0]?.message?.content;
-    if (typeof content !== 'string') throw new Error('OpenAI returned no content');
-    return validate(topic, level, JSON.parse(content));
+    if (!json?.pack) throw new Error('backend returned no pack');
+    // Re-validate defensively: the server already validates, but a stale cache
+    // row or shape drift shouldn't crash the trainer.
+    return validate(topic, level, json.pack);
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+function safeDeviceId(): string {
+  try {
+    return getDeviceId();
+  } catch {
+    return 'unknown';
   }
 }
 

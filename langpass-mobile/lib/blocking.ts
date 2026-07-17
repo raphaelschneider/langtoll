@@ -107,6 +107,40 @@ export function hasSelection(): boolean {
   }
 }
 
+/** Counts of what the persisted selection blocks (apps / categories / websites), without
+ *  revealing their identities. Returns null in stub mode or when there's no selection —
+ *  callers treat null as "can't tell", so enforcement only kicks in on a real device. */
+export function selectionCounts(): { applicationCount: number; categoryCount: number; webDomainCount: number } | null {
+  const m = native();
+  if (!m || !Device.isDevice) return null;
+  try {
+    const selection = m.getFamilyActivitySelectionId(SELECTION_ID);
+    if (!selection) return null;
+    const meta = m.activitySelectionMetadata({ familyActivitySelection: selection });
+    if (!meta) return null;
+    return {
+      applicationCount: meta.applicationCount ?? 0,
+      categoryCount: meta.categoryCount ?? 0,
+      webDomainCount: meta.webDomainCount ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Clear the persisted app selection (and lift any active shield). Used to discard a
+ *  selection a free user isn't allowed to keep. No-op in stub mode. */
+export function clearSelection(): void {
+  const m = native();
+  if (!m || !Device.isDevice) return;
+  try {
+    m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langpass:clearSelection');
+    m.setFamilyActivitySelectionId({ id: SELECTION_ID, familyActivitySelection: null });
+  } catch (e) {
+    console.warn('[blocking] clearSelection failed', e);
+  }
+}
+
 /** Whether the real shield is currently applied (native only). */
 export function isShieldActive(): boolean {
   const m = native();
