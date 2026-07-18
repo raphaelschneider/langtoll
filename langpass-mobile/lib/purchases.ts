@@ -14,6 +14,21 @@ import { PLUS_ENTITLEMENT, PRODUCT_IDS, PRICES, type Period } from './plans';
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
 
+// The mock GRANTS PLUS FOR FREE. That is correct in dev and catastrophic in a
+// shipped build: with no key, purchasesEnabled() is false, so every user would
+// silently receive Plus and no purchase would ever reach Apple. Nothing in the
+// simulator surfaces this — the paywall renders identically either way.
+//
+// So the mock is allowed ONLY where dev tooling is: __DEV__, or a Release build
+// explicitly flagged with EXPO_PUBLIC_DEV_TOOLS=1 (the on-device test builds).
+// A real production build has neither, so it cannot mock — it fails loudly instead.
+const MOCK_ALLOWED = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
+
+/** True when a release build is missing its key — purchases are impossible. */
+export function purchasesMisconfigured(): boolean {
+  return !MOCK_ALLOWED && !purchasesEnabled();
+}
+
 /** A normalized package the paywall renders, whether from the store or the mock. */
 export interface PlusPackage {
   period: Period;
@@ -134,6 +149,8 @@ export type PurchaseResult = 'purchased' | 'cancelled' | 'error';
 /** Buy a package. In mock mode, immediately grants Plus so the flow is testable. */
 export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
   if (!purchasesEnabled() || !pkg.raw) {
+    // Never hand out Plus in a build that isn't dev tooling — see MOCK_ALLOWED.
+    if (!MOCK_ALLOWED) return 'error';
     applyEntitlement(true); // mock: grant Plus locally
     return 'purchased';
   }

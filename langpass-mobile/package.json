@@ -9,7 +9,8 @@
     "ios:device": "RCT_USE_PREBUILT_RNCORE=0 expo run:ios --device",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "android": "expo run:android"
+    "android": "expo run:android",
+    "eas-build-pre-install": "node scripts/check-release-config.js"
   },
   "dependencies": {
     "@expo-google-fonts/fraunces": "^0.4.1",
