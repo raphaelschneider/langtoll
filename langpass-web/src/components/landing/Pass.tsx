@@ -7,13 +7,15 @@
 //   • Tap / Enter / Space toggles it too (keyboard-accessible).
 // The barcode and perforation are real markup and the countdown is React state, so
 // nothing here depends on a fragile inline <script>.
+// All ticket wording comes in as `copy` (COPY[locale].pass) so the card is localized too.
 import { useEffect, useRef, useState } from 'react';
+import type { LandingCopy } from '@/lib/landing-copy';
 
 const BARCODE = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 1, 2, 2, 1, 4, 1, 3, 1, 2, 1, 1, 3];
 const START = 29 * 60 + 37; // 29:37
 const TOTAL = 30 * 60;
 
-export function Pass() {
+export function Pass({ copy }: { copy: LandingCopy['pass'] }) {
   const [expired, setExpired] = useState(false);
   const [left, setLeft] = useState(START);
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -95,25 +97,25 @@ export function Pass() {
             toggle();
           }
         }}
-        aria-label={expired ? 'Expired pass' : 'Active pass — hover to see it expire'}
+        aria-label={expired ? copy.ariaExpired : copy.ariaActive}
       >
         <div className="pass-head">
-          <span className="label">LangPass</span>
-          <span className="chip"><span className="dot" />{expired ? 'EXPIRED' : 'ACTIVE'}</span>
+          <span className="label">{copy.brandLabel}</span>
+          <span className="chip"><span className="dot" />{expired ? copy.stateExpired : copy.stateActive}</span>
         </div>
         <div className="pass-timer">{timeStr}</div>
-        <p className="pass-note">{expired ? 'do five reps to print another' : 'of phone time left'}</p>
+        <p className="pass-note">{expired ? copy.noteExpired : copy.noteActive}</p>
         <div className="pass-track"><div className="pass-fill" style={{ width: `${fillPct}%` }} /></div>
         <div className="pass-passenger">
-          <span className="label">Passenger</span>
-          <div className="who">YOU</div>
+          <span className="label">{copy.passengerLabel}</span>
+          <div className="who">{copy.passengerName}</div>
         </div>
         <div className="perf">{Array.from({ length: 12 }).map((_, i) => <i key={i} />)}</div>
         <div className="pass-stub">
           <div className="barcode">{BARCODE.map((w, i) => <i key={i} style={{ width: w }} />)}</div>
-          <div className="stub-meta">DE · A1<br />№ 0047</div>
+          <div className="stub-meta">{copy.stubMeta}<br />№ 0047</div>
         </div>
-        <span className="stamp" aria-hidden>EXPIRED</span>
+        <span className="stamp" aria-hidden>{copy.stamp}</span>
       </div>
     </div>
   );

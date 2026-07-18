@@ -44,10 +44,29 @@ Rules:
 - Nouns MUST include the article in "de" where the language has them.
 - "pos" is one of: ${POS.join(', ')}.
 - "en" is an array; first entry is the canonical English translation.
-- "clozeIndex" is the 0-based index (splitting "de" on spaces) of the most interesting word to blank — never an article.
-- "clozeDistractors" are 3 wrong-but-plausible ${langName} words for that blank.
+- "de" MUST be a COMPLETE, natural sentence. Do NOT put blanks, underscores, dashes or ellipses in it — the app creates the blank itself from clozeIndex. A sentence containing "___" is rejected.
+- "clozeIndex" is the 0-based index (splitting "de" on spaces) of the most interesting word to blank — never an article, and never the final word (its trailing punctuation would give the answer away).
+- "clozeDistractors" are 3 wrong-but-plausible ${langName} words that could grammatically replace the word at clozeIndex. They must be the same part of speech as it, must NOT include the correct word itself, and must NOT be articles.
 - Difficulty, vocabulary and grammar must match ${level}. Use proper accents/diacritics.`;
 }
+
+// Blank markers the model has been seen to emit inside "de" — underscores,
+// ellipses, or a bare run of dashes.
+const HAS_BLANK = /_{2,}|\u2026|\.{3,}|(?:^|\s)-{2,}(?:\s|$)/;
+
+// Articles across the six languages we teach. Blanking one tests nothing, and
+// offering one as a distractor for a noun slot is worse.
+const ARTICLES = new Set([
+  'der','die','das','den','dem','des','ein','eine','einen','einem','einer','eines',
+  'el','la','los','las','un','una','unos','unas',
+  'le','les','un','une','des','du',
+  'il','lo','gli','i','uno',
+  'o','a','os','as','um','uma',
+  'the',
+]);
+
+const bare = (w: string) => w.replace(/^[¿¡"'(]+|[.,!?;:"')]+$/g, '').toLowerCase();
+const isArticle = (w: string) => ARTICLES.has(bare(w));
 
 function validate(topic: string, language: string, level: string, data: any) {
   const id = slug(topic);
@@ -68,14 +87,36 @@ function validate(topic: string, language: string, level: string, data: any) {
   }
   for (const [i, raw] of (data?.sentences ?? []).entries()) {
     if (typeof raw?.de !== 'string' || typeof raw?.en !== 'string') continue;
-    const words = raw.de.trim().split(/\s+/);
+    const de = raw.de.trim();
+    // The model sometimes returns a sentence that ALREADY contains the blank.
+    // That produced a double-blanked prompt, distractors for the wrong slot, and
+    // TTS reading the bare punctuation aloud ("… in die Punkt"). Drop it — a
+    // missing sentence is recoverable, a nonsense exercise is not.
+    if (HAS_BLANK.test(de)) continue;
+    const words = de.split(/\s+/);
+    if (words.length < 3) continue;
     let ci = typeof raw.clozeIndex === 'number' ? Math.floor(raw.clozeIndex) : -1;
-    if (ci < 0 || ci >= words.length) ci = Math.floor(words.length / 2);
+    // Never the final word: its trailing punctuation isn't on the distractors,
+    // so the answer is visually obvious.
+    const usable = (n: number) => n >= 0 && n < words.length - 1 && !isArticle(words[n]);
+    if (!usable(ci)) {
+      const alt = words.findIndex((_w: string, n: number) => usable(n));
+      if (alt < 0) continue;
+      ci = alt;
+    }
+    const answer = bare(words[ci]);
     const distractors = Array.isArray(raw.clozeDistractors)
-      ? raw.clozeDistractors.filter((d: any) => typeof d === 'string' && d.trim()).slice(0, 3)
+      ? Array.from(
+          new Set(
+            raw.clozeDistractors
+              .filter((d: any) => typeof d === 'string' && d.trim())
+              .map((d: string) => d.trim())
+              .filter((d: string) => bare(d) !== answer && !isArticle(d))
+          )
+        ).slice(0, 3)
       : [];
     if (distractors.length < 3) continue;
-    sentences.push({ id: `topic-${id}-s${i}`, de: raw.de.trim(), en: raw.en.trim(), level, clozeIndex: ci, clozeDistractors: distractors });
+    sentences.push({ id: `topic-${id}-s${i}`, de, en: raw.en.trim(), level, clozeIndex: ci, clozeDistractors: distractors });
   }
   if (vocab.length < 5) throw new Error(`too little usable vocab (${vocab.length})`);
   return { name: topic.trim(), language, level, vocab, sentences, createdAt: new Date().toISOString() };

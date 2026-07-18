@@ -6,7 +6,9 @@
 // the non-obvious path /langpass-adm (not /admin) so bots scanning the well-known path find nothing,
 // and is NOT listed in robots.txt. Localhost passes for dev; elsewhere creds are REQUIRED, and if
 // unconfigured the route is denied (fail closed).
+// Plus: language negotiation for the marketing landing page — see negotiateLocale() below.
 import { NextRequest, NextResponse } from 'next/server';
+import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from '@/lib/locales';
 
 // The admin dashboard path — deliberately not /admin (the path bots brute-force) and kept out of
 // robots.txt, so it's discoverable only by someone who already knows it. Basic auth is still the
@@ -25,6 +27,55 @@ function unauthorized(): NextResponse {
 
 function notFound(): NextResponse {
   return new NextResponse('Not found', { status: 404 });
+}
+
+// --- locale negotiation -----------------------------------------------------------------
+// Crawlers must NEVER be redirected off `/`. Google indexes the English root as the canonical
+// page and follows the hreflang links itself; bouncing Googlebot to /de because its request
+// carried a German Accept-Language would hand the canonical URL's ranking to a translation.
+// Deliberately broad: a false positive only costs a bot the (correct) English page.
+const CRAWLER_UA =
+  /bot|crawler|crawling|spider|slurp|mediapartners|facebookexternalhit|embedly|quora link preview|outbrain|pinterest|whatsapp|telegram|discord|skypeuripreview|vkshare|w3c_validator|lighthouse|headlesschrome|preview|archive\.org|ia_archiver|feedfetcher|duckduck|baidu|yandex|sogou|exabot|applebot|petalbot|semrush|ahrefs|python-requests|curl|wget|axios|node-fetch|go-http-client|java\/|okhttp/i;
+
+/**
+ * Best supported locale from an Accept-Language header, honouring q-values.
+ *
+ * Returns the FIRST supported locale in the visitor's preference order — including 'en'. That
+ * matters: a visitor whose list is "en-GB, de" prefers English, so we must stop at 'en' and
+ * not fall through to German. Returns null when nothing matches.
+ */
+function negotiateLocale(header: string | null): Locale | null {
+  if (!header) return null;
+  const ranked = header
+    .split(',')
+    .map((part) => {
+      const [tag, ...params] = part.trim().split(';');
+      const q = params.find((p) => p.trim().startsWith('q='));
+      const weight = q ? Number.parseFloat(q.trim().slice(2)) : 1;
+      return { tag: tag.trim().toLowerCase(), q: Number.isFinite(weight) ? weight : 0 };
+    })
+    .filter((e) => e.tag && e.q > 0)
+    // Stable sort by descending q — equal weights keep header order, which is the client's
+    // stated preference order.
+    .sort((a, b) => b.q - a.q);
+
+  for (const { tag } of ranked) {
+    if (tag === '*') return null; // no real preference expressed
+    const base = tag.split('-')[0]; // pt-BR → pt, en-GB → en
+    if (isLocale(base)) return base;
+  }
+  return null;
+}
+
+/** Cookie flavour used for both the sticky pick and the "we already negotiated" marker. */
+function rememberLocale(res: NextResponse, locale: Locale): NextResponse {
+  res.cookies.set(LOCALE_COOKIE, locale, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: 'lax',
+    httpOnly: false, // the client-side switcher writes the same cookie
+  });
+  return res;
 }
 
 // Length-aware constant-time compare so the credential check can't be timed character-by-character.
@@ -75,5 +126,50 @@ export function middleware(req: NextRequest): NextResponse {
     return unauthorized();
   }
 
-  return NextResponse.next();
+  // --- landing language negotiation ---------------------------------------------------
+  // Only the marketing surface below this point: /api and /langpass-adm have already been
+  // handled (404'd, redirected, or auth-gated) and returned above.
+  if (isAppSurface) return NextResponse.next();
+
+  const cookie = req.cookies.get(LOCALE_COOKIE)?.value;
+
+  // A localized page was requested directly (a switcher click, a shared link, or our own
+  // redirect below). Persist the choice so the visitor is never bounced again — this is what
+  // makes the pick sticky even with JavaScript disabled.
+  const segment = pathname.slice(1);
+  if (isLocale(segment) && segment !== DEFAULT_LOCALE) {
+    if (cookie === segment) return NextResponse.next();
+    return rememberLocale(NextResponse.next(), segment);
+  }
+
+  if (pathname !== '/') return NextResponse.next();
+
+  // Whatever we decide for `/`, the decision depends on these two headers. Without Vary a
+  // shared cache could hand one visitor's 307-to-/de to everybody who follows.
+  const vary = (res: NextResponse) => {
+    res.headers.set('Vary', 'Accept-Language, Cookie');
+    return res;
+  };
+
+  // Explicit choice already on record (including a previous "English is fine") → never
+  // second-guess it. Only the ABSENCE of the cookie triggers negotiation, so clicking
+  // "English" in the switcher keeps you on `/` for good.
+  if (cookie) return vary(NextResponse.next());
+
+  // Crawlers stay on the English root — see CRAWLER_UA.
+  const ua = req.headers.get('user-agent') || '';
+  if (!ua || CRAWLER_UA.test(ua)) return vary(NextResponse.next());
+
+  const best = negotiateLocale(req.headers.get('accept-language'));
+  if (!best || best === DEFAULT_LOCALE) {
+    // English preferred (or nothing we serve): stay put, and record it so we don't re-run
+    // this negotiation on every subsequent visit.
+    return vary(best ? rememberLocale(NextResponse.next(), DEFAULT_LOCALE) : NextResponse.next());
+  }
+
+  // 307, not 308: this is a per-visitor negotiation, not a permanent move of `/`. A cached
+  // permanent redirect would strand every later visitor — and every crawler — on one language.
+  const url = req.nextUrl.clone();
+  url.pathname = `/${best}`;
+  return vary(rememberLocale(NextResponse.redirect(url, 307), best));
 }

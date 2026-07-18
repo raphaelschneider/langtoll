@@ -5,15 +5,18 @@
 //   • The sub-paragraph is static; only the language word rotates, and it lives in a
 //     fixed-width slot (.lang) so the sentence never reflows horizontally or wraps.
 // Both the active headline and the word cross-fade in sync. SSR shows the first variant.
+//
+// The copy (headlines + the localized name of each language) is passed in from the server so
+// this component stays locale-agnostic — see COPY[locale].hero in src/lib/landing-copy.ts.
 import { useEffect, useState } from 'react';
+import type { LandingCopy } from '@/lib/landing-copy';
+import type { Locale } from '@/lib/locales';
 
-const VARIANTS = [
-  { headline: 'Erst Deutsch, dann TikTok.', lang: 'German' },
-  { headline: 'Primero español, luego Instagram.', lang: 'Spanish' },
-  { headline: 'Primeiro português, depois YouTube.', lang: 'Portuguese' },
-];
-
-export function HeroRotator() {
+export function HeroRotator({ copy, locale }: { copy: LandingCopy['hero']; locale: Locale }) {
+  // Never advertise the reader's own language back at them — a German visitor
+  // seeing "Erst Deutsch, dann TikTok" is being sold a course in German. Each
+  // locale ships four variants so three always remain after this filter.
+  const variants = copy.variants.filter((v) => v.code !== locale);
   const [i, setI] = useState(0);
   const [show, setShow] = useState(true);
 
@@ -21,25 +24,25 @@ export function HeroRotator() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const id = setInterval(() => {
       if (reduce) {
-        setI((v) => (v + 1) % VARIANTS.length);
+        setI((v) => (v + 1) % variants.length);
         return;
       }
       setShow(false);
       window.setTimeout(() => {
-        setI((v) => (v + 1) % VARIANTS.length);
+        setI((v) => (v + 1) % variants.length);
         setShow(true);
       }, 380);
     }, 4200);
     return () => clearInterval(id);
-  }, []);
+  }, [variants.length]);
 
-  const v = VARIANTS[i];
+  const v = variants[i];
 
   return (
     <>
       {/* every headline occupies the same grid cell → box height = tallest variant */}
       <div className="hero-headline">
-        {VARIANTS.map((vr, idx) => (
+        {variants.map((vr, idx) => (
           <h1
             key={idx}
             className="hero-rot"
@@ -52,10 +55,11 @@ export function HeroRotator() {
       </div>
       {/* static sub — only the language word rotates, in a fixed-width slot (no reflow) */}
       <p className="sub">
-        LangPass locks the apps that eat your nights — until you&apos;ve done your{' '}
-        <span className="lang hero-rot" style={{ opacity: show ? 1 : 0 }}>{v.lang}</span> reps.{' '}
-        <strong>Five quick exercises buy 30 minutes of phone time.</strong> Then the wall comes
-        back. You&apos;ll learn, because you can&apos;t not.
+        {copy.subBefore}
+        <span className="lang hero-rot" style={{ opacity: show ? 1 : 0 }}>{v.lang}</span>
+        {copy.subAfter}
+        <strong>{copy.subStrong}</strong>
+        {copy.subTail}
       </p>
     </>
   );
