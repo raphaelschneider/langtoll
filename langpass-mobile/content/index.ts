@@ -3,23 +3,50 @@
 // app hardcodes German anymore.
 import type { Language, Level, LanguagePack } from '@/content/german/types';
 import { GERMAN_A1, GERMAN_A2, GERMAN_B1 } from '@/content/german';
-import { PORTUGUESE_A1 } from '@/content/portuguese';
+import { PORTUGUESE_A1, PORTUGUESE_A2, PORTUGUESE_B1 } from '@/content/portuguese';
+import { SPANISH_A1, SPANISH_A2, SPANISH_B1 } from '@/content/spanish';
+import { ITALIAN_A1, ITALIAN_A2, ITALIAN_B1 } from '@/content/italian';
+import { FRENCH_A1, FRENCH_A2, FRENCH_B1 } from '@/content/french';
+import { ENGLISH_A1, ENGLISH_A2, ENGLISH_B1 } from '@/content/english';
 
 export * from '@/content/german/types';
 
 // Partial<Record<Level, …>> because a language need not offer every level yet
-// (Portuguese ships A1 only for the test).
+// (a language need not offer every level yet — packFor falls back to the highest
+// authored level, which is why a half-authored language shows lower-level words).
 const REGISTRY: Record<Language, Partial<Record<Level, LanguagePack>>> = {
   de: { A1: GERMAN_A1, A2: GERMAN_A2, B1: GERMAN_B1 },
-  pt: { A1: PORTUGUESE_A1 },
-  es: {},
-  fr: {},
-  it: {},
+  pt: { A1: PORTUGUESE_A1, A2: PORTUGUESE_A2, B1: PORTUGUESE_B1 },
+  en: { A1: ENGLISH_A1, A2: ENGLISH_A2, B1: ENGLISH_B1 },
+  es: { A1: SPANISH_A1, A2: SPANISH_A2, B1: SPANISH_B1 },
+  fr: { A1: FRENCH_A1, A2: FRENCH_A2, B1: FRENCH_B1 },
+  it: { A1: ITALIAN_A1, A2: ITALIAN_A2, B1: ITALIAN_B1 },
 };
 
 /** Languages that actually have at least one pack — what the picker offers. */
 export function availableLanguages(): Language[] {
   return (Object.keys(REGISTRY) as Language[]).filter((l) => Object.keys(REGISTRY[l]).length > 0);
+}
+
+/**
+ * Languages we offer to someone whose interface is `uiLocale`. We never offer
+ * a user their own UI language — an English UI learning English is nonsense,
+ * and the locale codes and Language codes share the same alphabet ('de', 'pt',
+ * …) so a plain inequality is the whole rule.
+ */
+export function learnableLanguages(uiLocale: string): Language[] {
+  return availableLanguages().filter((l) => l !== uiLocale);
+}
+
+/**
+ * Languages shown as "SOON" — everything we intend to teach that has no pack
+ * yet, minus the user's own UI language. Derived rather than hardcoded so a
+ * language moves from SOON to the real list the moment its pack lands in
+ * REGISTRY, with no second place to remember to edit.
+ */
+export function soonLanguages(uiLocale: string): Language[] {
+  const shipped = new Set(availableLanguages());
+  return (Object.keys(REGISTRY) as Language[]).filter((l) => !shipped.has(l) && l !== uiLocale);
 }
 
 /** Levels a language ships, in order. */

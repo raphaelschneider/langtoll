@@ -5,7 +5,7 @@
 // Free-tier philosophy: the lock itself is free forever (the core promise —
 // practice to unlock always works). Plus unlocks the levers: custom fares,
 // strict mode, the full curriculum, AI topic packs, and new languages.
-import { isPlus as storeIsPlus } from './store';
+import { isPlus as storeIsPlus, getState } from './store';
 
 export type Period = 'monthly' | 'yearly';
 
@@ -38,6 +38,38 @@ export const TRIAL_DAYS = 7;
 
 export function isPlus(): boolean {
   return storeIsPlus();
+}
+
+/** Honeymoon length — the "first week is the full experience" promise in ob.payPrice. */
+export const HONEYMOON_DAYS = TRIAL_DAYS;
+
+/**
+ * True while the user is inside the honeymoon window: the grace period after
+ * first launch where everything is unlocked, ending in the convert-or-downgrade
+ * decision. Measured from firstLaunchAt, NOT from a purchase or a paywall view,
+ * so it starts when the user arrives.
+ *
+ * A missing firstLaunchAt means hydrate() hasn't run yet; we return false rather
+ * than guessing, so a race can only ever under-grant (a locked button that
+ * unlocks a moment later), never hand out a perk the user hasn't got.
+ */
+export function withinHoneymoon(): boolean {
+  const at = getState().firstLaunchAt;
+  if (!at) return false;
+  const started = Date.parse(at);
+  if (Number.isNaN(started)) return false;
+  return Date.now() - started < HONEYMOON_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Audio is a Honeymoon + Plus perk. Free users see the controls in a locked
+ * state (the paywall entry point) rather than not at all — see session.tsx and
+ * settings.tsx. This also gates whether the trainer may generate 'listen'
+ * exercises at all: without audio they are unanswerable, so buildSession must
+ * be told, not just the playback layer.
+ */
+export function canUseAudio(): boolean {
+  return isPlus() || withinHoneymoon();
 }
 
 // ── free-tier limits ────────────────────────────────────────────────────────

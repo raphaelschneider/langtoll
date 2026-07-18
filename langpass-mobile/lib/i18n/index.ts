@@ -7,18 +7,36 @@
 import { getLocales } from 'expo-localization';
 import { en, type StringKey } from './en';
 import { de } from './de';
+import { es } from './es';
+import { fr } from './fr';
+import { it } from './it';
+import { pt } from './pt';
 import { getState, useAppState } from '@/lib/store';
+import { FALLBACK_LOCALE, isLocaleCode, type LocaleCode } from '@/lib/locales';
 
 export type { StringKey };
-export type LocaleCode = 'en' | 'de';
+export type { LocaleCode };
 
-const dictionaries: Record<LocaleCode, Partial<Record<StringKey, string>>> = { en, de };
+// Every locale in LOCALE_CODES needs an entry. A locale may be partial — t()
+// falls back to English per key, so shipping a half-translated locale degrades
+// string by string rather than showing raw keys.
+const dictionaries: Record<LocaleCode, Partial<Record<StringKey, string>>> = {
+  en,
+  de,
+  es,
+  fr,
+  it,
+  pt,
+};
 
 let systemLocale: LocaleCode | null = null;
 function detectSystemLocale(): LocaleCode {
   if (systemLocale) return systemLocale;
-  const code = getLocales()[0]?.languageCode;
-  systemLocale = code === 'de' ? 'de' : 'en';
+  // Match on the language subtag only: pt-BR and pt-PT both resolve to `pt`,
+  // which is deliberate — we ship one Portuguese. Anything we don't speak
+  // falls back to English, per the launch spec.
+  const code = getLocales()[0]?.languageCode ?? '';
+  systemLocale = isLocaleCode(code) ? code : FALLBACK_LOCALE;
   return systemLocale;
 }
 

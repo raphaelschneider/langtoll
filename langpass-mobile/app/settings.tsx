@@ -1,7 +1,7 @@
 // Settings — every lever in one place, in the ticket language: passenger,
 // course (level + difficulty), fare, voice, app language, blocked apps, and
 // the AI topic pack generator (lib/ai/topics behind a demo-mode fallback).
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TextInput, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -24,16 +24,29 @@ import { generateTopicPack, aiAvailable } from '@/lib/ai/topics';
 import { isNativeAvailable } from '@/lib/blocking';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
+import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
+import { canUseAudio } from '@/lib/plans';
+import { primeVoices, voicesForActivePack, speakWith, setSpeechShaping, speechIsNative } from '@/lib/tts';
+import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langpass-speech/src';
+import { activePack } from '@/lib/pack';
 import type { Level } from '@/content/german';
+
+// Dev levers are normally __DEV__-only, which strips them from Release builds.
+// EXPO_PUBLIC_DEV_TOOLS=1 keeps them in a local Release build so the plan
+// transitions can be exercised on-device against the real API. Safe to leave
+// in: .env is gitignored and EAS only uploads git-tracked files, so a cloud
+// production build can't inherit the flag.
+const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 const LEVELS: Level[] = ['A1', 'A2', 'B1'];
 const FARE_EXERCISES = [3, 5, 8];
 const FARE_MINUTES = [15, 30, 45];
-const LOCALES = [
-  { key: 'system' as const, labelKey: 'settings.system' as const },
-  { key: 'en' as const, label: 'English' },
-  { key: 'de' as const, label: 'Deutsch' },
+// 'system' first, then every locale we ship, labelled with its own endonym so
+// the picker stays usable when the current UI language is one you can't read.
+const LOCALES: { key: 'system' | LocaleCode; label?: string; labelKey?: 'settings.system' }[] = [
+  { key: 'system', labelKey: 'settings.system' },
+  ...LOCALE_CODES.map((c) => ({ key: c, label: LOCALE_ENDONYMS[c] })),
 ];
 
 function Chip({
@@ -64,6 +77,225 @@ function Chip({
   );
 }
 
+// Sweeps for the native EQ chain. Values chosen to bracket the useful range for
+// speech — wide enough to hear the difference, narrow enough to stay usable.
+// The ONLY audio control a real user sees. Everything else (voice identity,
+// pitch, the whole EQ/de-ess chain) is tuned by us and hidden behind DEV_TOOLS —
+// users can't meaningfully judge a 250Hz cut, but they can tell you it's too fast.
+const SPEECH_SPEEDS: { rate: number; labelKey: 'settings.speedSlow' | 'settings.speedNormal' | 'settings.speedFast' }[] = [
+  { rate: 0.55, labelKey: 'settings.speedSlow' },
+  { rate: 0.7, labelKey: 'settings.speedNormal' },
+  { rate: 0.9, labelKey: 'settings.speedFast' },
+];
+
+const EQ_BANDS: { key: string; label: string; unit: string; values: number[] }[] = [
+  { key: 'highPassHz', label: 'High-pass', unit: 'Hz', values: [0, 80, 110, 150, 200] },
+  { key: 'lowMidGain', label: 'Low-mid (250Hz)', unit: 'dB', values: [0, -2, -4, -6, -8] },
+  { key: 'presenceGain', label: 'Presence (3.2kHz)', unit: 'dB', values: [0, 2, 3, 5, 7] },
+  { key: 'deEssHz', label: 'De-ess freq', unit: 'Hz', values: [5000, 6000, 6500, 7500, 8500] },
+  { key: 'deEssThresholdDb', label: 'De-ess threshold', unit: 'dB', values: [-40, -34, -28, -22, -16] },
+  { key: 'deEssMaxCutDb', label: 'De-ess max cut', unit: 'dB', values: [0, 6, 12, 18] },
+  { key: 'deEssRatio', label: 'De-ess ratio', unit: ':1', values: [2, 4, 6, 10] },
+];
+
+// Purpose-built probes for the voice lab. Each one stresses ONE thing we tune,
+// so a change in a band has something to be audible against. Real pack words are
+// a bad test — they rarely contain the sound you are chasing.
+const VOICE_TESTS: Record<string, { label: string; text: string; probes: string }[]> = {
+  de: [
+    { label: 'Sibilance', text: 'Sechsundsechzig süße Schwestern essen Kirschen.', probes: 'de-esser: s / sch / z everywhere' },
+    { label: 'Plosive/bass', text: 'Bruder Bodo bringt das braune Brot.', probes: 'high-pass: b / d / g pop and boom' },
+    { label: 'Consonants', text: 'Danken, denken, decken, drücken.', probes: 'presence: near-identical words' },
+    { label: 'Umlauts', text: 'Frühstück, Schlüssel, Mädchen, Öl.', probes: 'vowel clarity' },
+    { label: 'Long', text: 'Das Wetter ist heute schön, deshalb gehe ich nach dem Frühstück spazieren.', probes: 'prosody + rate' },
+  ],
+  pt: [
+    { label: 'Sibilance', text: 'Seis cisnes sussurram sem cessar.', probes: 'de-esser: s / ss / c' },
+    { label: 'Nasals', text: 'Não, mãe, amanhã tem pão e maçã.', probes: 'nasal vowels — the pt-BR giveaway' },
+    { label: 'Plosive/bass', text: 'O bebê bebeu, o boi bebeu bastante.', probes: 'high-pass: b / p boom' },
+    { label: 'Tricky', text: 'Açúcar, coração, açaí, atenção.', probes: 'ç and stressed nasal diphthongs' },
+    { label: 'Long', text: 'O restaurante é muito caro, mas a comida está muito boa.', probes: 'prosody + rate' },
+  ],
+  es: [
+    { label: 'Sibilance', text: 'Sesenta y seis serpientes sisean.', probes: 'de-esser: s-heavy' },
+    { label: 'Trills', text: 'El perro de Rosa corre por la carretera.', probes: 'rolled r — often mangled' },
+    { label: 'Plosive/bass', text: 'Bueno, bebe, boca, bomba.', probes: 'high-pass: b / p' },
+    { label: 'Consonants', text: 'Pero, perro, caro, carro.', probes: 'presence: minimal pairs' },
+    { label: 'Long', text: 'El restaurante es muy caro, pero la comida está muy buena.', probes: 'prosody + rate' },
+  ],
+  en: [
+    { label: 'Sibilance', text: 'She sells sea shells by the seashore.', probes: 'de-esser' },
+    { label: 'Plosive/bass', text: 'Big brown bags bounce badly.', probes: 'high-pass' },
+    { label: 'Consonants', text: 'Thin, thing, sing, sink.', probes: 'presence' },
+    { label: 'Long', text: 'The restaurant is very expensive, but the food is very good.', probes: 'prosody + rate' },
+  ],
+};
+
+// Dev-only voice lab: every installed voice for the current pack's language,
+// ranked best-first, plus rate/pitch sweeps. Exists because voice quality can
+// only be judged by ear, and rebuilding to try a value is far too slow a loop.
+function VoiceLab() {
+  const theme = useTheme();
+  const pack = activePack();
+  const state = useAppState();
+  const [list, setList] = useState<{ identifier: string; name: string; rank: number }[]>([]);
+  const voice = state.voiceOverride ?? undefined;
+  // Read from the store, not local state — these must survive leaving Settings
+  // and must be what sessions actually speak with.
+  const rate = state.voiceRate ?? 0.7;
+  const pitch = state.voicePitch ?? 1.0;
+  // Store-backed, like voice/rate/pitch: what the lab shows is what sessions use.
+  const eq: Record<string, number> = state.voiceShaping ?? {
+    highPassHz: 110,
+    lowMidGain: -6,
+    presenceGain: 5,
+    deEssHz: 6500,
+    deEssThresholdDb: -22,
+    deEssMaxCutDb: 18,
+    deEssRatio: 2,
+  };
+
+  const [diag, setDiag] = useState<SpeechDiagnostics | null>(null);
+
+  useEffect(() => {
+    primeVoices().then(() => setList(voicesForActivePack()));
+  }, []);
+
+  // Refreshed on demand rather than polled — it only changes when we speak.
+  const refreshDiag = () => getDiagnostics().then(setDiag);
+
+  const sample = pack.sentences[0]?.de ?? pack.vocab[0]?.de ?? 'Hallo';
+  const word = pack.vocab[0]?.de ?? 'Hallo';
+  const tierLabel = ['eloquence', 'compact', 'siri', 'enhanced', 'PREMIUM'];
+
+  return (
+    <Section title={`Voice lab (dev) · ${pack.speechLocale}`}>
+      <Text variant="caption" color="inkFaint">
+        {list.length} voice{list.length === 1 ? '' : 's'} installed · best first
+      </Text>
+      <View style={{ gap: space.xs, marginTop: space.sm }}>
+        {list.map((v) => (
+          <PressableScale
+            key={v.identifier}
+            haptic={null}
+            onPress={() => {
+              // Persist: this is what sessions will actually speak with.
+              updateProfile({ voiceOverride: v.identifier });
+              speakWith(word, { voice: v.identifier, rate, pitch });
+            }}
+            style={{
+              paddingVertical: space.sm,
+              paddingHorizontal: space.md,
+              borderRadius: radius.sm,
+              borderWidth: 1,
+              borderColor: voice === v.identifier ? theme.accent : theme.line,
+              backgroundColor: voice === v.identifier ? 'rgba(200,255,77,0.10)' : theme.fill,
+            }}
+          >
+            <Text variant="bodyMedium" style={{ color: voice === v.identifier ? theme.accent : theme.ink }}>
+              {v.name} · {tierLabel[v.rank] ?? v.rank}
+            </Text>
+            <Text variant="caption" color="inkFaint">
+              {v.identifier}
+            </Text>
+          </PressableScale>
+        ))}
+      </View>
+
+      <Text variant="overline" color="inkFaint" style={{ marginTop: space.lg }}>
+        Rate {rate.toFixed(2)}
+      </Text>
+      <View style={styles.chipRow}>
+        {[0.6, 0.7, 0.8, 0.9, 1.0].map((r) => (
+          <Chip key={r} label={`${r}`} selected={rate === r} onPress={() => { updateProfile({ voiceRate: r }); speakWith(word, { voice, rate: r, pitch }); }} />
+        ))}
+      </View>
+
+      <Text variant="overline" color="inkFaint" style={{ marginTop: space.md }}>
+        Pitch {pitch.toFixed(2)}
+      </Text>
+      <View style={styles.chipRow}>
+        {[0.85, 0.95, 1.0, 1.1, 1.2].map((p) => (
+          <Chip key={p} label={`${p}`} selected={pitch === p} onPress={() => { updateProfile({ voicePitch: p }); speakWith(word, { voice, rate, pitch: p }); }} />
+        ))}
+      </View>
+
+      {speechIsNative() ? (
+        <>
+          {EQ_BANDS.map((b) => (
+            <View key={b.key}>
+              <Text variant="overline" color="inkFaint" style={{ marginTop: space.md }}>
+                {b.label} {eq[b.key]}{b.unit}
+              </Text>
+              <View style={styles.chipRow}>
+                {b.values.map((v) => (
+                  <Chip
+                    key={v}
+                    label={`${v}`}
+                    selected={eq[b.key] === v}
+                    onPress={() => {
+                      // setSpeechShaping persists AND pushes to native.
+                      setSpeechShaping({ ...eq, [b.key]: v });
+                      speakWith(word, { voice, rate, pitch });
+                    }}
+                  />
+                ))}
+              </View>
+            </View>
+          ))}
+        </>
+      ) : (
+        <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+          EQ needs the native build — rebuild to enable (currently expo-speech fallback).
+        </Text>
+      )}
+
+      <Text variant="overline" color="inkFaint" style={{ marginTop: space.lg }}>
+        Test cases
+      </Text>
+      <View style={{ gap: space.xs, marginTop: space.sm }}>
+        {(VOICE_TESTS[pack.language] ?? VOICE_TESTS.en).map((tc) => (
+          <PressableScale
+            key={tc.label}
+            haptic={null}
+            onPress={() => speakWith(tc.text, { voice, rate, pitch })}
+            style={{
+              paddingVertical: space.sm,
+              paddingHorizontal: space.md,
+              borderRadius: radius.sm,
+              borderWidth: 1,
+              borderColor: theme.line,
+              backgroundColor: theme.fill,
+            }}
+          >
+            <Text variant="bodyMedium">{tc.label}</Text>
+            <Text variant="caption" color="inkFaint">{tc.probes}</Text>
+          </PressableScale>
+        ))}
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.lg }}>
+        <Button label="Word" variant="ghost" onPress={() => speakWith(word, { voice, rate, pitch })} />
+        <Button label="Sentence" variant="ghost" onPress={() => speakWith(sample, { voice, rate, pitch })} />
+        <Button label="Diag" variant="ghost" onPress={refreshDiag} />
+        <Button label="Auto" variant="ghost" onPress={() => updateProfile({ voiceOverride: null, voiceRate: null, voicePitch: null, voiceShaping: null })} />
+      </View>
+      {diag && (
+        <Text variant="caption" color={diag.lastPlayedThroughEQ ? 'accent' : 'danger'} style={{ marginTop: space.sm }}>
+          {`session ${diag.category.replace('AVAudioSessionCategory', '')} / ${diag.mode.replace('AVAudioSessionMode', '')}\n` +
+           `engine running=${diag.engineRunning} ready=${diag.engineReady}\n` +
+           `last render ${diag.lastRenderFrames} frames · through EQ=${diag.lastPlayedThroughEQ}\n` +
+           `de-ess peak cut ${diag.lastDeEssPeakCutDb.toFixed(1)}dB\n` +
+           `vol ${diag.outputVolume.toFixed(2)} @ ${diag.sampleRate}Hz${diag.lastError ? ` · ERR ${diag.lastError}` : ''}`}
+        </Text>
+      )}
+      <Text variant="caption" color="inkFaint" style={{ marginTop: space.sm }}>
+        {`Sessions use: ${voice ?? 'auto-selected (best rank)'} · rate ${rate.toFixed(2)} · pitch ${pitch.toFixed(2)}`}
+      </Text>
+    </Section>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <GlassCard solid style={{ marginTop: space.lg }}>
@@ -86,6 +318,7 @@ export default function Settings() {
   const [aiError, setAiError] = useState(false);
 
   const plus = isPlus(state);
+  const audioAllowed = canUseAudio();
 
   async function generate() {
     if (!plus) {
@@ -252,15 +485,40 @@ export default function Settings() {
           <Section title={t('settings.voice')}>
             <View style={styles.switchRow}>
               <Text variant="callout" color="inkSoft" style={{ flex: 1 }}>
-                {t('settings.voiceDetail')}
+                {audioAllowed ? t('settings.voiceDetail') : t('plus.lockedCta')}
               </Text>
-              <Switch
-                value={state.soundEnabled}
-                onValueChange={(v) => updateProfile({ soundEnabled: v })}
-                trackColor={{ true: theme.accent, false: 'rgba(255,255,255,0.15)' }}
-                thumbColor="#FFFFFF"
-              />
+              {audioAllowed ? (
+                <Switch
+                  value={state.soundEnabled}
+                  onValueChange={(v) => updateProfile({ soundEnabled: v })}
+                  trackColor={{ true: theme.accent, false: 'rgba(255,255,255,0.15)' }}
+                  thumbColor="#FFFFFF"
+                />
+              ) : (
+                // Locked, not hidden: the row stays as a paywall entry point.
+                <PressableScale onPress={() => router.push('/paywall')} haptic={null}>
+                  <Ionicons name="lock-closed" size={20} color={theme.inkFaint} />
+                </PressableScale>
+              )}
             </View>
+
+            {audioAllowed && state.soundEnabled && (
+              <>
+                <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
+                  {t('settings.speechSpeed')}
+                </Text>
+                <View style={styles.chipRow}>
+                  {SPEECH_SPEEDS.map((sp) => (
+                    <Chip
+                      key={sp.rate}
+                      label={t(sp.labelKey)}
+                      selected={(state.voiceRate ?? 0.7) === sp.rate}
+                      onPress={() => updateProfile({ voiceRate: sp.rate })}
+                    />
+                  ))}
+                </View>
+              </>
+            )}
           </Section>
 
           {/* appearance */}
@@ -377,7 +635,9 @@ export default function Settings() {
           </Section>
 
           {/* dev */}
-          {__DEV__ && (
+          {DEV_TOOLS && <VoiceLab />}
+
+          {DEV_TOOLS && (
             <View style={{ marginTop: space.xl, gap: space.sm }}>
               <Button
                 label={plus ? 'Downgrade to free (dev)' : 'Grant Plus (dev)'}

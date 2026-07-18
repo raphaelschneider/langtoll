@@ -28,6 +28,7 @@ import {
 } from '@/lib/store';
 import { playMessageChime } from '@/lib/sound';
 import { speakGerman, stopSpeaking } from '@/lib/tts';
+import { canUseAudio } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
 import { useT, type StringKey } from '@/lib/i18n';
 
@@ -45,7 +46,9 @@ export default function Session() {
     () =>
       buildSession(pack, progressRows(), getState().exercisesPerUnlock, seed, {
         difficulty: getState().difficulty,
-        audio: getState().soundEnabled,
+        // Gate generation, not just playback: a 'listen' exercise with no audio
+        // has no question to answer, so a free user must never be dealt one.
+        audio: canUseAudio() && getState().soundEnabled,
       }),
     [pack, seed]
   );
@@ -60,6 +63,9 @@ export default function Session() {
   const [correctCount, setCorrectCount] = useState(0);
 
   const ex: Exercise = plan.exercises[idx];
+  const audioAllowed = canUseAudio();
+  // Locked users still SEE the speaker (it is a paywall entry point); it just
+  // routes to the offer instead of speaking.
   const sound = appState.soundEnabled;
 
   const promptLabel: Record<Exercise['type'], string> = {
@@ -72,7 +78,14 @@ export default function Session() {
     listen: t('session.listen'),
   };
 
-  // Voice: hear the German when a German prompt appears, and again on reveal.
+  // Autoplay is the DEFAULT: hear the target language when a target-language
+  // prompt appears, and again on reveal so the pronunciation lands with the
+  // answer. Both suppressions live inside speakGerman() rather than here —
+  // it returns early when the plan doesn't include audio (free, honeymoon
+  // over) and when the user has muted it. 'listen' passes force so it beats
+  // the mute toggle, since there the audio IS the question; those exercises
+  // only exist when buildSession was allowed to generate them in the first
+  // place, so a muted or free user never meets one.
   useEffect(() => {
     if (phase === 'answer' && (ex.type === 'listen' || ex.type === 'mc_de_en') && ex.audio) {
       speakGerman(ex.audio, { force: ex.type === 'listen' });
@@ -200,14 +213,17 @@ export default function Session() {
               })}
             </View>
             <PressableScale
-              onPress={() => updateProfile({ soundEnabled: !sound })}
+              onPress={() =>
+                audioAllowed ? updateProfile({ soundEnabled: !sound }) : router.push('/paywall')
+              }
               style={styles.close}
               haptic={null}
+              accessibilityLabel={audioAllowed ? t('settings.voice') : t('plus.locked')}
             >
               <Ionicons
-                name={sound ? 'volume-high' : 'volume-mute'}
+                name={!audioAllowed ? 'lock-closed' : sound ? 'volume-high' : 'volume-mute'}
                 size={20}
-                color={sound ? theme.accent : theme.inkFaint}
+                color={!audioAllowed ? theme.inkFaint : sound ? theme.accent : theme.inkFaint}
               />
             </PressableScale>
           </View>
@@ -236,7 +252,11 @@ export default function Session() {
                   </Text>
                   {sound && ex.type === 'mc_de_en' && (
                     <PressableScale
-                      onPress={() => ex.audio && speakGerman(ex.audio, { force: true })}
+                      onPress={() =>
+                        audioAllowed
+                          ? ex.audio && speakGerman(ex.audio, { force: true })
+                          : router.push('/paywall')
+                      }
                       style={styles.speakerSmall}
                       haptic={null}
                     >

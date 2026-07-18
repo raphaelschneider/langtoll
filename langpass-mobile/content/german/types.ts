@@ -7,11 +7,17 @@
 // every item is named `de` regardless of the pack's language (a Portuguese pack
 // puts Portuguese text in `de`). It's the "word/sentence in the language being
 // learned" slot; renaming it would churn the whole engine for no behavior gain.
+//
+// The `en` field is the mirror of that: the side the user READS, in their own
+// UI locale. It holds English as authored, and localizePack() swaps in the
+// matching `gloss` entry at load time — so an Italian UI learning Spanish gets
+// Italian in `en`. Same trade as `de`: one stable slot, name kept for history.
+import type { LocaleCode } from '@/lib/locales';
 
 export type Level = 'A1' | 'A2' | 'B1';
 
 /** Languages a user can learn. UI names resolve via i18n `lang.*` keys. */
-export type Language = 'de' | 'es' | 'fr' | 'pt' | 'it';
+export type Language = 'de' | 'es' | 'fr' | 'pt' | 'it' | 'en';
 
 export type PartOfSpeech =
   | 'noun'
@@ -29,9 +35,31 @@ export interface VocabItem {
   id: string;
   /** German side — nouns include the article (der/die/das). */
   de: string;
-  /** English translation(s); first entry is the canonical one. */
+  /**
+   * English translation(s); first entry is the canonical one. Always present —
+   * it is the guaranteed fallback for any locale `gloss` hasn't covered yet.
+   */
   en: string[];
+  /**
+   * Translations for the other UI locales. Resolved once per session by
+   * localizePack() in lib/pack.ts, which swaps the matching entry into `en`
+   * so the trainer keeps a single "the side the user reads" slot. Partial by
+   * design: a missing locale falls back to English rather than blocking a pack.
+   */
+  gloss?: Partial<Record<LocaleCode, string[]>>;
   pos: PartOfSpeech;
+  /**
+   * Grammatical gender, for languages where the article does NOT reveal it.
+   * French and Italian elide before vowels (l'eau, l'acqua), so the card would
+   * otherwise teach a noun whose gender the learner can never recover — which
+   * matters because gender is the thing they actually have to memorise.
+   *
+   * Deliberately NOT folded into `de`: that field is what gets spoken, and
+   * "l'eau (f)" would be read aloud as "l'eau parenthèse f".
+   *
+   * Omit where the article already shows it (der/die/das, el/la, o/a, il/la).
+   */
+  gender?: 'm' | 'f';
   level: Level;
   /** Grouping used to pick plausible multiple-choice distractors. */
   category: string;
@@ -41,6 +69,8 @@ export interface SentenceItem {
   id: string;
   de: string;
   en: string;
+  /** Per-locale translations; see VocabItem.gloss. */
+  gloss?: Partial<Record<LocaleCode, string>>;
   level: Level;
   /**
    * 0-based index (whitespace-split) of the word to blank out in cloze

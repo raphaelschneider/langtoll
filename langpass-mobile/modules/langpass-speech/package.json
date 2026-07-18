@@ -1,0 +1,7 @@
+{
+  "name": "langpass-speech",
+  "version": "1.0.0",
+  "description": "Native AVSpeechSynthesizer with buffer rendering, EQ and de-essing",
+  "main": "src/index.ts",
+  "private": true
+}

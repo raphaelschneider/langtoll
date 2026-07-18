@@ -1,11 +1,12 @@
 // Simulator-first app state. One JSON blob in AsyncStorage instead of the SQLite
 // layer — enough to iterate on the product loop (practice → unlock → re-lock).
-// The sqlite/native plumbing in lib/db + lib/blocking is parked (tsconfig-excluded)
-// until we decide we want it.
+// The sqlite plumbing in lib/db is parked (tsconfig-excluded) until we decide we
+// want it. lib/blocking is NOT parked — it is the live Screen Time shield.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 import type { ItemProgressRow } from '@/lib/db/types';
 import type { Level, Language, VocabItem, SentenceItem } from '@/content/german/types';
+import type { LocaleCode } from '@/lib/locales';
 import { todayISO, addDays } from '@/lib/date';
 
 const STORAGE_KEY = 'langpass:v1';
@@ -47,7 +48,7 @@ export interface AppState {
   blockedApps: string[];
   goal: string | null;
   /** UI locale override; 'system' follows the device language. */
-  locale: 'system' | 'en' | 'de';
+  locale: 'system' | LocaleCode;
   /** Appearance override; 'system' follows the device color scheme. */
   appearance: 'dark' | 'light' | 'system';
   /** AI-generated topic pack (lib/ai) merged into training when enabled. */
@@ -56,6 +57,28 @@ export interface AppState {
   /** Subscription plan, mirrored live from RevenueCat's 'plus' entitlement. */
   plan: 'free' | 'plus';
   planSince: string | null;
+  /**
+   * Dev-only voice override (voice lab). When set and the identifier matches
+   * the active pack's language, it wins over automatic voice selection so the
+   * lab's choice is what sessions actually use. Null = auto-select.
+   */
+  voiceOverride: string | null;
+  /** Voice-lab rate/pitch overrides. Null = use the SPEECH_RATE / 1.0 defaults. */
+  voiceRate: number | null;
+  voicePitch: number | null;
+  /**
+   * EQ / de-ess chain for the native speech path, persisted so the tuning you
+   * settle on in the voice lab is what real sessions use — it must be re-applied
+   * to the native module on every launch, since that lives in process memory.
+   */
+  voiceShaping: Record<string, number> | null;
+  /**
+   * ISO timestamp of the first launch on this device, stamped once by hydrate().
+   * Drives the honeymoon window (see lib/plans.ts) — deliberately independent of
+   * `planSince` and of any App Store trial, so the grace period starts when the
+   * user arrives rather than when they visit the paywall.
+   */
+  firstLaunchAt: string | null;
 }
 
 const initialState: AppState = {
@@ -82,6 +105,11 @@ const initialState: AppState = {
   useCustomTopic: false,
   plan: 'free',
   planSince: null,
+  firstLaunchAt: null,
+  voiceOverride: null,
+  voiceRate: null,
+  voicePitch: null,
+  voiceShaping: null,
 };
 
 let state: AppState = initialState;
@@ -116,6 +144,13 @@ export async function hydrate(): Promise<void> {
     // corrupted / missing — start fresh
   }
   hydrated = true;
+  // Stamp the honeymoon clock on first ever launch. Existing installs that
+  // predate this field get stamped now, which starts their window today rather
+  // than retroactively expiring it — the generous read, on purpose.
+  if (!state.firstLaunchAt) {
+    state.firstLaunchAt = new Date().toISOString();
+    persist();
+  }
   emit();
 }
 
@@ -226,6 +261,10 @@ export function updateProfile(
       | 'appearance'
       | 'customTopic'
       | 'useCustomTopic'
+      | 'voiceOverride'
+      | 'voiceRate'
+      | 'voicePitch'
+      | 'voiceShaping'
     >
   >
 ): void {

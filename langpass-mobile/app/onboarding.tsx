@@ -3,8 +3,17 @@
 // (name first, used everywhere after) → emotional mirror → plan-printing loading →
 // personalized summary → transformation paywall. Skip on every optional step.
 // All copy via lib/i18n; target-language flavor comes from the content pack.
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  AccessibilityInfo,
+} from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -20,10 +29,10 @@ import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { levelForDifficulty } from '@/lib/pack';
-import { availableLanguages, packFor } from '@/content';
+import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
-import { useT, type StringKey } from '@/lib/i18n';
+import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 
 const STEPS = [
   'hook',
@@ -43,9 +52,142 @@ const STEPS = [
 type Step = (typeof STEPS)[number];
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
+
+// Published 2026 averages, minutes/day *per daily active user of that app*. The
+// mirror step presents these as what the average user spends, never as the
+// reader's own measured time — iOS does not expose Screen Time figures to us
+// (DeviceActivityReport can only render them inside its own extension sandbox).
+// Netflix is deliberately below its ~2.5h/account figure: that number is
+// TV-inclusive and we are estimating phone time.
+const APP_MINUTES: Record<string, number> = {
+  TikTok: 90,
+  YouTube: 80,
+  Netflix: 75,
+  Games: 70,
+  Instagram: 60,
+  X: 32,
+  Reddit: 30,
+};
+
+// Per-app averages cannot simply be summed: each is conditioned on being a daily
+// user of that app, and total social time (~2h21m) is far below the sum of the
+// big three. So we decay each additional app — the heaviest counts fully, the
+// rest progressively less. Picking all seven lands ~4h25m, which sits sensibly
+// under the 4-5h total-phone-time figure rather than above it.
+const OVERLAP_DECAY = [1, 0.7, 0.55, 0.45, 0.35, 0.3, 0.25];
+// Shown when the user skips app selection: the reported all-in social average.
+const SOCIAL_AVERAGE_MINUTES = 141;
+
+function estimateDailyMinutes(selected: string[]): number {
+  if (selected.length === 0) return roundToQuarterHour(SOCIAL_AVERAGE_MINUTES);
+  const weights = selected
+    .map((a) => APP_MINUTES[a] ?? 45)
+    .sort((a, b) => b - a);
+  const total = weights.reduce(
+    (sum, mins, i) => sum + mins * (OVERLAP_DECAY[i] ?? OVERLAP_DECAY[OVERLAP_DECAY.length - 1]),
+    0
+  );
+  return roundToQuarterHour(total);
+}
+
+// A precise-looking 2h 59m reads as arithmetic; 3h reads as a fact. Snapping to
+// the quarter hour keeps the headline blunt, and the estimate is nowhere near
+// precise enough for the spare minutes to have meant anything anyway.
+function roundToQuarterHour(minutes: number): number {
+  return Math.round(minutes / 15) * 15;
+}
 const GOAL_KEYS = ['ob.goalTravel', 'ob.goalLove', 'ob.goalWork', 'ob.goalBrain'] as const;
-// Languages not yet authored — shown as "SOON" placeholders under the real ones.
-const SOON_LANGS: Language[] = ['es', 'fr', 'it'];
+
+// A full cycle should finish inside the time someone spends reading the hook.
+// At six packs, 1500ms lands the whole set in ~9s. The fade tightens with it so
+// the word still holds ~1s fully settled rather than being in motion half the
+// time.
+const HOOK_ROTATE_MS = 1500;
+const HOOK_FADE_MS = 260;
+
+// The hook is step 0 — the user hasn't picked a language yet, so the headline
+// rotates through what we actually teach, same beat as the web landing hero.
+// Driven off availableLanguages() (the content registry), so a new pack joins
+// the rotation on its own and we never advertise a language we can't teach.
+//
+// Only the language word cross-fades; the rest of the sentence holds still.
+// We get the prefix/suffix by interpolating a sentinel into the ALREADY
+// TRANSLATED string and splitting on it, so each locale keeps its own word
+// order for free — English breaks as "…teach you |German|.", German as
+// "…bringt dir jetzt |Deutsch| bei." No per-locale layout knowledge needed.
+const LANG_SLOT = '\u0000';
+function RotatingHook() {
+  const t = useT();
+  // Same filter as the picker two steps later: never promise to teach someone
+  // the language their phone is already in.
+  const langs = learnableLanguages(resolvedLocale());
+  // Start somewhere random so the language a given user sees first isn't always
+  // whichever pack happens to sit first in the registry. Someone who taps
+  // through in four seconds only ever sees two or three of them, and this is
+  // what spreads that exposure across the catalogue instead of favouring one.
+  const [i, setI] = useState(() => Math.floor(Math.random() * Math.max(1, langs.length)));
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((on) => alive && setReduceMotion(on));
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
+
+  const advance = useCallback(() => {
+    setI((v) => (v + 1) % langs.length);
+    opacity.value = withTiming(1, { duration: HOOK_FADE_MS });
+  }, [langs.length, opacity]);
+
+  useEffect(() => {
+    // Nothing to rotate through until a second pack ships — don't run a timer.
+    if (langs.length < 2) return;
+    const id = setInterval(() => {
+      if (reduceMotion) {
+        setI((v) => (v + 1) % langs.length);
+        return;
+      }
+      opacity.value = withTiming(0, { duration: HOOK_FADE_MS }, (done) => {
+        if (done) runOnJS(advance)();
+      });
+    }, HOOK_ROTATE_MS);
+    return () => clearInterval(id);
+  }, [langs.length, reduceMotion, advance, opacity]);
+
+  const fade = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const word = t(`lang.${langs[i] ?? 'de'}` as StringKey);
+  // Split the translated sentence around the slot the language sits in. A locale
+  // that drops the placeholder still renders: suffix falls back to empty and the
+  // word simply trails the line rather than throwing.
+  const [prefix, suffix = ''] = t('ob.hookTitle', { lang: LANG_SLOT }).split(LANG_SLOT);
+
+  // Language names differ in length, so the sentence can gain a line as it
+  // rotates and shove the CTA down mid-fade. An invisible copy built from the
+  // longest name holds the box at its worst case; the live line sits on top.
+  const longest = langs
+    .map((l) => t(`lang.${l}` as StringKey))
+    .reduce((a, b) => (b.length > a.length ? b : a), '');
+
+  return (
+    <View>
+      <Text variant="hero" style={{ marginTop: space.md, opacity: 0 }} accessibilityElementsHidden>
+        {t('ob.hookTitle', { lang: longest })}
+      </Text>
+      <View style={StyleSheet.absoluteFill}>
+        <Text variant="hero" style={{ marginTop: space.md }} accessibilityLabel={prefix + word + suffix}>
+          {prefix}
+          <Animated.Text style={fade}>{word}</Animated.Text>
+          {suffix}
+        </Text>
+      </View>
+    </View>
+  );
+}
 const FARE_EXERCISES = [3, 5, 8];
 const FARE_MINUTES = [15, 30, 45];
 
@@ -153,7 +295,12 @@ export default function Onboarding() {
 
   // answers
   const [name, setName] = useState('');
-  const [language, setLanguage] = useState<Language>('de');
+  // Default to the first language we'd actually offer this user. Hardcoding
+  // 'de' would leave a German-UI user pre-selected on a language the picker
+  // (correctly) refuses to show them.
+  const [language, setLanguage] = useState<Language>(
+    () => learnableLanguages(resolvedLocale())[0] ?? 'de'
+  );
   const [difficulty, setDifficulty] = useState(3);
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
@@ -180,7 +327,7 @@ export default function Onboarding() {
   }, [step]);
 
   const firstName = name.trim().split(/\s+/)[0] || null;
-  const dailyMinutes = 25 + apps.length * 20; // playful, plausible estimate
+  const dailyMinutes = estimateDailyMinutes(apps);
   const dailyH = Math.floor(dailyMinutes / 60);
   const dailyM = dailyMinutes % 60;
   const daysPerYear = Math.round((dailyMinutes * 365) / 1440);
@@ -254,9 +401,7 @@ export default function Onboarding() {
                 <Text variant="overline" color="accent">
                   LangPass
                 </Text>
-                <Text variant="hero" style={{ marginTop: space.md }}>
-                  {t('ob.hookTitle', { lang })}
-                </Text>
+                <RotatingHook />
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
                   {t('ob.hookSub')}
                 </Text>
@@ -307,7 +452,7 @@ export default function Onboarding() {
               <Entrance key="language">
                 <Text variant="title">{t('ob.langTitle')}</Text>
                 <View style={{ marginTop: space.xl, gap: space.sm }}>
-                  {availableLanguages().map((l) => (
+                  {learnableLanguages(resolvedLocale()).map((l) => (
                     <OptionRow
                       key={l}
                       label={t(`lang.${l}` as StringKey)}
@@ -315,7 +460,7 @@ export default function Onboarding() {
                       onPress={() => setLanguage(l)}
                     />
                   ))}
-                  {SOON_LANGS.map((l) => (
+                  {soonLanguages(resolvedLocale()).map((l) => (
                     <OptionRow
                       key={l}
                       label={t(`lang.${l}` as StringKey)}
@@ -401,8 +546,9 @@ export default function Onboarding() {
                   {t('ob.mirrorOver')}
                 </Text>
                 <Text variant="hero" style={{ marginTop: space.md, fontSize: 56, lineHeight: 60 }}>
-                  {dailyH ? `${dailyH}h ` : ''}
-                  {dailyM}m
+                  {dailyH ? `${dailyH}h` : ''}
+                  {dailyH && dailyM ? ' ' : ''}
+                  {dailyM ? `${dailyM}m` : ''}
                 </Text>
                 <Text variant="title" style={{ marginTop: space.md }}>
                   {firstName
@@ -411,6 +557,9 @@ export default function Onboarding() {
                 </Text>
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
                   {t('ob.mirrorSub', { days: daysPerYear, lang })}
+                </Text>
+                <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+                  {t('ob.mirrorNote')}
                 </Text>
               </Entrance>
             )}

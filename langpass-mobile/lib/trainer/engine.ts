@@ -108,6 +108,17 @@ function pickVocab(
   return pool.slice(0, count);
 }
 
+/**
+ * Reveal line for a vocab item. Appends grammatical gender where the article
+ * doesn't show it (French/Italian elision: l'eau, l'acqua) — the reveal is the
+ * moment the learner actually absorbs it, and `audio` stays clean because it
+ * reads item.de directly rather than this string.
+ */
+function revealFor(item: VocabItem): string {
+  const g = item.gender ? ` (${item.gender})` : '';
+  return `${item.de}${g} — ${item.en[0]}`;
+}
+
 function mcOptions(
   item: VocabItem,
   pack: LanguagePack,
@@ -123,10 +134,21 @@ function mcOptions(
     pack.vocab.filter((v) => v.id !== item.id && v.category !== item.category),
     rand
   );
+  // The prompt is whatever sits on the OTHER side from the options.
+  const promptText = side === 'de' ? item.en[0] : item.de;
+
   const seen = new Set([correct]);
   const distractors: string[] = [];
   for (const v of [...sameCategory, ...anyOther]) {
     const text = side === 'de' ? v.de : v.en[0];
+    // Skip anything that MEANS the same as the prompt, not just anything that
+    // reads the same as the correct option. Two headwords legitimately share a
+    // gloss when the gloss language doesn't split them — Italian "perché" is
+    // both why and because, "ciao" is both hello and goodbye, Portuguese "boa
+    // noite" covers evening and night. Offering the sibling as a distractor
+    // gives the item two correct answers and marks one of them wrong.
+    const vPrompt = side === 'de' ? v.en[0] : v.de;
+    if (vPrompt === promptText) continue;
     if (!seen.has(text)) {
       seen.add(text);
       distractors.push(text);
@@ -155,7 +177,7 @@ function articleExercise(item: VocabItem, key: string): Exercise {
     hint: item.en[0],
     options: [...ARTICLES],
     answer: article,
-    reveal: `${item.de} — ${item.en[0]}`,
+    reveal: revealFor(item),
     audio: item.de,
   };
 }
@@ -168,7 +190,7 @@ function listenExercise(item: VocabItem, pack: LanguagePack, rand: () => number,
     prompt: '',
     options: mcOptions(item, pack, 'en', rand),
     answer: item.en[0],
-    reveal: `${item.de} — ${item.en[0]}`,
+    reveal: revealFor(item),
     audio: item.de,
   };
 }
@@ -282,7 +304,7 @@ export function buildSession(
         itemId: item.id,
         prompt: item.en[0],
         answer: item.de,
-        reveal: `${item.de} — ${item.en[0]}`,
+        reveal: revealFor(item),
         audio: item.de,
       });
     } else if (type === 'mc_de_en') {
@@ -293,7 +315,7 @@ export function buildSession(
         prompt: item.de,
         options: mcOptions(item, pack, 'en', rand),
         answer: item.en[0],
-        reveal: `${item.de} — ${item.en[0]}`,
+        reveal: revealFor(item),
         audio: item.de,
       });
     } else {
@@ -304,7 +326,7 @@ export function buildSession(
         prompt: item.en[0],
         options: mcOptions(item, pack, 'de', rand),
         answer: item.de,
-        reveal: `${item.de} — ${item.en[0]}`,
+        reveal: revealFor(item),
         audio: item.de,
       });
     }

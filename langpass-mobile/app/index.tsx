@@ -1,6 +1,6 @@
 // Home — the pass screen. One glance: is my pass active? One tap: pay the fare.
-// (Lock is simulated in-app for now; the real Screen Time shield comes later
-// via lib/blocking.)
+// (The lock itself lives in lib/blocking: real Screen Time shielding on a
+// physical device, simulated via the store's timestamp in the simulator.)
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

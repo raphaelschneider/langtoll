@@ -43,6 +43,51 @@ interface RawSentence {
   clozeDistractors?: unknown;
 }
 
+// Blank markers the model has been seen to emit inside a sentence. It sometimes
+// returns a ready-made fill-in-the-blank ("… die Musik ist zu __.") instead of a
+// complete sentence, which produced a double-blanked prompt, "__" offered as an
+// answer option, and TTS reading the bare punctuation aloud ("… in die Punkt").
+const HAS_BLANK = /_{2,}|\u2026|\.{3,}|(?:^|\s)-{2,}(?:\s|$)/;
+
+/** Articles across the six languages we teach — never a useful blank or distractor. */
+const ARTICLES = new Set([
+  'der','die','das','den','dem','des','ein','eine','einen','einem','einer','eines',
+  'el','la','los','las','un','una','unos','unas',
+  'le','les','une','des','du',
+  'il','lo','gli','i','uno',
+  'o','a','os','as','um','uma',
+  'the',
+]);
+const bare = (w: string) => w.replace(/^[¿¡"'(]+|[.,!?;:"')]+$/g, '').toLowerCase();
+const isArticle = (w: string) => ARTICLES.has(bare(w));
+
+/**
+ * True when a sentence item is safe to show. Rejects anything the trainer can't
+ * render into an answerable exercise — see sanitizeTopic(), which applies this
+ * to packs already sitting in AsyncStorage from before these guards existed.
+ */
+export function usableSentence(s: SentenceItem): boolean {
+  if (HAS_BLANK.test(s.de) || HAS_BLANK.test(s.en)) return false;
+  const words = s.de.trim().split(/\s+/);
+  if (words.length < 3) return false;
+  if (s.clozeIndex < 0 || s.clozeIndex >= words.length - 1) return false;
+  if (isArticle(words[s.clozeIndex])) return false;
+  const answer = bare(words[s.clozeIndex]);
+  const ds = s.clozeDistractors ?? [];
+  if (ds.length < 3) return false;
+  return ds.every((d) => bare(d) !== answer && !isArticle(d) && !HAS_BLANK.test(d));
+}
+
+/**
+ * Drop unusable sentences from a stored topic pack. Runs on load rather than
+ * only at generation, because packs generated before these guards existed are
+ * already persisted on real devices.
+ */
+export function sanitizeTopic(t: CustomTopic): CustomTopic {
+  const sentences = t.sentences.filter(usableSentence);
+  return sentences.length === t.sentences.length ? t : { ...t, sentences };
+}
+
 function validate(topic: string, level: Level, data: any): CustomTopic {
   const id = slug(topic);
   const vocab: VocabItem[] = [];
@@ -72,14 +117,16 @@ function validate(topic: string, level: Level, data: any): CustomTopic {
       ? raw.clozeDistractors.filter((d) => typeof d === 'string' && d.trim()).slice(0, 3)
       : [];
     if (distractors.length < 3) continue;
-    sentences.push({
+    const candidate: SentenceItem = {
       id: `topic-${id}-s${i}`,
       de: raw.de.trim(),
       en: raw.en.trim(),
       level,
       clozeIndex,
       clozeDistractors: distractors as string[],
-    });
+    };
+    if (!usableSentence(candidate)) continue;
+    sentences.push(candidate);
   }
 
   if (vocab.length < 5) throw new Error(`AI returned too little usable vocab (${vocab.length})`);

@@ -18,6 +18,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { hydrate, getState, isUnlocked } from '@/lib/store';
 import { configureShieldAppearance, maybeRelock } from '@/lib/blocking';
 import { configurePurchases } from '@/lib/purchases';
+import { primeVoices, configureAudioSession, applyStoredShaping } from '@/lib/tts';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 // Belt-and-suspenders: force-hide the native splash after a hard ceiling,
@@ -50,8 +51,14 @@ export default function RootLayout() {
   useEffect(() => {
     // Never block forever — proceed after 4s no matter what resolved.
     const id = setTimeout(() => setTimedOut(true), 4000);
-    hydrate().finally(() => setStoreReady(true));
+    // Shaping must be re-applied AFTER hydrate — it is read from the store.
+    hydrate().finally(() => {
+      setStoreReady(true);
+      applyStoredShaping();
+    });
     configurePurchases(); // no-op in mock; mirrors the live entitlement when keyed
+    primeVoices(); // load the device voice list so the first speak() isn't a race
+    configureAudioSession(); // play speech even with the ringer switch on silent
     return () => clearTimeout(id);
   }, []);
 

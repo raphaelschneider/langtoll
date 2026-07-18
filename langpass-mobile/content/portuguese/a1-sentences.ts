@@ -2,26 +2,28 @@ import type { SentenceItem } from '@/content/german/types';
 
 // Brazilian Portuguese A1 sentences. `de` holds the Portuguese text. clozeIndex
 // targets the load-bearing word (never the article).
+//
+// `gloss` carries the non-English UI locales; see a1-vocab.ts for the rule.
 
 export const A1_SENTENCES: SentenceItem[] = [
-  { id: 'ps001', de: 'Bom dia, tudo bem?', en: 'Good morning, how are you?', level: 'A1', clozeIndex: 0, clozeDistractors: ['Boa', 'Obrigado', 'Tchau'] },
-  { id: 'ps002', de: 'Eu quero um café, por favor.', en: 'I want a coffee, please.', level: 'A1', clozeIndex: 3, clozeDistractors: ['pão', 'leite', 'ovo'] },
-  { id: 'ps003', de: 'Onde fica o banheiro?', en: 'Where is the bathroom?', level: 'A1', clozeIndex: 1, clozeDistractors: ['quando', 'como', 'quem'] },
-  { id: 'ps004', de: 'Eu moro em São Paulo.', en: 'I live in São Paulo.', level: 'A1', clozeIndex: 1, clozeDistractors: ['falo', 'como', 'quero'] },
-  { id: 'ps005', de: 'Quanto custa a cerveja?', en: 'How much does the beer cost?', level: 'A1', clozeIndex: 0, clozeDistractors: ['Onde', 'Quem', 'Como'] },
-  { id: 'ps006', de: 'A comida está muito boa.', en: 'The food is very good.', level: 'A1', clozeIndex: 4, clozeDistractors: ['cara', 'fria', 'grande'] },
-  { id: 'ps007', de: 'Eu não falo português muito bem.', en: 'I don’t speak Portuguese very well.', level: 'A1', clozeIndex: 2, clozeDistractors: ['como', 'quero', 'moro'] },
-  { id: 'ps008', de: 'Hoje eu vou trabalhar.', en: 'Today I am going to work.', level: 'A1', clozeIndex: 3, clozeDistractors: ['comer', 'falar', 'morar'] },
-  { id: 'ps009', de: 'Ela tem uma irmã pequena.', en: 'She has a little sister.', level: 'A1', clozeIndex: 4, clozeDistractors: ['grande', 'bonita', 'cansada'] },
-  { id: 'ps010', de: 'Nós gostamos da praia.', en: 'We like the beach.', level: 'A1', clozeIndex: 3, clozeDistractors: ['cidade', 'escola', 'loja'] },
-  { id: 'ps011', de: 'O restaurante é muito caro.', en: 'The restaurant is very expensive.', level: 'A1', clozeIndex: 4, clozeDistractors: ['barato', 'pequeno', 'novo'] },
-  { id: 'ps012', de: 'Amanhã eu vou ao mercado.', en: 'Tomorrow I am going to the market.', level: 'A1', clozeIndex: 0, clozeDistractors: ['Ontem', 'Agora', 'Sempre'] },
-  { id: 'ps013', de: 'Você quer água ou café?', en: 'Do you want water or coffee?', level: 'A1', clozeIndex: 2, clozeDistractors: ['pão', 'carne', 'queijo'] },
-  { id: 'ps014', de: 'A minha casa é pequena.', en: 'My house is small.', level: 'A1', clozeIndex: 4, clozeDistractors: ['grande', 'cara', 'quente'] },
-  { id: 'ps015', de: 'Eu estou muito cansado hoje.', en: 'I am very tired today.', level: 'A1', clozeIndex: 3, clozeDistractors: ['feliz', 'bom', 'frio'] },
-  { id: 'ps016', de: 'Ele trabalha na cidade.', en: 'He works in the city.', level: 'A1', clozeIndex: 3, clozeDistractors: ['praia', 'escola', 'casa'] },
-  { id: 'ps017', de: 'Por favor, a conta.', en: 'The check, please.', level: 'A1', clozeIndex: 3, clozeDistractors: ['água', 'mesa', 'porta'] },
-  { id: 'ps018', de: 'Que horas são agora?', en: 'What time is it now?', level: 'A1', clozeIndex: 3, clozeDistractors: ['hoje', 'amanhã', 'sempre'] },
-  { id: 'ps019', de: 'Eu gosto muito de você.', en: 'I like you a lot.', level: 'A1', clozeIndex: 1, clozeDistractors: ['falo', 'quero', 'tenho'] },
-  { id: 'ps020', de: 'A água está muito fria.', en: 'The water is very cold.', level: 'A1', clozeIndex: 4, clozeDistractors: ['quente', 'boa', 'cara'] },
+  { id: 'ps001', de: 'Bom dia, tudo bem?', en: 'Good morning, how are you?', gloss: { de: 'Guten Morgen, wie geht’s?', es: 'Buenos días, ¿qué tal?', fr: 'Bonjour, ça va ?', it: 'Buongiorno, tutto bene?' }, level: 'A1', clozeIndex: 0, clozeDistractors: ['Boa', 'Obrigado', 'Tchau'] },
+  { id: 'ps002', de: 'Eu quero um café, por favor.', en: 'I want a coffee, please.', gloss: { de: 'Ich möchte einen Kaffee, bitte.', es: 'Quiero un café, por favor.', fr: 'Je voudrais un café, s’il vous plaît.', it: 'Vorrei un caffè, per favore.' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['pão', 'leite', 'ovo'] },
+  { id: 'ps003', de: 'Onde fica o banheiro?', en: 'Where is the bathroom?', gloss: { de: 'Wo ist die Toilette?', es: '¿Dónde está el baño?', fr: 'Où sont les toilettes ?', it: 'Dov’è il bagno?' }, level: 'A1', clozeIndex: 0, clozeDistractors: ['quando', 'como', 'quem'] },
+  { id: 'ps004', de: 'Eu moro em São Paulo.', en: 'I live in São Paulo.', gloss: { de: 'Ich wohne in São Paulo.', es: 'Vivo en São Paulo.', fr: 'J’habite à São Paulo.', it: 'Abito a São Paulo.' }, level: 'A1', clozeIndex: 1, clozeDistractors: ['falo', 'como', 'quero'] },
+  { id: 'ps005', de: 'Quanto custa a cerveja?', en: 'How much does the beer cost?', gloss: { de: 'Was kostet das Bier?', es: '¿Cuánto cuesta la cerveza?', fr: 'Combien coûte la bière ?', it: 'Quanto costa la birra?' }, level: 'A1', clozeIndex: 0, clozeDistractors: ['Onde', 'Quem', 'Como'] },
+  { id: 'ps006', de: 'A comida está muito boa.', en: 'The food is very good.', gloss: { de: 'Das Essen ist sehr gut.', es: 'La comida está muy buena.', fr: 'La nourriture est très bonne.', it: 'Il cibo è molto buono.' }, level: 'A1', clozeIndex: 4, clozeDistractors: ['cara', 'fria', 'grande'] },
+  { id: 'ps007', de: 'Eu não falo português muito bem.', en: 'I don’t speak Portuguese very well.', gloss: { de: 'Ich spreche nicht sehr gut Portugiesisch.', es: 'No hablo portugués muy bien.', fr: 'Je ne parle pas très bien portugais.', it: 'Non parlo molto bene il portoghese.' }, level: 'A1', clozeIndex: 2, clozeDistractors: ['como', 'quero', 'moro'] },
+  { id: 'ps008', de: 'Hoje eu vou trabalhar.', en: 'Today I am going to work.', gloss: { de: 'Heute gehe ich arbeiten.', es: 'Hoy voy a trabajar.', fr: 'Aujourd’hui je vais travailler.', it: 'Oggi vado a lavorare.' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['comer', 'falar', 'morar'] },
+  { id: 'ps009', de: 'Ela tem uma irmã pequena.', en: 'She has a little sister.', gloss: { de: 'Sie hat eine kleine Schwester.', es: 'Ella tiene una hermana pequeña.', fr: 'Elle a une petite sœur.', it: 'Lei ha una sorella piccola.' }, level: 'A1', clozeIndex: 4, clozeDistractors: ['grande', 'bonita', 'cansada'] },
+  { id: 'ps010', de: 'Nós gostamos da praia.', en: 'We like the beach.', gloss: { de: 'Wir mögen den Strand.', es: 'Nos gusta la playa.', fr: 'Nous aimons la plage.', it: 'Ci piace la spiaggia.' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['cidade', 'escola', 'loja'] },
+  { id: 'ps011', de: 'O restaurante é muito caro.', en: 'The restaurant is very expensive.', gloss: { de: 'Das Restaurant ist sehr teuer.', es: 'El restaurante es muy caro.', fr: 'Le restaurant est très cher.', it: 'Il ristorante è molto caro.' }, level: 'A1', clozeIndex: 4, clozeDistractors: ['barato', 'pequeno', 'novo'] },
+  { id: 'ps012', de: 'Amanhã eu vou ao mercado.', en: 'Tomorrow I am going to the market.', gloss: { de: 'Morgen gehe ich zum Markt.', es: 'Mañana voy al mercado.', fr: 'Demain je vais au marché.', it: 'Domani vado al mercato.' }, level: 'A1', clozeIndex: 0, clozeDistractors: ['Ontem', 'Agora', 'Sempre'] },
+  { id: 'ps013', de: 'Você quer água ou café?', en: 'Do you want water or coffee?', gloss: { de: 'Möchtest du Wasser oder Kaffee?', es: '¿Quieres agua o café?', fr: 'Tu veux de l’eau ou du café ?', it: 'Vuoi acqua o caffè?' }, level: 'A1', clozeIndex: 2, clozeDistractors: ['pão', 'carne', 'queijo'] },
+  { id: 'ps014', de: 'A minha casa é pequena.', en: 'My house is small.', gloss: { de: 'Mein Haus ist klein.', es: 'Mi casa es pequeña.', fr: 'Ma maison est petite.', it: 'La mia casa è piccola.' }, level: 'A1', clozeIndex: 4, clozeDistractors: ['grande', 'cara', 'quente'] },
+  { id: 'ps015', de: 'Eu estou muito cansado hoje.', en: 'I am very tired today.', gloss: { de: 'Ich bin heute sehr müde.', es: 'Hoy estoy muy cansado.', fr: 'Je suis très fatigué aujourd’hui.', it: 'Oggi sono molto stanco.' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['feliz', 'bom', 'frio'] },
+  { id: 'ps016', de: 'Ele trabalha na cidade.', en: 'He works in the city.', gloss: { de: 'Er arbeitet in der Stadt.', es: 'Él trabaja en la ciudad.', fr: 'Il travaille en ville.', it: 'Lui lavora in città.' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['praia', 'escola', 'casa'] },
+  { id: 'ps017', de: 'Por favor, a conta.', en: 'The check, please.', gloss: { de: 'Die Rechnung, bitte.', es: 'La cuenta, por favor.', fr: 'L’addition, s’il vous plaît.', it: 'Il conto, per favore.' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['água', 'mesa', 'porta'] },
+  { id: 'ps018', de: 'Que horas são agora?', en: 'What time is it now?', gloss: { de: 'Wie spät ist es jetzt?', es: '¿Qué hora es ahora?', fr: 'Quelle heure est-il maintenant ?', it: 'Che ore sono adesso?' }, level: 'A1', clozeIndex: 3, clozeDistractors: ['hoje', 'amanhã', 'sempre'] },
+  { id: 'ps019', de: 'Eu gosto muito de você.', en: 'I like you a lot.', gloss: { de: 'Ich mag dich sehr.', es: 'Me gustas mucho.', fr: 'Je t’aime beaucoup.', it: 'Mi piaci molto.' }, level: 'A1', clozeIndex: 1, clozeDistractors: ['falo', 'quero', 'tenho'] },
+  { id: 'ps020', de: 'A água está muito fria.', en: 'The water is very cold.', gloss: { de: 'Das Wasser ist sehr kalt.', es: 'El agua está muy fría.', fr: 'L’eau est très froide.', it: 'L’acqua è molto fredda.' }, level: 'A1', clozeIndex: 4, clozeDistractors: ['quente', 'boa', 'cara'] },
 ];
