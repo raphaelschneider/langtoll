@@ -141,6 +141,13 @@ export function AppPicker() {
       {picking && SheetView && (
         <SheetView
           familyActivitySelectionId={selectionId()}
+          // Without this, picking a whole category ("Social") stores a bare
+          // category token that does not expand to the apps inside it — so the
+          // shield covered only apps picked individually and the category
+          // appeared to do nothing. The library's own docs warn that a selection
+          // without it means "categories might not be correctly whitelisted".
+          // Requires iOS 15.2+; the app already targets 15.1+ via device-activity.
+          includeEntireCategory
           onSelectionChange={onSelectionChange}
           onDismissRequest={onDismiss}
         />

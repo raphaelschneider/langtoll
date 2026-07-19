@@ -222,8 +222,11 @@ export function configureShieldAppearance(): void {
   try {
     m.updateShield(
       {
-        title: 'Erst Deutsch, dann TikTok.',
-        subtitle: 'Finish a quick German session in LangPass to earn your pass.',
+        // Language-neutral: this text is shown to every learner, and the shield is
+        // configured once at launch rather than per-pack, so naming a language
+        // here showed "Erst Deutsch" to someone studying Spanish.
+        title: 'Locked until you practise.',
+        subtitle: 'Finish a quick session in LangPass to earn your pass.',
         primaryButtonLabel: 'Practice now',
         secondaryButtonLabel: 'Not now',
         iconSystemName: 'lock.fill',
