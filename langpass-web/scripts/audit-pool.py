@@ -118,10 +118,24 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--show", type=int, default=6, help="examples to print per defect")
+    ap.add_argument("--lang", help="restrict to one language")
+    ap.add_argument("--level", help="restrict to one CEFR level")
+    ap.add_argument("--newest", type=int, default=0,
+                    help="only the N most recently generated packs — use after a fix to "
+                         "measure the NEW output instead of drowning it in old packs")
     args = ap.parse_args()
 
+    where = []
+    if args.lang:
+        where.append(f"language = '{args.lang}'")
+    if args.level:
+        where.append(f"level = '{args.level.upper()}'")
     sql = "SELECT language, level, topic, pack FROM topic_packs"
-    if args.limit:
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    if args.newest:
+        sql += f" ORDER BY created_at DESC LIMIT {args.newest}"
+    elif args.limit:
         sql += f" ORDER BY RAND() LIMIT {args.limit}"
     rows = [r for r in mysql(sql).split("\n") if r.strip()]
     if not rows:

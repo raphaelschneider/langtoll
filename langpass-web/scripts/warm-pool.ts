@@ -40,9 +40,14 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // Rough per-pack cost, for the pre-flight estimate ONLY — never for billing, and
 // it will drift as prices change. Packs now carry glosses for five locales, so
 // output is several times what it was before.
+// MEASURED from usage_log over ~3,900 real calls, not guessed: 628 input and
+// 2,143 output tokens per pack. At gpt-4o list rates ($2.50/$10.00 per 1M) that
+// is $0.0016 + $0.0214. The previous 0.05 here was invented and overstated the
+// bill by more than 2x, which nearly caused a run to be cancelled as
+// unaffordable when it was well within budget.
 const USD_PER_PACK_BY_MODEL: Record<string, number> = {
-  'gpt-4o': 0.05,
-  'gpt-4o-mini': 0.003,
+  'gpt-4o': 0.023,
+  'gpt-4o-mini': 0.0014,
 };
 const USD_PER_PACK = USD_PER_PACK_BY_MODEL[process.env.LANGPASS_TOPIC_MODEL || 'gpt-4o'] ?? 0.05;
 
