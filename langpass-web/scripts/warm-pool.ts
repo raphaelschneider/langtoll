@@ -19,9 +19,23 @@ import { TOPIC_CATALOGUE } from '../src/lib/ai/catalogue';
 import { generateTopicPack, contentKeyFor, LANGS, LEVELS } from '../src/lib/ai/generate';
 import { query } from '../src/lib/db';
 
-// Modest: each call is ~4k output tokens, and the point is to finish reliably,
-// not fast. Raise only if the account's rate limits are comfortable.
-const CONCURRENCY = 4;
+// Each call is ~4k output tokens. 4 workers measured ≈13 packs/min, so 8 should
+// land near ≈26 and take the full catalogue from ~6 hours to roughly 3.
+// Override with --concurrency N.
+const DEFAULT_CONCURRENCY = 8;
+
+// Rate limits are the expected failure at this concurrency, and they are
+// transient — retrying with backoff is the difference between a clean run and
+// several hundred packs to re-run. Non-rate-limit errors fail fast: retrying a
+// malformed generation just wastes money.
+const MAX_RETRIES = 3;
+
+function isRateLimit(err: unknown): boolean {
+  const e = err as { status?: number; code?: string; message?: string };
+  return e?.status === 429 || e?.code === 'rate_limit_exceeded' || /rate limit/i.test(e?.message ?? '');
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // gpt-4o-mini list price at time of writing. Used ONLY for the pre-flight
 // estimate — never for billing decisions, and it will drift.
@@ -43,11 +57,12 @@ function parseArgs() {
     dry: a.includes('--dry'),
     lang: get('--lang'),
     level: get('--level'),
+    concurrency: Number(get('--concurrency')) || DEFAULT_CONCURRENCY,
   };
 }
 
 async function main() {
-  const { dry, lang, level } = parseArgs();
+  const { dry, lang, level, concurrency } = parseArgs();
 
   const languages = lang ? [lang] : Object.keys(LANGS);
   const levels = level ? [level.toUpperCase()] : LEVELS;
@@ -82,8 +97,11 @@ async function main() {
 
   if (dry) return console.log('--dry: stopping before any generation.');
 
+  console.log(`concurrency: ${concurrency}`);
+
   let done = 0;
   let failed = 0;
+  let rateLimited = 0;
   const started = Date.now();
 
   // Fixed-size worker pool over a shared cursor: bounded concurrency without
@@ -92,12 +110,26 @@ async function main() {
   async function worker(id: number) {
     while (cursor < missing.length) {
       const job = missing[cursor++];
-      try {
-        await generateTopicPack(job.topic, job.language, job.level);
-        done++;
-      } catch (err) {
-        failed++;
-        console.warn(`  ✗ ${job.language}/${job.level}/${job.topic}: ${err instanceof Error ? err.message : err}`);
+      let attempt = 0;
+      for (;;) {
+        try {
+          await generateTopicPack(job.topic, job.language, job.level);
+          done++;
+          break;
+        } catch (err) {
+          // Only rate limits are worth retrying: they are transient and expected
+          // at this concurrency. A malformed generation would fail identically on
+          // a retry and cost again.
+          if (isRateLimit(err) && attempt < MAX_RETRIES) {
+            const wait = 2000 * 2 ** attempt++;
+            rateLimited++;
+            await sleep(wait);
+            continue;
+          }
+          failed++;
+          console.warn(`  ✗ ${job.language}/${job.level}/${job.topic}: ${err instanceof Error ? err.message : err}`);
+          break;
+        }
       }
       const n = done + failed;
       if (n % 25 === 0 || n === missing.length) {
@@ -108,9 +140,9 @@ async function main() {
     }
   }
 
-  await Promise.all(Array.from({ length: CONCURRENCY }, (_, i) => worker(i + 1)));
+  await Promise.all(Array.from({ length: concurrency }, (_, i) => worker(i + 1)));
 
-  console.log(`\ndone: ${done} generated, ${failed} failed, ${Math.round((Date.now() - started) / 1000)}s`);
+  console.log(`\ndone: ${done} generated, ${failed} failed, ${rateLimited} rate-limit retries, ${Math.round((Date.now() - started) / 1000)}s`);
   if (failed) console.log('re-run to retry the failures — cached packs are skipped.');
 }
 
