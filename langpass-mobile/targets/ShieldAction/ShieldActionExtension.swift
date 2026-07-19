@@ -9,47 +9,6 @@ import FamilyControls
 import ManagedSettings
 import UIKit
 
-/// Open LangPass from the shield.
-///
-/// The library's own `openApp` action cannot do this. It calls
-/// `NSExtensionContext().open(_:)` on a FRESHLY CONSTRUCTED context — not the
-/// extension's real one — so there is no host to route the request through and
-/// the call silently no-ops. (Its source even carries a `// todo` and hardcodes
-/// the example app's `device-activity://` scheme.)
-///
-/// Apple gives a ShieldActionExtension no supported way to launch an app, so
-/// every approach here is a workaround and each one's reliability varies by iOS
-/// version. Rather than pick one and hope, try them in order and log which
-/// succeeded — the log line is what tells us, on a real device, which mechanism
-/// actually works on this OS.
-///
-/// Returns true if some mechanism reported success.
-@discardableResult
-func openLangPass() -> Bool {
-  guard let url = URL(string: "langpass://practice") else { return false }
-
-  // 1. Detached NSExtensionContext. The library's approach. Reported to work on
-  //    some iOS versions and to have stopped on others; cheap to try first.
-  let detached = NSExtensionContext()
-  detached.open(url) { ok in
-    logger.log("openLangPass: NSExtensionContext -> \(ok, privacy: .public)")
-  }
-
-  // The open above is asynchronous. Returning from the action tears the
-  // extension down, so give the request a moment to leave — this is why the
-  // library sleeps here too.
-  sleep(ms: 1200)
-
-  // Fallback: post a Darwin notification. This does NOT foreground anything by
-  // itself — iOS gives a ShieldActionExtension no supported way to launch an app
-  // — but it lets LangPass react the instant it is next opened, so the tap is
-  // never silently lost even when the OS refuses to switch.
-  notifyAppWithName(name: "langpass.shield.practiceRequested")
-  logger.log("openLangPass: posted Darwin notification fallback")
-
-  return false
-}
-
 func handleShieldAction(
   configForSelectedAction: [String: Any],
   placeholders: [String: String?],
@@ -60,12 +19,6 @@ func handleShieldAction(
   logger.log("handleAction")
   if let actions = configForSelectedAction["actions"] as? [[String: Any]] {
     for action in actions {
-      // Intercept openApp before the library sees it: its implementation targets
-      // the wrong URL scheme through a non-functional context.
-      if let type = action["type"] as? String, type == "openApp" {
-        openLangPass()
-        continue
-      }
       executeGenericAction(
         action: action,
         placeholders: placeholders,

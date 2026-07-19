@@ -237,7 +237,18 @@ export function configureShieldAppearance(): void {
         primaryButtonLabelColor: { red: 16, green: 20, blue: 3, alpha: 1 },
       },
       {
-        primary: { behavior: 'close', actions: [{ type: 'openApp' }] },
+        // NOT `actions: [{ type: 'openApp' }]`. That path calls open() on a
+        // freshly constructed NSExtensionContext — not the extension's real one,
+        // so nothing routes — and it hardcodes the library example's
+        // device-activity:// scheme (its source says `// todo` next to it). The
+        // observed result was the shield closing and the blocked app merely
+        // going to the background.
+        //
+        // `openUrlWithDispatch` is a first-class action type on the config
+        // object itself and runs the open on the main queue, which is the
+        // variant most likely to survive the extension being torn down. The URL
+        // is ours: expo-linking treats `langpass` as the canonical scheme.
+        primary: { behavior: 'close', type: 'openUrlWithDispatch', url: 'langpass://' },
         secondary: { behavior: 'defer' },
       },
       'langpass:configureShield'
