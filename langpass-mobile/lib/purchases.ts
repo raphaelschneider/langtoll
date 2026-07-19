@@ -10,7 +10,7 @@
 // flow through automatically.
 import { Platform } from 'react-native';
 import { applyEntitlement } from './store';
-import { PLUS_ENTITLEMENT, PRODUCT_IDS, PRICES, type Period } from './plans';
+import { PLUS_ENTITLEMENT, PRODUCT_IDS, FALLBACK_PRICES, TRIAL_DAYS, type Period } from './plans';
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
 
@@ -32,12 +32,83 @@ export function purchasesMisconfigured(): boolean {
 /** A normalized package the paywall renders, whether from the store or the mock. */
 export interface PlusPackage {
   period: Period;
-  /** Localized price string from the store, or the fallback from PRICES. */
+  /** Localized price string, formatted by the store itself. */
   priceString: string;
+  /** Numeric price, in `currency`. Everything derived is computed from this. */
+  amount: number;
+  /** ISO currency code the store charges in — never assumed to be USD. */
+  currency: string;
   /** RevenueCat package object to purchase (null in mock mode). */
   raw: any | null;
   /** True if this package carries an introductory free trial. */
   hasTrial: boolean;
+  /** Length of that trial in days, read from the store's intro offer. 0 if none. */
+  trialDays: number;
+}
+
+/**
+ * Format an amount in the store's own currency. Intl is available in Hermes on
+ * iOS; the catch is a guard, not an expected path, and falls back to the store's
+ * formatting conventions rather than inventing a "$".
+ */
+export function formatMoney(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
+}
+
+/**
+ * Trial length from a StoreKit intro offer. Only a genuinely free offer counts —
+ * a discounted-but-paid intro price is not a trial and must not be sold as one.
+ */
+function introTrialDays(introPrice: any): number {
+  if (!introPrice || introPrice.price !== 0) return 0;
+  const n = introPrice.periodNumberOfUnits ?? 0;
+  switch (introPrice.periodUnit) {
+    case 'DAY':
+      return n;
+    case 'WEEK':
+      return n * 7;
+    case 'MONTH':
+      return n * 30;
+    case 'YEAR':
+      return n * 365;
+    default:
+      return 0;
+  }
+}
+
+/** Months billed per period — the divisor for a per-month equivalent. */
+const MONTHS_PER_PERIOD: Record<Period, number> = {
+  weekly: 12 / 52,
+  monthly: 1,
+  yearly: 12,
+};
+
+/**
+ * Per-month equivalent, in the store's currency. Shown only where it tells the
+ * user something they don't already see — a monthly plan's own price is already
+ * its monthly cost.
+ */
+export function perMonthEquivalent(p: PlusPackage): string | null {
+  if (p.period === 'monthly' || p.amount <= 0) return null;
+  return formatMoney(p.amount / MONTHS_PER_PERIOD[p.period], p.currency);
+}
+
+/**
+ * Percentage saved against the monthly plan, annualized. Returns null rather
+ * than a wrong number when it cannot be computed honestly: no monthly package to
+ * compare with, mismatched currencies, or no actual saving.
+ */
+export function savingsVsMonthly(p: PlusPackage, all: PlusPackage[]): number | null {
+  const monthly = all.find((x) => x.period === 'monthly');
+  if (!monthly || monthly.amount <= 0 || p.amount <= 0) return null;
+  if (monthly.currency !== p.currency) return null;
+  const perMonth = p.amount / MONTHS_PER_PERIOD[p.period];
+  const pct = Math.round((1 - perMonth / monthly.amount) * 100);
+  return pct > 0 ? pct : null;
 }
 
 /** Live only when a real key is set on a native platform — otherwise mock. */
@@ -113,11 +184,19 @@ export async function getPackages(): Promise<PlusPackage[]> {
           const id = p?.product?.identifier ?? '';
           const period = PERIOD_BY_PRODUCT[id];
           if (!period) return null;
+          const product = p?.product ?? {};
+          const fallback = FALLBACK_PRICES[period];
+          const amount = typeof product.price === 'number' ? product.price : fallback.amount;
+          const currency = product.currencyCode ?? fallback.currency;
+          const trialDays = introTrialDays(product.introPrice);
           return {
             period,
-            priceString: p?.product?.priceString ?? PRICES[period].price,
+            priceString: product.priceString ?? formatMoney(amount, currency),
+            amount,
+            currency,
             raw: p,
-            hasTrial: !!p?.product?.introPrice && p.product.introPrice.price === 0,
+            hasTrial: trialDays > 0,
+            trialDays,
           } as PlusPackage;
         })
         .filter(Boolean) as PlusPackage[];
@@ -135,14 +214,24 @@ function sortPackages(pkgs: PlusPackage[]): PlusPackage[] {
   return [...pkgs].sort((a, b) => order.indexOf(a.period) - order.indexOf(b.period));
 }
 
+// The mock runs the same derivation as the live path — it only substitutes the
+// source of the numbers. Weekly carries no trial here either, mirroring the
+// intro offers configured in App Store Connect.
 function mockPackages(): PlusPackage[] {
   return sortPackages(
-    (['yearly', 'monthly', 'weekly'] as Period[]).map((period) => ({
-      period,
-      priceString: PRICES[period].price,
-      raw: null,
-      hasTrial: true,
-    }))
+    (['yearly', 'monthly', 'weekly'] as Period[]).map((period) => {
+      const { amount, currency } = FALLBACK_PRICES[period];
+      const trialDays = period === 'weekly' ? 0 : TRIAL_DAYS;
+      return {
+        period,
+        priceString: formatMoney(amount, currency),
+        amount,
+        currency,
+        raw: null,
+        hasTrial: trialDays > 0,
+        trialDays,
+      };
+    })
   );
 }
 

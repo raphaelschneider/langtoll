@@ -10,8 +10,15 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius } from '@/design/theme';
-import { PLUS_FEATURES, PRICES, TRIAL_DAYS, type Period } from '@/lib/plans';
-import { getPackages, purchase, restore, type PlusPackage } from '@/lib/purchases';
+import { PLUS_FEATURES, type Period } from '@/lib/plans';
+import {
+  getPackages,
+  purchase,
+  restore,
+  perMonthEquivalent,
+  savingsVsMonthly,
+  type PlusPackage,
+} from '@/lib/purchases';
 import { useT } from '@/lib/i18n';
 
 function HowRow({ icon, title, detail }: { icon: any; title: string; detail: string }) {
@@ -83,8 +90,15 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
           <ActivityIndicator color={theme.accent} />
         ) : (
           packages.map((p) => {
-            const meta = PRICES[p.period];
+            // Everything shown here is derived from the store's own price and
+            // currency — never a frozen string. savingsVsMonthly and
+            // perMonthEquivalent return null rather than guess, so a package with
+            // nothing honest to say simply shows no badge.
             const on = p.period === selected;
+            const savings = savingsVsMonthly(p, packages);
+            const perMonth = perMonthEquivalent(p);
+            const subKey =
+              p.period === 'weekly' ? 'plus.perWeek' : p.period === 'monthly' ? 'plus.perMonth' : 'plus.perYear';
             return (
               <PressableScale
                 key={p.period}
@@ -103,24 +117,24 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
                 <View style={{ flex: 1 }}>
                   <View style={styles.pkgTop}>
                     <Text variant="bodyMedium">{t(`plus.${p.period}` as const)}</Text>
-                    {p.period === 'yearly' && (
+                    {savings !== null && (
                       <View style={[styles.badge, { backgroundColor: theme.accent }]}>
                         <Text variant="caption" style={{ color: theme.onAccent, letterSpacing: 0.5 }}>
-                          {meta.note}
+                          {t('plus.save', { percent: savings })}
                         </Text>
                       </View>
                     )}
                   </View>
-                  {meta.perMonth && (
+                  {perMonth && (
                     <Text variant="caption" color="inkFaint" style={{ marginTop: 2 }}>
-                      {meta.perMonth}
+                      {t('plus.monthlyEquiv', { price: perMonth })}
                     </Text>
                   )}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text variant="bodyMedium">{p.priceString}</Text>
                   <Text variant="caption" color="inkFaint">
-                    {meta.sub}
+                    {t(subKey)}
                   </Text>
                 </View>
               </PressableScale>
@@ -130,7 +144,7 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
       </View>
 
       <Button
-        label={trial ? t('plus.startTrial', { days: TRIAL_DAYS }) : t('plus.subscribe')}
+        label={trial ? t('plus.startTrial', { days: current!.trialDays }) : t('plus.subscribe')}
         onPress={buy}
         loading={busy}
         disabled={!current}
@@ -139,7 +153,12 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
         style={{ marginTop: space.md }}
       />
       <Text variant="caption" color="inkFaint" center style={{ marginTop: space.sm }}>
-        {trial ? t('plus.trialLegal', { price: current?.priceString ?? '', days: TRIAL_DAYS }) : t('plus.legal')}
+        {/* Trial length comes from the selected package's own intro offer, not a
+            global constant — otherwise this legal line can misstate the terms of
+            a paid subscription when products carry different offers. */}
+        {trial
+          ? t('plus.trialLegal', { price: current?.priceString ?? '', days: current!.trialDays })
+          : t('plus.legal')}
       </Text>
 
       <View style={styles.linksRow}>

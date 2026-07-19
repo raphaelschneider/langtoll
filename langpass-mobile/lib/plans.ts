@@ -32,19 +32,25 @@ export const PLUS_FEATURES = [
 
 // Fallback prices shown only until RevenueCat loads the real localized store price.
 // These are the US anchors decided for launch (see also PRODUCT_IDS).
-export const PRICES: Record<Period, { label: string; price: string; note?: string; perMonth?: string; sub?: string }> = {
-  // $3.99/wk is ≈$17.28/mo — deliberately 2.2× the monthly tier. The weekly plan
-  // is the low-commitment entry point and must not undercut monthly, or impulse
-  // buyers take it instead and the margin is lost to churn.
-  //
-  // It carries NO free trial, by decision: a 7-day trial on a 7-day cycle gives
-  // away half the commitment, and weekly trial-to-paid is where chargebacks
-  // concentrate. Nothing here enforces that — the intro offer lives in App Store
-  // Connect, and hasTrial reads it back per product (see purchases.ts), so the
-  // button correctly falls back to "Subscribe" for weekly.
-  weekly: { label: 'Weekly', price: '$3.99', sub: 'per week' },
-  monthly: { label: 'Monthly', price: '$7.99', sub: 'per month' },
-  yearly: { label: 'Yearly', price: '$39.99', sub: 'per year', note: 'Save 58%', perMonth: '≈ $3.33/mo' },
+// FALLBACK ONLY. The App Store is the source of truth for every price the user
+// sees: real packages carry the store's own localized priceString, numeric
+// amount and currency code (see purchases.ts). These amounts exist so the mock
+// path — Expo Go, simulator, no key — can run the SAME derivation as the live
+// path rather than a parallel one that drifts.
+//
+// Nothing derived lives here any more. Per-month equivalents, savings badges and
+// period labels used to be frozen strings ('Save 58%', '≈ $3.33/mo', 'per week')
+// rendered beside the real localized price — so a German user saw "€39,99" with
+// "≈ $3.33/mo" under it. All of that is now computed from the store, in the
+// store's currency, and the period wording comes from the locale catalogues.
+//
+// The tiers themselves: $3.99/wk is ≈$17.28/mo, deliberately 2.2× monthly so the
+// entry tier cannot undercut it. Weekly carries no intro offer — that decision
+// lives in App Store Connect, and trialDays reads it back per product.
+export const FALLBACK_PRICES: Record<Period, { amount: number; currency: string }> = {
+  weekly: { amount: 3.99, currency: 'USD' },
+  monthly: { amount: 7.99, currency: 'USD' },
+  yearly: { amount: 39.99, currency: 'USD' },
 };
 
 /** Free trial length surfaced in copy (the actual intro offer is configured in App Store Connect). */
