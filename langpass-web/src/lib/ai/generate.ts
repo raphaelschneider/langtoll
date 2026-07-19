@@ -42,11 +42,26 @@ export const UI_LOCALES = ['en', 'de', 'es', 'fr', 'it', 'pt'] as const;
 // What each level must actually look like, stated concretely. "Match CEFR B2"
 // alone produced A1 content wearing a B2 label — the model needs the grammar
 // named, not the label.
+// Naming the grammar was not enough. Measured output had B2 sentences averaging
+// 7.6 words with connectors in 2-9% of them — SHORTER than B1 and no more
+// complex, on abstract and concrete topics alike. The model complies with a
+// description of a level while still writing the simplest sentence that fits the
+// topic, so each level now carries a hard structural requirement it can be held
+// to, not just a register description.
 const LEVEL_GUIDANCE: Record<string, string> = {
-  A1: 'Present tense only, concrete everyday nouns, short main clauses. No subordinate clauses, no past tense.',
-  A2: 'Past tense and near future, simple subordinate clauses (because, when, if), practical transactional situations.',
-  B1: 'Subordinate clauses throughout, opinions and reasons, conditionals, reported speech, the start of abstraction.',
-  B2: 'Argument and nuance: concession, hypothesis, consequence. Subjunctive/conditional-perfect where the language has them, passive voice, nominalisation, hedging and register control, idiom and collocation a B1 learner would not meet. If the subject cannot carry this register, write about its abstract dimension rather than dropping to simpler language.',
+  A1:
+    'Present tense only, concrete everyday nouns, short main clauses. No subordinate clauses, no past tense. ' +
+    'Sentences of 4-7 words.',
+  A2:
+    'Past tense and near future, practical transactional situations. ' +
+    'Sentences of 7-11 words, and AT LEAST HALF must contain a subordinate clause introduced by a connector meaning because/when/if.',
+  B1:
+    'Opinions and reasons, conditionals, reported speech, the start of abstraction. ' +
+    'Sentences of 11-16 words. EVERY sentence must contain at least one subordinate clause, and the pack must use at least five DIFFERENT connectors across its sentences.',
+  B2:
+    'Argument and nuance: concession, hypothesis, consequence. Subjunctive/conditional-perfect where the language has them, passive voice, nominalisation, hedging, and idiom a B1 learner would not meet. ' +
+    'Sentences of 14-22 words. EVERY sentence must contain at least one subordinate clause, at least half must use concession or hypothesis (although / even if / were it not for), and the pack must use at least eight DIFFERENT connectors. ' +
+    'A short simple sentence is WRONG at this level even when the topic is mundane — write about the subject argumentatively instead of descriptively.',
 };
 
 export function prompt(topic: string, langName: string, level: string, vocabCount: number, sentenceCount: number): string {
