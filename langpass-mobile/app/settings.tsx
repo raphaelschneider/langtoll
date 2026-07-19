@@ -39,7 +39,7 @@ import type { Level } from '@/content/german';
 const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
-const LEVELS: Level[] = ['A1', 'A2', 'B1'];
+const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2'];
 const FARE_EXERCISES = [3, 5, 8];
 const FARE_MINUTES = [15, 30, 45];
 // 'system' first, then every locale we ship, labelled with its own endonym so

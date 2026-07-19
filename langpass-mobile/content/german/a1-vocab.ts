@@ -189,4 +189,80 @@ export const A1_VOCAB: VocabItem[] = [
   { id: 'v152', de: 'Das macht nichts.', en: ['That doesn’t matter.', 'No problem.'], gloss: { es: ['No importa.', 'No pasa nada.'], fr: ['Ce n’est pas grave.', 'Pas de problème.'], it: ['Non importa.', 'Non fa niente.'], pt: ['Não tem problema.', 'Não faz mal.'] }, pos: 'phrase', level: 'A1', category: 'phrases' },
   { id: 'v153', de: 'Bis später!', en: ['See you later!'], gloss: { es: ['¡Hasta luego!'], fr: ['À plus tard !'], it: ['A dopo!'], pt: ['Até logo!'] }, pos: 'phrase', level: 'A1', category: 'phrases' },
   { id: 'v154', de: 'Es tut mir leid.', en: ['I’m sorry.'], gloss: { es: ['Lo siento.'], fr: ['Je suis désolé.'], it: ['Mi dispiace.'], pt: ['Sinto muito.'] }, pos: 'phrase', level: 'A1', category: 'phrases' },
+
+  // ── more food & drink ─────────────────────────────────────────────────
+  { id: 'v155', de: 'die Butter', en: ['the butter'], gloss: { es: ['la mantequilla'], fr: ['le beurre'], it: ['il burro'], pt: ['a manteiga'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v156', de: 'der Zucker', en: ['the sugar'], gloss: { es: ['el azúcar'], fr: ['le sucre'], it: ['lo zucchero'], pt: ['o açúcar'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v157', de: 'das Salz', en: ['the salt'], gloss: { es: ['la sal'], fr: ['le sel'], it: ['il sale'], pt: ['o sal'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v158', de: 'der Reis', en: ['the rice'], gloss: { es: ['el arroz'], fr: ['le riz'], it: ['il riso'], pt: ['o arroz'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v159', de: 'die Kartoffel', en: ['the potato'], gloss: { es: ['la patata'], fr: ['la pomme de terre'], it: ['la patata'], pt: ['a batata'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v160', de: 'die Tomate', en: ['the tomato'], gloss: { es: ['el tomate'], fr: ['la tomate'], it: ['il pomodoro'], pt: ['o tomate'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v161', de: 'das Fleisch', en: ['the meat'], gloss: { es: ['la carne'], fr: ['la viande'], it: ['la carne'], pt: ['a carne'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v162', de: 'der Fisch', en: ['the fish'], gloss: { es: ['el pescado'], fr: ['le poisson'], it: ['il pesce'], pt: ['o peixe'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v163', de: 'die Suppe', en: ['the soup'], gloss: { es: ['la sopa'], fr: ['la soupe'], it: ['la zuppa'], pt: ['a sopa'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'v164', de: 'der Kuchen', en: ['the cake'], gloss: { es: ['el pastel'], fr: ['le gâteau'], it: ['la torta'], pt: ['o bolo'] }, pos: 'noun', level: 'A1', category: 'food' },
+
+  // ── more everyday objects ─────────────────────────────────────────────
+  { id: 'v165', de: 'der Stift', en: ['the pen'], gloss: { es: ['el bolígrafo'], fr: ['le stylo'], it: ['la penna'], pt: ['a caneta'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v166', de: 'das Papier', en: ['the paper'], gloss: { es: ['el papel'], fr: ['le papier'], it: ['la carta'], pt: ['o papel'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v167', de: 'die Lampe', en: ['the lamp'], gloss: { es: ['la lámpara'], fr: ['la lampe'], it: ['la lampada'], pt: ['a lâmpada'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v168', de: 'der Computer', en: ['the computer'], gloss: { es: ['el ordenador'], fr: ['l’ordinateur'], it: ['il computer'], pt: ['o computador'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v169', de: 'der Fernseher', en: ['the television set'], gloss: { es: ['el televisor'], fr: ['le téléviseur'], it: ['il televisore'], pt: ['a televisão'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v170', de: 'die Zeitung', en: ['the newspaper'], gloss: { es: ['el periódico'], fr: ['le journal'], it: ['il giornale'], pt: ['o jornal'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v171', de: 'der Teller', en: ['the plate'], gloss: { es: ['el plato'], fr: ['l’assiette'], it: ['il piatto'], pt: ['o prato'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'v172', de: 'die Flasche', en: ['the bottle'], gloss: { es: ['la botella'], fr: ['la bouteille'], it: ['la bottiglia'], pt: ['a garrafa'] }, pos: 'noun', level: 'A1', category: 'objects' },
+
+  // ── more places ───────────────────────────────────────────────────────
+  { id: 'v173', de: 'die Kirche', en: ['the church'], gloss: { es: ['la iglesia'], fr: ['l’église'], it: ['la chiesa'], pt: ['a igreja'] }, pos: 'noun', level: 'A1', category: 'places' },
+  { id: 'v174', de: 'der Park', en: ['the park'], gloss: { es: ['el parque'], fr: ['le parc'], it: ['il parco'], pt: ['o parque'] }, pos: 'noun', level: 'A1', category: 'places' },
+  { id: 'v175', de: 'das Krankenhaus', en: ['the hospital'], gloss: { es: ['el hospital'], fr: ['l’hôpital'], it: ['l’ospedale'], pt: ['o hospital'] }, pos: 'noun', level: 'A1', category: 'places' },
+  { id: 'v176', de: 'die Bank', en: ['the bank'], gloss: { es: ['el banco'], fr: ['la banque'], it: ['la banca'], pt: ['o banco'] }, pos: 'noun', level: 'A1', category: 'places' },
+  { id: 'v177', de: 'die Post', en: ['the post office'], gloss: { es: ['la oficina de correos'], fr: ['la poste'], it: ['la posta'], pt: ['o correio'] }, pos: 'noun', level: 'A1', category: 'places' },
+  { id: 'v178', de: 'der Markt', en: ['the market'], gloss: { es: ['el mercado'], fr: ['le marché'], it: ['il mercato'], pt: ['o mercado'] }, pos: 'noun', level: 'A1', category: 'places' },
+  { id: 'v179', de: 'das Zimmer', en: ['the room'], gloss: { es: ['la habitación'], fr: ['la chambre'], it: ['la stanza'], pt: ['o quarto'] }, pos: 'noun', level: 'A1', category: 'places' },
+
+  // ── more time ─────────────────────────────────────────────────────────
+  { id: 'v180', de: 'der Monat', en: ['the month'], gloss: { es: ['el mes'], fr: ['le mois'], it: ['il mese'], pt: ['o mês'] }, pos: 'noun', level: 'A1', category: 'time' },
+  { id: 'v181', de: 'die Stunde', en: ['the hour'], gloss: { es: ['la hora'], fr: ['l’heure'], it: ['l’ora'], pt: ['a hora'] }, pos: 'noun', level: 'A1', category: 'time' },
+  { id: 'v182', de: 'die Minute', en: ['the minute'], gloss: { es: ['el minuto'], fr: ['la minute'], it: ['il minuto'], pt: ['o minuto'] }, pos: 'noun', level: 'A1', category: 'time' },
+  { id: 'v183', de: 'der Abend', en: ['the evening'], gloss: { es: ['la tarde', 'la noche'], fr: ['le soir'], it: ['la sera'], pt: ['a noite'] }, pos: 'noun', level: 'A1', category: 'time' },
+  { id: 'v184', de: 'der Montag', en: ['Monday'], gloss: { es: ['el lunes'], fr: ['le lundi'], it: ['il lunedì'], pt: ['a segunda-feira'] }, pos: 'noun', level: 'A1', category: 'time' },
+  { id: 'v185', de: 'das Wochenende', en: ['the weekend'], gloss: { es: ['el fin de semana'], fr: ['le week-end'], it: ['il fine settimana'], pt: ['o fim de semana'] }, pos: 'noun', level: 'A1', category: 'time' },
+
+  // ── more verbs ────────────────────────────────────────────────────────
+  { id: 'v186', de: 'geben', en: ['to give'], gloss: { es: ['dar'], fr: ['donner'], it: ['dare'], pt: ['dar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v187', de: 'nehmen', en: ['to take'], gloss: { es: ['tomar', 'coger'], fr: ['prendre'], it: ['prendere'], pt: ['pegar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v188', de: 'finden', en: ['to find'], gloss: { es: ['encontrar'], fr: ['trouver'], it: ['trovare'], pt: ['encontrar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v189', de: 'sagen', en: ['to say'], gloss: { es: ['decir'], fr: ['dire'], it: ['dire'], pt: ['dizer'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v190', de: 'fragen', en: ['to ask'], gloss: { es: ['preguntar'], fr: ['demander'], it: ['chiedere'], pt: ['perguntar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v191', de: 'spielen', en: ['to play'], gloss: { es: ['jugar'], fr: ['jouer'], it: ['giocare'], pt: ['jogar', 'brincar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v192', de: 'kochen', en: ['to cook'], gloss: { es: ['cocinar'], fr: ['cuisiner'], it: ['cucinare'], pt: ['cozinhar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v193', de: 'öffnen', en: ['to open'], gloss: { es: ['abrir'], fr: ['ouvrir'], it: ['aprire'], pt: ['abrir'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v194', de: 'warten', en: ['to wait'], gloss: { es: ['esperar'], fr: ['attendre'], it: ['aspettare'], pt: ['esperar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'v195', de: 'bezahlen', en: ['to pay'], gloss: { es: ['pagar'], fr: ['payer'], it: ['pagare'], pt: ['pagar'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+
+  // ── more adjectives ───────────────────────────────────────────────────
+  { id: 'v196', de: 'jung', en: ['young'], gloss: { es: ['joven'], fr: ['jeune'], it: ['giovane'], pt: ['jovem'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v197', de: 'lang', en: ['long'], gloss: { es: ['largo'], fr: ['long'], it: ['lungo'], pt: ['longo'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v198', de: 'kurz', en: ['short'], gloss: { es: ['corto'], fr: ['court'], it: ['corto'], pt: ['curto'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v199', de: 'hungrig', en: ['hungry'], gloss: { es: ['hambriento'], fr: ['affamé'], it: ['affamato'], pt: ['com fome'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v200', de: 'durstig', en: ['thirsty'], gloss: { es: ['sediento'], fr: ['assoiffé'], it: ['assetato'], pt: ['com sede'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v201', de: 'laut', en: ['loud'], gloss: { es: ['ruidoso', 'alto'], fr: ['bruyant', 'fort'], it: ['rumoroso', 'forte'], pt: ['barulhento', 'alto'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v202', de: 'richtig', en: ['correct', 'right'], gloss: { es: ['correcto'], fr: ['correct', 'juste'], it: ['giusto', 'corretto'], pt: ['correto', 'certo'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'v203', de: 'falsch', en: ['wrong'], gloss: { es: ['incorrecto', 'equivocado'], fr: ['faux'], it: ['sbagliato'], pt: ['errado'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+
+  // ── more people & family ──────────────────────────────────────────────
+  { id: 'v204', de: 'der Lehrer', en: ['the teacher (male)'], gloss: { es: ['el profesor'], fr: ['le professeur'], it: ['l’insegnante'], pt: ['o professor'] }, pos: 'noun', level: 'A1', category: 'people' },
+  { id: 'v205', de: 'der Sohn', en: ['the son'], gloss: { es: ['el hijo'], fr: ['le fils'], it: ['il figlio'], pt: ['o filho'] }, pos: 'noun', level: 'A1', category: 'people' },
+  { id: 'v206', de: 'die Tochter', en: ['the daughter'], gloss: { es: ['la hija'], fr: ['la fille'], it: ['la figlia'], pt: ['a filha'] }, pos: 'noun', level: 'A1', category: 'people' },
+  { id: 'v207', de: 'die Großmutter', en: ['the grandmother'], gloss: { es: ['la abuela'], fr: ['la grand-mère'], it: ['la nonna'], pt: ['a avó'] }, pos: 'noun', level: 'A1', category: 'people' },
+  { id: 'v208', de: 'der Großvater', en: ['the grandfather'], gloss: { es: ['el abuelo'], fr: ['le grand-père'], it: ['il nonno'], pt: ['o avô'] }, pos: 'noun', level: 'A1', category: 'people' },
+
+  // ── more nature ───────────────────────────────────────────────────────
+  { id: 'v209', de: 'der Himmel', en: ['the sky'], gloss: { es: ['el cielo'], fr: ['le ciel'], it: ['il cielo'], pt: ['o céu'] }, pos: 'noun', level: 'A1', category: 'nature' },
+  { id: 'v210', de: 'der Berg', en: ['the mountain'], gloss: { es: ['la montaña'], fr: ['la montagne'], it: ['la montagna'], pt: ['a montanha'] }, pos: 'noun', level: 'A1', category: 'nature' },
+  { id: 'v211', de: 'der Fluss', en: ['the river'], gloss: { es: ['el río'], fr: ['la rivière'], it: ['il fiume'], pt: ['o rio'] }, pos: 'noun', level: 'A1', category: 'nature' },
+  { id: 'v212', de: 'der Vogel', en: ['the bird'], gloss: { es: ['el pájaro'], fr: ['l’oiseau'], it: ['l’uccello'], pt: ['o pássaro'] }, pos: 'noun', level: 'A1', category: 'nature' },
+  { id: 'v213', de: 'das Pferd', en: ['the horse'], gloss: { es: ['el caballo'], fr: ['le cheval'], it: ['il cavallo'], pt: ['o cavalo'] }, pos: 'noun', level: 'A1', category: 'nature' },
+  { id: 'v214', de: 'die Luft', en: ['the air'], gloss: { es: ['el aire'], fr: ['l’air'], it: ['l’aria'], pt: ['o ar'] }, pos: 'noun', level: 'A1', category: 'nature' },
 ];

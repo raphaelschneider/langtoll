@@ -4,7 +4,9 @@ import { A1_SENTENCES } from './a1-sentences';
 import { A2_VOCAB } from './a2-vocab';
 import { A2_SENTENCES } from './a2-sentences';
 import { B1_VOCAB } from './b1-vocab';
+import { B2_VOCAB } from './b2-vocab';
 import { B1_SENTENCES } from './b1-sentences';
+import { B2_SENTENCES } from './b2-sentences';
 
 // Italian. Full A1–B1, each level a distinct pack with no vocabulary shared
 // between them — selecting B1 must never serve A1 words.
@@ -52,5 +54,17 @@ export const ITALIAN_B1: LanguagePack = {
   speechLocale: 'it-IT',
   vocab: B1_VOCAB,
   sentences: B1_SENTENCES,
+  flavor: ITALIAN_FLAVOR,
+};
+
+export const ITALIAN_B2: LanguagePack = {
+  id: 'it-b2',
+  language: 'it',
+  name: 'Italian · B2',
+  level: 'B2',
+  version: 1,
+  speechLocale: 'it-IT',
+  vocab: B2_VOCAB,
+  sentences: B2_SENTENCES,
   flavor: ITALIAN_FLAVOR,
 };

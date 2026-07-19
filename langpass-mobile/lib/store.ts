@@ -138,7 +138,7 @@ export async function hydrate(): Promise<void> {
     if (raw) {
       state = { ...initialState, ...JSON.parse(raw) };
       // migrate pre-CEFR level values ('zero'/'a1' → 'A1')
-      if (!['A1', 'A2', 'B1'].includes(state.level as string)) state.level = 'A1';
+      if (!['A1', 'A2', 'B1', 'B2'].includes(state.level as string)) state.level = 'A1';
     }
   } catch {
     // corrupted / missing — start fresh

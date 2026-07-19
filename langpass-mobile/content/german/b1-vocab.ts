@@ -97,4 +97,80 @@ export const B1_VOCAB: VocabItem[] = [
   { id: 'b1v076', de: 'um den heißen Brei reden', en: ['to beat around the bush'], gloss: { es: ['andarse por las ramas'], fr: ['tourner autour du pot'], it: ['girare intorno al problema'], pt: ['fazer rodeios'] }, pos: 'phrase', level: 'B1', category: 'idioms' },
   { id: 'b1v077', de: 'zwei Fliegen mit einer Klappe', en: ['two birds with one stone'], gloss: { es: ['matar dos pájaros de un tiro'], fr: ['faire d’une pierre deux coups'], it: ['prendere due piccioni con una fava'], pt: ['matar dois coelhos com uma cajadada'] }, pos: 'phrase', level: 'B1', category: 'idioms' },
   { id: 'b1v078', de: 'Hals- und Beinbruch', en: ['break a leg', 'good luck'], gloss: { es: ['mucha suerte'], fr: ['bonne chance'], it: ['in bocca al lupo'], pt: ['boa sorte'] }, pos: 'phrase', level: 'B1', category: 'idioms' },
+
+  // ── media & communication ─────────────────────────────────────────────
+  { id: 'b1v079', de: 'die Werbung', en: ['the advertising'], gloss: { es: ['la publicidad'], fr: ['la publicité'], it: ['la pubblicità'], pt: ['a publicidade'] }, pos: 'noun', level: 'B1', category: 'media' },
+  { id: 'b1v080', de: 'die Zeitschrift', en: ['the magazine'], gloss: { es: ['la revista'], fr: ['le magazine'], it: ['la rivista'], pt: ['a revista'] }, pos: 'noun', level: 'B1', category: 'media' },
+  { id: 'b1v081', de: 'der Bericht', en: ['the report'], gloss: { es: ['el informe'], fr: ['le rapport'], it: ['il rapporto'], pt: ['o relatório'] }, pos: 'noun', level: 'B1', category: 'media' },
+  { id: 'b1v082', de: 'die Quelle', en: ['the source'], gloss: { es: ['la fuente'], fr: ['la source'], it: ['la fonte'], pt: ['a fonte'] }, pos: 'noun', level: 'B1', category: 'media' },
+  { id: 'b1v083', de: 'die Schlagzeile', en: ['the headline'], gloss: { es: ['el titular'], fr: ['le gros titre'], it: ['il titolo di giornale'], pt: ['a manchete'] }, pos: 'noun', level: 'B1', category: 'media' },
+  { id: 'b1v084', de: 'der Zuschauer', en: ['the viewer', 'the spectator'], gloss: { es: ['el espectador'], fr: ['le spectateur'], it: ['lo spettatore'], pt: ['o espectador'] }, pos: 'noun', level: 'B1', category: 'media' },
+  { id: 'b1v085', de: 'veröffentlichen', en: ['to publish'], gloss: { es: ['publicar'], fr: ['publier'], it: ['pubblicare'], pt: ['publicar'] }, pos: 'verb', level: 'B1', category: 'media' },
+  { id: 'b1v086', de: 'berichten', en: ['to report'], gloss: { es: ['informar'], fr: ['rapporter'], it: ['riferire'], pt: ['relatar'] }, pos: 'verb', level: 'B1', category: 'media' },
+
+  // ── digital life ──────────────────────────────────────────────────────
+  { id: 'b1v087', de: 'der Datenschutz', en: ['the data protection'], gloss: { es: ['la protección de datos'], fr: ['la protection des données'], it: ['la protezione dei dati'], pt: ['a proteção de dados'] }, pos: 'noun', level: 'B1', category: 'digital' },
+  { id: 'b1v088', de: 'das Gerät', en: ['the device'], gloss: { es: ['el dispositivo'], fr: ['l’appareil'], it: ['il dispositivo'], pt: ['o aparelho'] }, pos: 'noun', level: 'B1', category: 'digital' },
+  { id: 'b1v089', de: 'die Nutzung', en: ['the use', 'the usage'], gloss: { es: ['el uso'], fr: ['l’utilisation'], it: ['l’utilizzo'], pt: ['o uso'] }, pos: 'noun', level: 'B1', category: 'digital' },
+  { id: 'b1v090', de: 'der Zugang', en: ['the access'], gloss: { es: ['el acceso'], fr: ['l’accès'], it: ['l’accesso'], pt: ['o acesso'] }, pos: 'noun', level: 'B1', category: 'digital' },
+  { id: 'b1v091', de: 'die Ablenkung', en: ['the distraction'], gloss: { es: ['la distracción'], fr: ['la distraction'], it: ['la distrazione'], pt: ['a distração'] }, pos: 'noun', level: 'B1', category: 'digital' },
+  { id: 'b1v092', de: 'digital', en: ['digital'], gloss: { es: ['digital'], fr: ['numérique'], it: ['digitale'], pt: ['digital'] }, pos: 'adj', level: 'B1', category: 'digital' },
+  { id: 'b1v093', de: 'abhängig', en: ['dependent', 'addicted'], gloss: { es: ['dependiente', 'adicto'], fr: ['dépendant'], it: ['dipendente'], pt: ['dependente', 'viciado'] }, pos: 'adj', level: 'B1', category: 'digital' },
+
+  // ── health & wellbeing ────────────────────────────────────────────────
+  { id: 'b1v094', de: 'die Gesundheit', en: ['the health'], gloss: { es: ['la salud'], fr: ['la santé'], it: ['la salute'], pt: ['a saúde'] }, pos: 'noun', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v095', de: 'die Ernährung', en: ['the diet', 'the nutrition'], gloss: { es: ['la alimentación'], fr: ['l’alimentation'], it: ['l’alimentazione'], pt: ['a alimentação'] }, pos: 'noun', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v096', de: 'der Stress', en: ['the stress'], gloss: { es: ['el estrés'], fr: ['le stress'], it: ['lo stress'], pt: ['o estresse'] }, pos: 'noun', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v097', de: 'die Behandlung', en: ['the treatment'], gloss: { es: ['el tratamiento'], fr: ['le traitement'], it: ['il trattamento'], pt: ['o tratamento'] }, pos: 'noun', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v098', de: 'die Krankenkasse', en: ['the health insurance'], gloss: { es: ['el seguro médico'], fr: ['la caisse d’assurance maladie'], it: ['la cassa malattia'], pt: ['o plano de saúde'] }, pos: 'noun', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v099', de: 'die Sucht', en: ['the addiction'], gloss: { es: ['la adicción'], fr: ['la dépendance'], it: ['la dipendenza'], pt: ['o vício'] }, pos: 'noun', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v100', de: 'sich erholen', en: ['to recover', 'to rest up'], gloss: { es: ['recuperarse'], fr: ['se remettre', 'se reposer'], it: ['riprendersi'], pt: ['recuperar-se'] }, pos: 'verb', level: 'B1', category: 'wellbeing' },
+  { id: 'b1v101', de: 'vorbeugen', en: ['to prevent'], gloss: { es: ['prevenir'], fr: ['prévenir'], it: ['prevenire'], pt: ['prevenir'] }, pos: 'verb', level: 'B1', category: 'wellbeing' },
+
+  // ── economy & money ───────────────────────────────────────────────────
+  { id: 'b1v102', de: 'die Wirtschaft', en: ['the economy'], gloss: { es: ['la economía'], fr: ['l’économie'], it: ['l’economia'], pt: ['a economia'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'b1v103', de: 'das Einkommen', en: ['the income'], gloss: { es: ['los ingresos'], fr: ['le revenu'], it: ['il reddito'], pt: ['a renda'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'b1v104', de: 'die Steuer', en: ['the tax'], gloss: { es: ['el impuesto'], fr: ['l’impôt'], it: ['l’imposta'], pt: ['o imposto'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'b1v105', de: 'die Rente', en: ['the pension'], gloss: { es: ['la pensión'], fr: ['la retraite'], it: ['la pensione'], pt: ['a aposentadoria'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'b1v106', de: 'die Schulden', en: ['the debts'], gloss: { es: ['las deudas'], fr: ['les dettes'], it: ['i debiti'], pt: ['as dívidas'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'b1v107', de: 'das Vermögen', en: ['the wealth', 'the assets'], gloss: { es: ['el patrimonio'], fr: ['la fortune'], it: ['il patrimonio'], pt: ['o patrimônio'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'b1v108', de: 'investieren', en: ['to invest'], gloss: { es: ['invertir'], fr: ['investir'], it: ['investire'], pt: ['investir'] }, pos: 'verb', level: 'B1', category: 'economy' },
+  { id: 'b1v109', de: 'sich leisten', en: ['to afford'], gloss: { es: ['permitirse'], fr: ['se permettre'], it: ['permettersi'], pt: ['poder pagar por'] }, pos: 'verb', level: 'B1', category: 'economy' },
+
+  // ── education & learning ──────────────────────────────────────────────
+  { id: 'b1v110', de: 'die Ausbildung', en: ['the vocational training'], gloss: { es: ['la formación profesional'], fr: ['la formation professionnelle'], it: ['la formazione professionale'], pt: ['a formação profissional'] }, pos: 'noun', level: 'B1', category: 'education' },
+  { id: 'b1v111', de: 'das Studium', en: ['the university studies'], gloss: { es: ['la carrera universitaria'], fr: ['les études universitaires'], it: ['gli studi universitari'], pt: ['o curso superior'] }, pos: 'noun', level: 'B1', category: 'education' },
+  { id: 'b1v112', de: 'der Abschluss', en: ['the degree', 'the qualification'], gloss: { es: ['el título'], fr: ['le diplôme'], it: ['il titolo di studio'], pt: ['o diploma'] }, pos: 'noun', level: 'B1', category: 'education' },
+  { id: 'b1v113', de: 'das Zeugnis', en: ['the school report', 'the certificate'], gloss: { es: ['el boletín de notas'], fr: ['le bulletin scolaire'], it: ['la pagella'], pt: ['o boletim'] }, pos: 'noun', level: 'B1', category: 'education' },
+  { id: 'b1v114', de: 'die Kenntnisse', en: ['the knowledge', 'the skills'], gloss: { es: ['los conocimientos'], fr: ['les connaissances'], it: ['le conoscenze'], pt: ['os conhecimentos'] }, pos: 'noun', level: 'B1', category: 'education' },
+  { id: 'b1v115', de: 'das Fach', en: ['the school subject'], gloss: { es: ['la asignatura'], fr: ['la matière'], it: ['la materia'], pt: ['a matéria'] }, pos: 'noun', level: 'B1', category: 'education' },
+  { id: 'b1v116', de: 'bestehen', en: ['to pass (an exam)'], gloss: { es: ['aprobar'], fr: ['réussir'], it: ['superare'], pt: ['passar'] }, pos: 'verb', level: 'B1', category: 'education' },
+  { id: 'b1v117', de: 'sich bemühen', en: ['to make an effort'], gloss: { es: ['esforzarse'], fr: ['s’efforcer'], it: ['sforzarsi'], pt: ['esforçar-se'] }, pos: 'verb', level: 'B1', category: 'education' },
+
+  // ── character ─────────────────────────────────────────────────────────
+  { id: 'b1v118', de: 'zuverlässig', en: ['reliable'], gloss: { es: ['fiable'], fr: ['fiable'], it: ['affidabile'], pt: ['confiável'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v119', de: 'ehrgeizig', en: ['ambitious'], gloss: { es: ['ambicioso'], fr: ['ambitieux'], it: ['ambizioso'], pt: ['ambicioso'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v120', de: 'geduldig', en: ['patient'], gloss: { es: ['paciente'], fr: ['patient'], it: ['paziente'], pt: ['paciente'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v121', de: 'großzügig', en: ['generous'], gloss: { es: ['generoso'], fr: ['généreux'], it: ['generoso'], pt: ['generoso'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v122', de: 'rücksichtsvoll', en: ['considerate'], gloss: { es: ['considerado'], fr: ['prévenant'], it: ['rispettoso degli altri'], pt: ['atencioso'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v123', de: 'hartnäckig', en: ['persistent', 'stubborn'], gloss: { es: ['persistente', 'tenaz'], fr: ['tenace', 'obstiné'], it: ['tenace', 'ostinato'], pt: ['persistente', 'teimoso'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v124', de: 'bescheiden', en: ['modest'], gloss: { es: ['modesto'], fr: ['modeste'], it: ['modesto'], pt: ['modesto'] }, pos: 'adj', level: 'B1', category: 'character' },
+  { id: 'b1v125', de: 'gelassen', en: ['calm', 'composed'], gloss: { es: ['sereno'], fr: ['serein'], it: ['sereno', 'calmo'], pt: ['tranquilo'] }, pos: 'adj', level: 'B1', category: 'character' },
+
+  // ── living abroad & culture ───────────────────────────────────────────
+  { id: 'b1v126', de: 'die Sehenswürdigkeit', en: ['the sight', 'the tourist attraction'], gloss: { es: ['el lugar de interés'], fr: ['le site touristique'], it: ['l’attrazione turistica'], pt: ['o ponto turístico'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'b1v127', de: 'das Heimweh', en: ['the homesickness'], gloss: { es: ['la nostalgia de casa'], fr: ['le mal du pays'], it: ['la nostalgia di casa'], pt: ['a saudade de casa'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'b1v128', de: 'der Aufenthalt', en: ['the stay'], gloss: { es: ['la estancia'], fr: ['le séjour'], it: ['il soggiorno'], pt: ['a estadia'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'b1v129', de: 'die Grenze', en: ['the border', 'the limit'], gloss: { es: ['la frontera', 'el límite'], fr: ['la frontière', 'la limite'], it: ['il confine', 'il limite'], pt: ['a fronteira', 'o limite'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'b1v130', de: 'die Gewohnheit', en: ['the habit'], gloss: { es: ['la costumbre'], fr: ['l’habitude'], it: ['l’abitudine'], pt: ['o hábito'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'b1v131', de: 'der Eindruck', en: ['the impression'], gloss: { es: ['la impresión'], fr: ['l’impression'], it: ['l’impressione'], pt: ['a impressão'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'b1v132', de: 'sich anpassen', en: ['to adapt'], gloss: { es: ['adaptarse'], fr: ['s’adapter'], it: ['adattarsi'], pt: ['adaptar-se'] }, pos: 'verb', level: 'B1', category: 'culture' },
+
+  // ── rules & rights ────────────────────────────────────────────────────
+  { id: 'b1v133', de: 'die Regel', en: ['the rule'], gloss: { es: ['la regla'], fr: ['la règle'], it: ['la regola'], pt: ['a regra'] }, pos: 'noun', level: 'B1', category: 'rules' },
+  { id: 'b1v134', de: 'die Strafe', en: ['the punishment', 'the fine'], gloss: { es: ['el castigo', 'la multa'], fr: ['la punition', 'l’amende'], it: ['la punizione', 'la multa'], pt: ['a punição', 'a multa'] }, pos: 'noun', level: 'B1', category: 'rules' },
+  { id: 'b1v135', de: 'die Pflicht', en: ['the duty', 'the obligation'], gloss: { es: ['el deber', 'la obligación'], fr: ['le devoir', 'l’obligation'], it: ['il dovere', 'l’obbligo'], pt: ['o dever', 'a obrigação'] }, pos: 'noun', level: 'B1', category: 'rules' },
+  { id: 'b1v136', de: 'das Recht', en: ['the right'], gloss: { es: ['el derecho'], fr: ['le droit'], it: ['il diritto'], pt: ['o direito'] }, pos: 'noun', level: 'B1', category: 'rules' },
+  { id: 'b1v137', de: 'verbieten', en: ['to forbid'], gloss: { es: ['prohibir'], fr: ['interdire'], it: ['vietare'], pt: ['proibir'] }, pos: 'verb', level: 'B1', category: 'rules' },
+  { id: 'b1v138', de: 'erlauben', en: ['to allow'], gloss: { es: ['permitir'], fr: ['permettre'], it: ['permettere'], pt: ['permitir'] }, pos: 'verb', level: 'B1', category: 'rules' },
 ];

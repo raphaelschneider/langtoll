@@ -20,8 +20,21 @@ REPO = ROOT.parent
 LANGS = ["english", "german", "spanish", "french", "italian", "portuguese"]
 LEVELS = ["a1", "a2", "b1", "b2"]
 KINDS = ["vocab", "sentences"]
-# Per generated pack, from the generation prompt in the topics route.
-VOCAB_PER_PACK, SENTENCES_PER_PACK = 14, 4
+def pack_size() -> int:
+    """Items per generated pack, READ from the generator rather than restated.
+
+    These constants lived here as literals and immediately went stale when the
+    server raised them, understating the pool by half. The generator is the
+    source of truth; parse it.
+    """
+    src = REPO / "langpass-web/src/lib/ai/generate.ts"
+    if not src.is_file():
+        return 0
+    text = src.read_text(encoding="utf-8")
+    import re as _re
+    v = _re.search(r"VOCAB_PER_PACK\s*=\s*(\d+)", text)
+    s = _re.search(r"SENTENCES_PER_PACK\s*=\s*(\d+)", text)
+    return (int(v.group(1)) if v else 0) + (int(s.group(1)) if s else 0)
 
 
 def count_text(text: str) -> int:
@@ -80,12 +93,13 @@ def main() -> None:
         topics = sum(1 for line in cat.read_text(encoding="utf-8").splitlines()
                      if line.strip().startswith("'") and line.rstrip().endswith("',"))
         # Every catalogue topic is generated per language and per level.
-        packs = topics * len(LANGS) * len([l for l in LEVELS if l != "b2" or True])
-        pool = packs * (VOCAB_PER_PACK + SENTENCES_PER_PACK)
+        packs = topics * len(LANGS) * len(LEVELS)
+        per = pack_size()
+        pool = packs * per
         print(w.format("ALL", "POOL", 0, pool, "NEW"))
         print(w.format("ALL", "COMBINED", tot_b, tot_a + pool, mult(tot_b, tot_a + pool)))
         print(f"\n  pool = {topics} topics x {len(LANGS)} languages x {len(LEVELS)} levels "
-              f"= {packs} packs, generated once and shared by every user")
+              f"= {packs} packs x {per} items, generated once and shared by every user")
 
 
 if __name__ == "__main__":

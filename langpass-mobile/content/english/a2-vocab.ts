@@ -163,4 +163,78 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'en2v115', de: 'quiet', en: ['quiet'], gloss: { de: ['ruhig'], es: ['tranquilo'], fr: ['calme'], it: ['tranquillo'], pt: ['tranquilo'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
   { id: 'en2v116', de: 'dangerous', en: ['dangerous'], gloss: { de: ['gefährlich'], es: ['peligroso'], fr: ['dangereux'], it: ['pericoloso'], pt: ['perigoso'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
   { id: 'en2v117', de: 'comfortable', en: ['comfortable'], gloss: { de: ['bequem'], es: ['cómodo'], fr: ['confortable'], it: ['comodo'], pt: ['confortável'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+
+  // ── getting around town ───────────────────────────────────────────────
+  { id: 'en2v118', de: 'the underground', en: ['underground', 'the subway'], gloss: { de: ['die U-Bahn'], es: ['el metro'], fr: ['le métro'], it: ['la metropolitana'], pt: ['o metrô'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v119', de: 'the bus stop', en: ['bus stop'], gloss: { de: ['die Bushaltestelle'], es: ['la parada de autobús'], fr: ['l’arrêt de bus'], it: ['la fermata dell’autobus'], pt: ['o ponto de ônibus'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v120', de: 'the platform', en: ['platform'], gloss: { de: ['das Gleis'], es: ['el andén'], fr: ['le quai'], it: ['il binario'], pt: ['a plataforma'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v121', de: 'the taxi', en: ['taxi'], gloss: { de: ['das Taxi'], es: ['el taxi'], fr: ['le taxi'], it: ['il taxi'], pt: ['o táxi'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v122', de: 'the traffic', en: ['traffic'], gloss: { de: ['der Verkehr'], es: ['el tráfico'], fr: ['la circulation'], it: ['il traffico'], pt: ['o trânsito'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v123', de: 'the corner', en: ['corner'], gloss: { de: ['die Ecke'], es: ['la esquina'], fr: ['le coin'], it: ['l’angolo'], pt: ['a esquina'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v124', de: 'the bridge', en: ['bridge'], gloss: { de: ['die Brücke'], es: ['el puente'], fr: ['le pont'], it: ['il ponte'], pt: ['a ponte'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v125', de: 'the car park', en: ['car park', 'the parking lot'], gloss: { de: ['der Parkplatz'], es: ['el aparcamiento'], fr: ['le parking'], it: ['il parcheggio'], pt: ['o estacionamento'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v126', de: 'the petrol station', en: ['petrol station', 'the gas station'], gloss: { de: ['die Tankstelle'], es: ['la gasolinera'], fr: ['la station-service'], it: ['il distributore di benzina'], pt: ['o posto de gasolina'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v127', de: 'the timetable', en: ['timetable', 'the schedule'], gloss: { de: ['der Fahrplan'], es: ['el horario'], fr: ['l’horaire'], it: ['l’orario'], pt: ['o horário'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v128', de: 'the post office', en: ['post office'], gloss: { de: ['die Post'], es: ['la oficina de correos'], fr: ['la poste'], it: ['l’ufficio postale'], pt: ['o correio'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'en2v129', de: 'the queue', en: ['queue', 'the line'], gloss: { de: ['die Schlange'], es: ['la cola'], fr: ['la file d’attente'], it: ['la fila'], pt: ['a fila'] }, pos: 'noun', level: 'A2', category: 'city' },
+
+  // ── free time & leisure ───────────────────────────────────────────────
+  { id: 'en2v130', de: 'the holiday', en: ['holiday', 'the vacation'], gloss: { de: ['der Urlaub'], es: ['las vacaciones'], fr: ['les vacances'], it: ['la vacanza'], pt: ['as férias'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v131', de: 'the party', en: ['party'], gloss: { de: ['die Party'], es: ['la fiesta'], fr: ['la fête'], it: ['la festa'], pt: ['a festa'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v132', de: 'the film', en: ['film', 'the movie'], gloss: { de: ['der Film'], es: ['la película'], fr: ['le film'], it: ['il film'], pt: ['o filme'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v133', de: 'the cinema', en: ['cinema'], gloss: { de: ['das Kino'], es: ['el cine'], fr: ['le cinéma'], it: ['il cinema'], pt: ['o cinema'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v134', de: 'the concert', en: ['concert'], gloss: { de: ['das Konzert'], es: ['el concierto'], fr: ['le concert'], it: ['il concerto'], pt: ['o show', 'o concerto'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v135', de: 'the museum', en: ['museum'], gloss: { de: ['das Museum'], es: ['el museo'], fr: ['le musée'], it: ['il museo'], pt: ['o museu'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v136', de: 'the hobby', en: ['hobby'], gloss: { de: ['das Hobby'], es: ['la afición'], fr: ['le loisir'], it: ['l’hobby'], pt: ['o passatempo'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v137', de: 'the sport', en: ['sport'], gloss: { de: ['der Sport'], es: ['el deporte'], fr: ['le sport'], it: ['lo sport'], pt: ['o esporte'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v138', de: 'the game', en: ['game'], gloss: { de: ['das Spiel'], es: ['el juego'], fr: ['le jeu'], it: ['il gioco'], pt: ['o jogo'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'en2v139', de: 'to swim', en: ['to swim'], gloss: { de: ['schwimmen'], es: ['nadar'], fr: ['nager'], it: ['nuotare'], pt: ['nadar'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+
+  // ── clothes & practical shopping ──────────────────────────────────────
+  { id: 'en2v140', de: 'the receipt', en: ['receipt'], gloss: { de: ['die Quittung'], es: ['el recibo'], fr: ['le reçu'], it: ['la ricevuta'], pt: ['o recibo'] }, pos: 'noun', level: 'A2', category: 'shopping' },
+  { id: 'en2v141', de: 'the umbrella', en: ['umbrella'], gloss: { de: ['der Regenschirm'], es: ['el paraguas'], fr: ['le parapluie'], it: ['l’ombrello'], pt: ['o guarda-chuva'] }, pos: 'noun', level: 'A2', category: 'shopping' },
+  { id: 'en2v142', de: 'the coat', en: ['coat'], gloss: { de: ['der Mantel'], es: ['el abrigo'], fr: ['le manteau'], it: ['il cappotto'], pt: ['o casaco'] }, pos: 'noun', level: 'A2', category: 'shopping' },
+  { id: 'en2v143', de: 'the boots', en: ['boots'], gloss: { de: ['die Stiefel'], es: ['las botas'], fr: ['les bottes'], it: ['gli stivali'], pt: ['as botas'] }, pos: 'noun', level: 'A2', category: 'shopping' },
+  { id: 'en2v144', de: 'the dress', en: ['dress'], gloss: { de: ['das Kleid'], es: ['el vestido'], fr: ['la robe'], it: ['il vestito'], pt: ['o vestido'] }, pos: 'noun', level: 'A2', category: 'shopping' },
+  { id: 'en2v145', de: 'the jumper', en: ['jumper', 'the sweater'], gloss: { de: ['der Pullover'], es: ['el jersey'], fr: ['le pull'], it: ['il maglione'], pt: ['o suéter'] }, pos: 'noun', level: 'A2', category: 'shopping' },
+
+  // ── more everyday verbs ───────────────────────────────────────────────
+  { id: 'en2v146', de: 'to wait', en: ['to wait'], gloss: { de: ['warten'], es: ['esperar'], fr: ['attendre'], it: ['aspettare'], pt: ['esperar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v147', de: 'to walk', en: ['to walk'], gloss: { de: ['zu Fuß gehen', 'laufen'], es: ['caminar', 'andar'], fr: ['marcher'], it: ['camminare'], pt: ['caminhar', 'andar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v148', de: 'to drive', en: ['to drive'], gloss: { de: ['fahren'], es: ['conducir'], fr: ['conduire'], it: ['guidare'], pt: ['dirigir'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v149', de: 'to visit', en: ['to visit'], gloss: { de: ['besuchen'], es: ['visitar'], fr: ['rendre visite à', 'visiter'], it: ['visitare'], pt: ['visitar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v150', de: 'to invite', en: ['to invite'], gloss: { de: ['einladen'], es: ['invitar'], fr: ['inviter'], it: ['invitare'], pt: ['convidar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v151', de: 'to watch', en: ['to watch'], gloss: { de: ['anschauen'], es: ['ver', 'mirar'], fr: ['regarder'], it: ['guardare'], pt: ['assistir'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v152', de: 'to clean', en: ['to clean'], gloss: { de: ['putzen'], es: ['limpiar'], fr: ['nettoyer'], it: ['pulire'], pt: ['limpar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v153', de: 'to wash', en: ['to wash'], gloss: { de: ['waschen'], es: ['lavar'], fr: ['laver'], it: ['lavare'], pt: ['lavar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v154', de: 'to change', en: ['to change'], gloss: { de: ['ändern', 'wechseln'], es: ['cambiar'], fr: ['changer'], it: ['cambiare'], pt: ['mudar', 'trocar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v155', de: 'to stay', en: ['to stay'], gloss: { de: ['bleiben'], es: ['quedarse'], fr: ['rester'], it: ['restare'], pt: ['ficar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v156', de: 'to borrow', en: ['to borrow'], gloss: { de: ['ausleihen'], es: ['pedir prestado'], fr: ['emprunter'], it: ['prendere in prestito'], pt: ['pegar emprestado'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'en2v157', de: 'to book', en: ['to book', 'to reserve'], gloss: { de: ['buchen', 'reservieren'], es: ['reservar'], fr: ['réserver'], it: ['prenotare'], pt: ['reservar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+
+  // ── around the home ───────────────────────────────────────────────────
+  { id: 'en2v158', de: 'the noise', en: ['noise'], gloss: { de: ['der Lärm'], es: ['el ruido'], fr: ['le bruit'], it: ['il rumore'], pt: ['o barulho'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v159', de: 'the light', en: ['light'], gloss: { de: ['das Licht'], es: ['la luz'], fr: ['la lumière'], it: ['la luce'], pt: ['a luz'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v160', de: 'the wall', en: ['wall'], gloss: { de: ['die Wand'], es: ['la pared'], fr: ['le mur'], it: ['il muro'], pt: ['a parede'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v161', de: 'the floor', en: ['floor'], gloss: { de: ['der Boden'], es: ['el suelo'], fr: ['le sol'], it: ['il pavimento'], pt: ['o chão'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v162', de: 'the fridge', en: ['fridge', 'the refrigerator'], gloss: { de: ['der Kühlschrank'], es: ['la nevera'], fr: ['le frigo'], it: ['il frigorifero'], pt: ['a geladeira'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v163', de: 'the towel', en: ['towel'], gloss: { de: ['das Handtuch'], es: ['la toalla'], fr: ['la serviette'], it: ['l’asciugamano'], pt: ['a toalha'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v164', de: 'the cupboard', en: ['cupboard', 'the closet'], gloss: { de: ['der Schrank'], es: ['el armario'], fr: ['le placard'], it: ['l’armadietto'], pt: ['o armário'] }, pos: 'noun', level: 'A2', category: 'home' },
+  { id: 'en2v165', de: 'the shelf', en: ['shelf'], gloss: { de: ['das Regal'], es: ['la estantería'], fr: ['l’étagère'], it: ['lo scaffale'], pt: ['a prateleira'] }, pos: 'noun', level: 'A2', category: 'home' },
+
+  // ── more descriptive adjectives ───────────────────────────────────────
+  { id: 'en2v166', de: 'crowded', en: ['crowded'], gloss: { de: ['überfüllt'], es: ['abarrotado'], fr: ['bondé'], it: ['affollato'], pt: ['lotado'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v167', de: 'empty', en: ['empty'], gloss: { de: ['leer'], es: ['vacío'], fr: ['vide'], it: ['vuoto'], pt: ['vazio'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v168', de: 'boring', en: ['boring'], gloss: { de: ['langweilig'], es: ['aburrido'], fr: ['ennuyeux'], it: ['noioso'], pt: ['chato'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v169', de: 'funny', en: ['funny'], gloss: { de: ['lustig'], es: ['divertido'], fr: ['drôle'], it: ['divertente'], pt: ['engraçado'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v170', de: 'modern', en: ['modern'], gloss: { de: ['modern'], es: ['moderno'], fr: ['moderne'], it: ['moderno'], pt: ['moderno'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v171', de: 'clean', en: ['clean'], gloss: { de: ['sauber'], es: ['limpio'], fr: ['propre'], it: ['pulito'], pt: ['limpo'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v172', de: 'dirty', en: ['dirty'], gloss: { de: ['schmutzig'], es: ['sucio'], fr: ['sale'], it: ['sporco'], pt: ['sujo'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+  { id: 'en2v173', de: 'polite', en: ['polite'], gloss: { de: ['höflich'], es: ['educado'], fr: ['poli'], it: ['educato'], pt: ['educado'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+
+  // ── seasons & telling when ────────────────────────────────────────────
+  { id: 'en2v174', de: 'the spring', en: ['spring'], gloss: { de: ['der Frühling'], es: ['la primavera'], fr: ['le printemps'], it: ['la primavera'], pt: ['a primavera'] }, pos: 'noun', level: 'A2', category: 'time' },
+  { id: 'en2v175', de: 'the autumn', en: ['autumn', 'the fall'], gloss: { de: ['der Herbst'], es: ['el otoño'], fr: ['l’automne'], it: ['l’autunno'], pt: ['o outono'] }, pos: 'noun', level: 'A2', category: 'time' },
+  { id: 'en2v176', de: 'September', en: ['September'], gloss: { de: ['September'], es: ['septiembre'], fr: ['septembre'], it: ['settembre'], pt: ['setembro'] }, pos: 'noun', level: 'A2', category: 'time' },
+  { id: 'en2v177', de: 'ago', en: ['ago'], gloss: { de: ['vor'], es: ['hace'], fr: ['il y a'], it: ['fa'], pt: ['atrás', 'há'] }, pos: 'adv', level: 'A2', category: 'time' },
 ];

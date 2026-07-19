@@ -10,7 +10,7 @@ export interface ProfileRow {
   plan_since: string | null;
   grace_revoked: 0 | 1;
   language: 'de';
-  level: 'A1' | 'A2' | 'B1';
+  level: 'A1' | 'A2' | 'B1' | 'B2';
   daily_goal_sessions: number;
   exercises_per_unlock: number;
   unlock_minutes: number;

@@ -4,7 +4,9 @@ import { A1_SENTENCES } from './a1-sentences';
 import { A2_VOCAB } from './a2-vocab';
 import { A2_SENTENCES } from './a2-sentences';
 import { B1_VOCAB } from './b1-vocab';
+import { B2_VOCAB } from './b2-vocab';
 import { B1_SENTENCES } from './b1-sentences';
+import { B2_SENTENCES } from './b2-sentences';
 
 // Brazilian Portuguese. Full A1–B1. Each level is a distinct pack with no
 // vocabulary shared between them — selecting B1 must never serve A1 words.
@@ -49,5 +51,17 @@ export const PORTUGUESE_B1: LanguagePack = {
   speechLocale: 'pt-BR',
   vocab: B1_VOCAB,
   sentences: B1_SENTENCES,
+  flavor: PORTUGUESE_FLAVOR,
+};
+
+export const PORTUGUESE_B2: LanguagePack = {
+  id: 'pt-b2',
+  language: 'pt',
+  name: 'Portuguese · B2',
+  level: 'B2',
+  version: 1,
+  speechLocale: 'pt-BR',
+  vocab: B2_VOCAB,
+  sentences: B2_SENTENCES,
   flavor: PORTUGUESE_FLAVOR,
 };

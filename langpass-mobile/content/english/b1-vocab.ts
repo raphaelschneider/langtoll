@@ -137,7 +137,7 @@ export const B1_VOCAB: VocabItem[] = [
   { id: 'en3v090', de: 'to fail', en: ['to fail'], gloss: { de: ['scheitern', 'durchfallen'], es: ['fracasar', 'suspender'], fr: ['échouer'], it: ['fallire', 'essere bocciato'], pt: ['fracassar', 'reprovar'] }, pos: 'verb', level: 'B1', category: 'education' },
 
   // ── adjectives of judgement ───────────────────────────────────────────
-  { id: 'en3v091', de: 'reliable', en: ['reliable', 'dependable'], gloss: { de: ['zuverlässig'], es: ['fiable'], fr: ['fiable'], it: ['affidabile'], pt: ['conconfiável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+  { id: 'en3v091', de: 'reliable', en: ['reliable', 'dependable'], gloss: { de: ['zuverlässig'], es: ['fiable'], fr: ['fiable'], it: ['affidabile'], pt: ['confiável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'en3v092', de: 'reasonable', en: ['reasonable', 'sensible'], gloss: { de: ['vernünftig'], es: ['razonable'], fr: ['raisonnable'], it: ['ragionevole'], pt: ['razoável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'en3v093', de: 'aware', en: ['aware', 'conscious'], gloss: { de: ['bewusst'], es: ['consciente'], fr: ['conscient'], it: ['consapevole'], pt: ['consciente'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'en3v094', de: 'successful', en: ['successful'], gloss: { de: ['erfolgreich'], es: ['exitoso', 'de éxito'], fr: ['qui réussit', 'à succès'], it: ['di successo'], pt: ['bem-sucedido'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
@@ -147,4 +147,76 @@ export const B1_VOCAB: VocabItem[] = [
   { id: 'en3v098', de: 'willing', en: ['willing'], gloss: { de: ['bereit'], es: ['dispuesto'], fr: ['disposé', 'prêt'], it: ['disposto'], pt: ['disposto'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'en3v099', de: 'worthwhile', en: ['worthwhile', 'worth it'], gloss: { de: ['lohnenswert'], es: ['que merece la pena'], fr: ['qui en vaut la peine'], it: ['che vale la pena'], pt: ['que vale a pena'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'en3v100', de: 'affordable', en: ['affordable'], gloss: { de: ['erschwinglich'], es: ['asequible'], fr: ['abordable'], it: ['accessibile'], pt: ['acessível'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+
+  // ── phrasal verbs ─────────────────────────────────────────────────────
+  { id: 'en3v101', de: 'to put off', en: ['to put off', 'to postpone'], gloss: { de: ['verschieben', 'aufschieben'], es: ['aplazar', 'posponer'], fr: ['reporter', 'remettre'], it: ['rimandare'], pt: ['adiar'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v102', de: 'to give up', en: ['to give up'], gloss: { de: ['aufgeben'], es: ['dejar', 'rendirse'], fr: ['abandonner', 'renoncer'], it: ['rinunciare', 'smettere'], pt: ['desistir', 'parar'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v103', de: 'to turn down', en: ['to turn down', 'to reject'], gloss: { de: ['ablehnen'], es: ['rechazar'], fr: ['refuser'], it: ['rifiutare'], pt: ['recusar'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v104', de: 'to carry on', en: ['to carry on', 'to continue'], gloss: { de: ['weitermachen'], es: ['continuar', 'seguir'], fr: ['continuer'], it: ['continuare'], pt: ['continuar', 'prosseguir'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v105', de: 'to set up', en: ['to set up', 'to found'], gloss: { de: ['gründen', 'einrichten'], es: ['montar', 'establecer'], fr: ['créer', 'mettre en place'], it: ['fondare', 'creare'], pt: ['montar', 'fundar'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v106', de: 'to point out', en: ['to point out'], gloss: { de: ['hinweisen auf'], es: ['señalar'], fr: ['faire remarquer', 'signaler'], it: ['far notare'], pt: ['apontar', 'salientar'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v107', de: 'to deal with', en: ['to deal with', 'to handle'], gloss: { de: ['umgehen mit', 'sich befassen mit'], es: ['tratar con', 'ocuparse de'], fr: ['s’occuper de', 'traiter'], it: ['occuparsi di', 'affrontare'], pt: ['lidar com'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v108', de: 'to look after', en: ['to look after', 'to take care of'], gloss: { de: ['sich kümmern um'], es: ['cuidar de'], fr: ['s’occuper de'], it: ['prendersi cura di'], pt: ['cuidar de'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v109', de: 'to find out', en: ['to find out'], gloss: { de: ['herausfinden'], es: ['averiguar', 'descubrir'], fr: ['découvrir'], it: ['scoprire'], pt: ['descobrir'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+  { id: 'en3v110', de: 'to break down', en: ['to break down'], gloss: { de: ['zusammenbrechen', 'kaputtgehen'], es: ['averiarse', 'fracasar'], fr: ['tomber en panne', 'échouer'], it: ['guastarsi', 'fallire'], pt: ['quebrar', 'fracassar'] }, pos: 'verb', level: 'B1', category: 'phrasal' },
+
+  // ── technology ────────────────────────────────────────────────────────
+  { id: 'en3v111', de: 'the device', en: ['device'], gloss: { de: ['das Gerät'], es: ['el dispositivo'], fr: ['l’appareil'], it: ['il dispositivo'], pt: ['o dispositivo'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v112', de: 'the screen', en: ['screen'], gloss: { de: ['der Bildschirm'], es: ['la pantalla'], fr: ['l’écran'], it: ['lo schermo'], pt: ['a tela'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v113', de: 'the software', en: ['software'], gloss: { de: ['die Software'], es: ['el software'], fr: ['le logiciel'], it: ['il software'], pt: ['o software'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v114', de: 'the network', en: ['network'], gloss: { de: ['das Netzwerk'], es: ['la red'], fr: ['le réseau'], it: ['la rete'], pt: ['a rede'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v115', de: 'the password', en: ['password'], gloss: { de: ['das Passwort'], es: ['la contraseña'], fr: ['le mot de passe'], it: ['la password'], pt: ['a senha'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v116', de: 'the file', en: ['file'], gloss: { de: ['die Datei'], es: ['el archivo'], fr: ['le fichier'], it: ['il file'], pt: ['o arquivo'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v117', de: 'the setting', en: ['setting'], gloss: { de: ['die Einstellung'], es: ['el ajuste'], fr: ['le paramètre'], it: ['l’impostazione'], pt: ['a configuração'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'en3v118', de: 'to download', en: ['to download'], gloss: { de: ['herunterladen'], es: ['descargar'], fr: ['télécharger'], it: ['scaricare'], pt: ['baixar'] }, pos: 'verb', level: 'B1', category: 'technology' },
+  { id: 'en3v119', de: 'to install', en: ['to install'], gloss: { de: ['installieren'], es: ['instalar'], fr: ['installer'], it: ['installare'], pt: ['instalar'] }, pos: 'verb', level: 'B1', category: 'technology' },
+  { id: 'en3v120', de: 'to log in', en: ['to log in'], gloss: { de: ['sich anmelden', 'sich einloggen'], es: ['iniciar sesión'], fr: ['se connecter'], it: ['accedere'], pt: ['fazer login'] }, pos: 'verb', level: 'B1', category: 'technology' },
+
+  // ── relationships ─────────────────────────────────────────────────────
+  { id: 'en3v121', de: 'the relationship', en: ['relationship'], gloss: { de: ['die Beziehung'], es: ['la relación'], fr: ['la relation'], it: ['la relazione'], pt: ['o relacionamento'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'en3v122', de: 'the couple', en: ['couple'], gloss: { de: ['das Paar'], es: ['la pareja'], fr: ['le couple'], it: ['la coppia'], pt: ['o casal'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'en3v123', de: 'the partner', en: ['partner'], gloss: { de: ['der Partner'], es: ['el compañero'], fr: ['le partenaire'], it: ['il partner'], pt: ['o parceiro'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'en3v124', de: 'the wedding', en: ['wedding'], gloss: { de: ['die Hochzeit'], es: ['la boda'], fr: ['le mariage'], it: ['le nozze'], pt: ['o casamento'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'en3v125', de: 'the marriage', en: ['marriage'], gloss: { de: ['die Ehe'], es: ['el matrimonio'], fr: ['le mariage'], it: ['il matrimonio'], pt: ['o casamento'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'en3v126', de: 'to get on with', en: ['to get on with', 'to get along with'], gloss: { de: ['gut auskommen mit'], es: ['llevarse bien con'], fr: ['bien s’entendre avec'], it: ['andare d’accordo con'], pt: ['dar-se bem com'] }, pos: 'verb', level: 'B1', category: 'relationships' },
+  { id: 'en3v127', de: 'to fall out', en: ['to fall out'], gloss: { de: ['sich zerstreiten'], es: ['enemistarse', 'pelearse'], fr: ['se brouiller'], it: ['litigare'], pt: ['brigar'] }, pos: 'verb', level: 'B1', category: 'relationships' },
+  { id: 'en3v128', de: 'to look forward to', en: ['to look forward to'], gloss: { de: ['sich freuen auf'], es: ['tener ganas de'], fr: ['avoir hâte de'], it: ['non vedere l’ora di'], pt: ['estar ansioso por'] }, pos: 'phrase', level: 'B1', category: 'relationships' },
+  { id: 'en3v129', de: 'loyal', en: ['loyal'], gloss: { de: ['treu', 'loyal'], es: ['leal'], fr: ['loyal'], it: ['leale'], pt: ['leal'] }, pos: 'adj', level: 'B1', category: 'relationships' },
+  { id: 'en3v130', de: 'honest', en: ['honest'], gloss: { de: ['ehrlich'], es: ['honesto', 'sincero'], fr: ['honnête'], it: ['onesto'], pt: ['honesto'] }, pos: 'adj', level: 'B1', category: 'relationships' },
+
+  // ── money & finance ───────────────────────────────────────────────────
+  { id: 'en3v131', de: 'the budget', en: ['budget'], gloss: { de: ['das Budget'], es: ['el presupuesto'], fr: ['le budget'], it: ['il budget'], pt: ['o orçamento'] }, pos: 'noun', level: 'B1', category: 'money' },
+  { id: 'en3v132', de: 'the loan', en: ['loan'], gloss: { de: ['der Kredit', 'das Darlehen'], es: ['el préstamo'], fr: ['le prêt'], it: ['il prestito'], pt: ['o empréstimo'] }, pos: 'noun', level: 'B1', category: 'money' },
+  { id: 'en3v133', de: 'the debt', en: ['debt'], gloss: { de: ['die Schulden'], es: ['la deuda'], fr: ['la dette'], it: ['il debito'], pt: ['a dívida'] }, pos: 'noun', level: 'B1', category: 'money' },
+  { id: 'en3v134', de: 'the savings', en: ['savings'], gloss: { de: ['die Ersparnisse'], es: ['los ahorros'], fr: ['les économies'], it: ['i risparmi'], pt: ['as economias'] }, pos: 'noun', level: 'B1', category: 'money' },
+  { id: 'en3v135', de: 'the income', en: ['income'], gloss: { de: ['das Einkommen'], es: ['los ingresos'], fr: ['le revenu'], it: ['il reddito'], pt: ['a renda'] }, pos: 'noun', level: 'B1', category: 'money' },
+  { id: 'en3v136', de: 'the expense', en: ['expense'], gloss: { de: ['die Ausgabe'], es: ['el gasto'], fr: ['la dépense'], it: ['la spesa'], pt: ['a despesa'] }, pos: 'noun', level: 'B1', category: 'money' },
+  { id: 'en3v137', de: 'to afford', en: ['to afford'], gloss: { de: ['sich leisten können'], es: ['permitirse'], fr: ['avoir les moyens de'], it: ['permettersi'], pt: ['ter condições de pagar'] }, pos: 'verb', level: 'B1', category: 'money' },
+  { id: 'en3v138', de: 'to save', en: ['to save'], gloss: { de: ['sparen'], es: ['ahorrar'], fr: ['économiser'], it: ['risparmiare'], pt: ['poupar', 'economizar'] }, pos: 'verb', level: 'B1', category: 'money' },
+  { id: 'en3v139', de: 'to owe', en: ['to owe'], gloss: { de: ['schulden'], es: ['deber'], fr: ['devoir'], it: ['dovere'], pt: ['dever'] }, pos: 'verb', level: 'B1', category: 'money' },
+  { id: 'en3v140', de: 'to invest', en: ['to invest'], gloss: { de: ['investieren'], es: ['invertir'], fr: ['investir'], it: ['investire'], pt: ['investir'] }, pos: 'verb', level: 'B1', category: 'money' },
+
+  // ── civic & city life ─────────────────────────────────────────────────
+  { id: 'en3v141', de: 'the council', en: ['council'], gloss: { de: ['der Stadtrat', 'die Stadtverwaltung'], es: ['el ayuntamiento'], fr: ['le conseil municipal'], it: ['il comune'], pt: ['a prefeitura'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v142', de: 'the committee', en: ['committee'], gloss: { de: ['der Ausschuss'], es: ['el comité'], fr: ['le comité'], it: ['la commissione'], pt: ['a comissão'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v143', de: 'the proposal', en: ['proposal'], gloss: { de: ['der Vorschlag'], es: ['la propuesta'], fr: ['la proposition'], it: ['la proposta'], pt: ['a proposta'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v144', de: 'the charity', en: ['charity'], gloss: { de: ['die Wohltätigkeitsorganisation'], es: ['la organización benéfica'], fr: ['l’association caritative'], it: ['l’associazione benefica'], pt: ['a instituição de caridade'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v145', de: 'the volunteer', en: ['volunteer'], gloss: { de: ['der Freiwillige'], es: ['el voluntario'], fr: ['le bénévole'], it: ['il volontario'], pt: ['o voluntário'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v146', de: 'the resident', en: ['resident'], gloss: { de: ['der Anwohner'], es: ['el residente'], fr: ['le résident'], it: ['il residente'], pt: ['o morador'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v147', de: 'the neighbourhood', en: ['neighbourhood', 'neighborhood'], gloss: { de: ['das Viertel'], es: ['el barrio'], fr: ['le quartier'], it: ['il quartiere'], pt: ['o bairro'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v148', de: 'the shortage', en: ['shortage'], gloss: { de: ['der Mangel'], es: ['la escasez'], fr: ['la pénurie'], it: ['la carenza'], pt: ['a escassez'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v149', de: 'the accommodation', en: ['accommodation', 'the housing'], gloss: { de: ['die Unterkunft'], es: ['el alojamiento'], fr: ['le logement'], it: ['l’alloggio'], pt: ['a hospedagem'] }, pos: 'noun', level: 'B1', category: 'civic' },
+  { id: 'en3v150', de: 'the transport', en: ['transport', 'transportation'], gloss: { de: ['die Verkehrsmittel'], es: ['el transporte'], fr: ['les transports'], it: ['i trasporti'], pt: ['o transporte'] }, pos: 'noun', level: 'B1', category: 'civic' },
+
+  // ── more abstract nouns ───────────────────────────────────────────────
+  { id: 'en3v151', de: 'the evidence', en: ['evidence', 'the proof'], gloss: { de: ['die Beweise'], es: ['las pruebas'], fr: ['les preuves'], it: ['le prove'], pt: ['as provas'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v152', de: 'the conclusion', en: ['conclusion'], gloss: { de: ['die Schlussfolgerung'], es: ['la conclusión'], fr: ['la conclusion'], it: ['la conclusione'], pt: ['a conclusão'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v153', de: 'the advantage', en: ['advantage'], gloss: { de: ['der Vorteil'], es: ['la ventaja'], fr: ['l’avantage'], it: ['il vantaggio'], pt: ['a vantagem'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v154', de: 'the disadvantage', en: ['disadvantage', 'the drawback'], gloss: { de: ['der Nachteil'], es: ['la desventaja'], fr: ['l’inconvénient'], it: ['lo svantaggio'], pt: ['a desvantagem'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v155', de: 'the lack', en: ['lack'], gloss: { de: ['das Fehlen'], es: ['la falta'], fr: ['le manque'], it: ['la mancanza'], pt: ['a falta'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v156', de: 'the strategy', en: ['strategy'], gloss: { de: ['die Strategie'], es: ['la estrategia'], fr: ['la stratégie'], it: ['la strategia'], pt: ['a estratégia'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v157', de: 'the approach', en: ['approach'], gloss: { de: ['der Ansatz'], es: ['el enfoque'], fr: ['l’approche'], it: ['l’approccio'], pt: ['a abordagem'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v158', de: 'the pressure', en: ['pressure'], gloss: { de: ['der Druck'], es: ['la presión'], fr: ['la pression'], it: ['la pressione'], pt: ['a pressão'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v159', de: 'the attitude', en: ['attitude'], gloss: { de: ['die Haltung'], es: ['la actitud'], fr: ['l’attitude'], it: ['l’atteggiamento'], pt: ['a atitude'] }, pos: 'noun', level: 'B1', category: 'abstract' },
+  { id: 'en3v160', de: 'the permission', en: ['permission'], gloss: { de: ['die Genehmigung'], es: ['el permiso'], fr: ['l’autorisation'], it: ['il permesso'], pt: ['a permissão'] }, pos: 'noun', level: 'B1', category: 'abstract' },
 ];

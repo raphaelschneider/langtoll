@@ -128,4 +128,82 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'a2v102', de: 'die Heizung', en: ['the heating'], gloss: { es: ['la calefacción'], fr: ['le chauffage'], it: ['il riscaldamento'], pt: ['o aquecimento'] }, pos: 'noun', level: 'A2', category: 'household' },
   { id: 'a2v103', de: 'umziehen', en: ['to move (house)'], gloss: { es: ['mudarse'], fr: ['déménager'], it: ['traslocare'], pt: ['mudar-se'] }, pos: 'verb', level: 'A2', category: 'household' },
   { id: 'a2v104', de: 'mieten', en: ['to rent'], gloss: { es: ['alquilar'], fr: ['louer'], it: ['affittare'], pt: ['alugar'] }, pos: 'verb', level: 'A2', category: 'household' },
+
+  // ── eating out & cooking ──────────────────────────────────────────────
+  { id: 'a2v105', de: 'das Mittagessen', en: ['the lunch'], gloss: { es: ['el almuerzo', 'la comida'], fr: ['le déjeuner'], it: ['il pranzo'], pt: ['o almoço'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v106', de: 'das Abendessen', en: ['the dinner'], gloss: { es: ['la cena'], fr: ['le dîner'], it: ['la cena'], pt: ['o jantar'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v107', de: 'die Speisekarte', en: ['the menu'], gloss: { es: ['la carta'], fr: ['la carte'], it: ['il menù'], pt: ['o cardápio'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v108', de: 'die Vorspeise', en: ['the starter'], gloss: { es: ['el entrante'], fr: ['l’entrée'], it: ['l’antipasto'], pt: ['a entrada'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v109', de: 'die Nachspeise', en: ['the dessert'], gloss: { es: ['el postre'], fr: ['le dessert'], it: ['il dolce'], pt: ['a sobremesa'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v110', de: 'bestellen', en: ['to order'], gloss: { es: ['pedir'], fr: ['commander'], it: ['ordinare'], pt: ['pedir'] }, pos: 'verb', level: 'A2', category: 'eating' },
+  { id: 'a2v111', de: 'das Trinkgeld', en: ['the tip'], gloss: { es: ['la propina'], fr: ['le pourboire'], it: ['la mancia'], pt: ['a gorjeta'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v112', de: 'die Rechnung', en: ['the bill'], gloss: { es: ['la cuenta'], fr: ['l’addition'], it: ['il conto'], pt: ['a conta'] }, pos: 'noun', level: 'A2', category: 'eating' },
+  { id: 'a2v113', de: 'backen', en: ['to bake'], gloss: { es: ['hornear'], fr: ['cuire au four'], it: ['cuocere al forno'], pt: ['assar'] }, pos: 'verb', level: 'A2', category: 'eating' },
+  { id: 'a2v114', de: 'braten', en: ['to fry', 'to roast'], gloss: { es: ['freír', 'asar'], fr: ['faire revenir', 'rôtir'], it: ['friggere', 'arrostire'], pt: ['fritar', 'assar'] }, pos: 'verb', level: 'A2', category: 'eating' },
+
+  // ── money & paperwork ─────────────────────────────────────────────────
+  { id: 'a2v115', de: 'das Bargeld', en: ['the cash'], gloss: { es: ['el efectivo'], fr: ['les espèces'], it: ['i contanti'], pt: ['o dinheiro em espécie'] }, pos: 'noun', level: 'A2', category: 'money' },
+  { id: 'a2v116', de: 'die Quittung', en: ['the receipt'], gloss: { es: ['el recibo'], fr: ['le reçu'], it: ['la ricevuta'], pt: ['o recibo'] }, pos: 'noun', level: 'A2', category: 'money' },
+  { id: 'a2v117', de: 'das Konto', en: ['the bank account'], gloss: { es: ['la cuenta bancaria'], fr: ['le compte bancaire'], it: ['il conto bancario'], pt: ['a conta bancária'] }, pos: 'noun', level: 'A2', category: 'money' },
+  { id: 'a2v118', de: 'überweisen', en: ['to transfer (money)'], gloss: { es: ['transferir'], fr: ['virer'], it: ['fare un bonifico'], pt: ['transferir'] }, pos: 'verb', level: 'A2', category: 'money' },
+  { id: 'a2v119', de: 'sparen', en: ['to save (money)'], gloss: { es: ['ahorrar'], fr: ['économiser'], it: ['risparmiare'], pt: ['economizar'] }, pos: 'verb', level: 'A2', category: 'money' },
+  { id: 'a2v120', de: 'das Formular', en: ['the form'], gloss: { es: ['el formulario'], fr: ['le formulaire'], it: ['il modulo'], pt: ['o formulário'] }, pos: 'noun', level: 'A2', category: 'money' },
+  { id: 'a2v121', de: 'unterschreiben', en: ['to sign'], gloss: { es: ['firmar'], fr: ['signer'], it: ['firmare'], pt: ['assinar'] }, pos: 'verb', level: 'A2', category: 'money' },
+  { id: 'a2v122', de: 'die Gebühr', en: ['the fee'], gloss: { es: ['la tasa'], fr: ['les frais'], it: ['la tassa'], pt: ['a taxa'] }, pos: 'noun', level: 'A2', category: 'money' },
+
+  // ── technology ────────────────────────────────────────────────────────
+  { id: 'a2v123', de: 'das Internet', en: ['the internet'], gloss: { es: ['internet'], fr: ['internet'], it: ['internet'], pt: ['a internet'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'a2v124', de: 'die E-Mail', en: ['the email'], gloss: { es: ['el correo electrónico'], fr: ['l’e-mail'], it: ['l’email'], pt: ['o e-mail'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'a2v125', de: 'der Bildschirm', en: ['the screen'], gloss: { es: ['la pantalla'], fr: ['l’écran'], it: ['lo schermo'], pt: ['a tela'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'a2v126', de: 'das Passwort', en: ['the password'], gloss: { es: ['la contraseña'], fr: ['le mot de passe'], it: ['la password'], pt: ['a senha'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'a2v127', de: 'die Datei', en: ['the file'], gloss: { es: ['el archivo'], fr: ['le fichier'], it: ['il file'], pt: ['o arquivo'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'a2v128', de: 'herunterladen', en: ['to download'], gloss: { es: ['descargar'], fr: ['télécharger'], it: ['scaricare'], pt: ['baixar'] }, pos: 'verb', level: 'A2', category: 'technology' },
+  { id: 'a2v129', de: 'speichern', en: ['to save (a file)'], gloss: { es: ['guardar'], fr: ['enregistrer'], it: ['salvare'], pt: ['salvar'] }, pos: 'verb', level: 'A2', category: 'technology' },
+  { id: 'a2v130', de: 'ausschalten', en: ['to switch off'], gloss: { es: ['apagar'], fr: ['éteindre'], it: ['spegnere'], pt: ['desligar'] }, pos: 'verb', level: 'A2', category: 'technology' },
+
+  // ── free time & sport ─────────────────────────────────────────────────
+  { id: 'a2v131', de: 'das Hobby', en: ['the hobby'], gloss: { es: ['el pasatiempo'], fr: ['le loisir'], it: ['l’hobby'], pt: ['o passatempo'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'a2v132', de: 'der Verein', en: ['the club', 'the association'], gloss: { es: ['el club', 'la asociación'], fr: ['le club', 'l’association'], it: ['il club', 'l’associazione'], pt: ['o clube', 'a associação'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'a2v133', de: 'die Mannschaft', en: ['the team'], gloss: { es: ['el equipo'], fr: ['l’équipe'], it: ['la squadra'], pt: ['o time'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'a2v134', de: 'das Schwimmbad', en: ['the swimming pool'], gloss: { es: ['la piscina'], fr: ['la piscine'], it: ['la piscina'], pt: ['a piscina'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'a2v135', de: 'das Fahrrad', en: ['the bicycle'], gloss: { es: ['la bicicleta'], fr: ['le vélo'], it: ['la bicicletta'], pt: ['a bicicleta'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'a2v136', de: 'das Konzert', en: ['the concert'], gloss: { es: ['el concierto'], fr: ['le concert'], it: ['il concerto'], pt: ['o show'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'a2v137', de: 'wandern', en: ['to hike'], gloss: { es: ['hacer senderismo'], fr: ['faire de la randonnée'], it: ['fare escursioni'], pt: ['fazer trilha'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+  { id: 'a2v138', de: 'trainieren', en: ['to train', 'to work out'], gloss: { es: ['entrenar'], fr: ['s’entraîner'], it: ['allenarsi'], pt: ['treinar'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+
+  // ── car & road ────────────────────────────────────────────────────────
+  { id: 'a2v139', de: 'das Benzin', en: ['the petrol'], gloss: { es: ['la gasolina'], fr: ['l’essence'], it: ['la benzina'], pt: ['a gasolina'] }, pos: 'noun', level: 'A2', category: 'road' },
+  { id: 'a2v140', de: 'die Tankstelle', en: ['the petrol station'], gloss: { es: ['la gasolinera'], fr: ['la station-service'], it: ['il distributore'], pt: ['o posto de gasolina'] }, pos: 'noun', level: 'A2', category: 'road' },
+  { id: 'a2v141', de: 'der Führerschein', en: ['the driving licence'], gloss: { es: ['el carné de conducir'], fr: ['le permis de conduire'], it: ['la patente'], pt: ['a carteira de motorista'] }, pos: 'noun', level: 'A2', category: 'road' },
+  { id: 'a2v142', de: 'die Autobahn', en: ['the motorway'], gloss: { es: ['la autopista'], fr: ['l’autoroute'], it: ['l’autostrada'], pt: ['a rodovia'] }, pos: 'noun', level: 'A2', category: 'road' },
+  { id: 'a2v143', de: 'die Panne', en: ['the breakdown (car)'], gloss: { es: ['la avería'], fr: ['la panne'], it: ['il guasto'], pt: ['a pane'] }, pos: 'noun', level: 'A2', category: 'road' },
+  { id: 'a2v144', de: 'parken', en: ['to park'], gloss: { es: ['aparcar'], fr: ['se garer'], it: ['parcheggiare'], pt: ['estacionar'] }, pos: 'verb', level: 'A2', category: 'road' },
+
+  // ── more work ─────────────────────────────────────────────────────────
+  { id: 'a2v145', de: 'der Chef', en: ['the boss'], gloss: { es: ['el jefe'], fr: ['le patron'], it: ['il capo'], pt: ['o chefe'] }, pos: 'noun', level: 'A2', category: 'work' },
+  { id: 'a2v146', de: 'der Vertrag', en: ['the contract'], gloss: { es: ['el contrato'], fr: ['le contrat'], it: ['il contratto'], pt: ['o contrato'] }, pos: 'noun', level: 'A2', category: 'work' },
+  { id: 'a2v147', de: 'die Überstunden', en: ['the overtime'], gloss: { es: ['las horas extras'], fr: ['les heures supplémentaires'], it: ['gli straordinari'], pt: ['as horas extras'] }, pos: 'noun', level: 'A2', category: 'work' },
+  { id: 'a2v148', de: 'die Bewerbung', en: ['the job application'], gloss: { es: ['la solicitud de empleo'], fr: ['la candidature'], it: ['la candidatura'], pt: ['a candidatura'] }, pos: 'noun', level: 'A2', category: 'work' },
+  { id: 'a2v149', de: 'das Praktikum', en: ['the internship'], gloss: { es: ['las prácticas'], fr: ['le stage'], it: ['il tirocinio'], pt: ['o estágio'] }, pos: 'noun', level: 'A2', category: 'work' },
+
+  // ── more feelings & character ─────────────────────────────────────────
+  { id: 'a2v150', de: 'nervös', en: ['nervous'], gloss: { es: ['nervioso'], fr: ['nerveux'], it: ['nervoso'], pt: ['nervoso'] }, pos: 'adj', level: 'A2', category: 'feelings' },
+  { id: 'a2v151', de: 'neugierig', en: ['curious'], gloss: { es: ['curioso'], fr: ['curieux'], it: ['curioso'], pt: ['curioso'] }, pos: 'adj', level: 'A2', category: 'feelings' },
+  { id: 'a2v152', de: 'ehrlich', en: ['honest'], gloss: { es: ['honesto', 'sincero'], fr: ['honnête'], it: ['onesto', 'sincero'], pt: ['honesto', 'sincero'] }, pos: 'adj', level: 'A2', category: 'feelings' },
+  { id: 'a2v153', de: 'freundlich', en: ['friendly', 'kind'], gloss: { es: ['amable'], fr: ['gentil', 'aimable'], it: ['gentile'], pt: ['simpático', 'gentil'] }, pos: 'adj', level: 'A2', category: 'feelings' },
+  { id: 'a2v154', de: 'höflich', en: ['polite'], gloss: { es: ['educado', 'cortés'], fr: ['poli'], it: ['educato', 'cortese'], pt: ['educado', 'cortês'] }, pos: 'adj', level: 'A2', category: 'feelings' },
+
+  // ── more household ────────────────────────────────────────────────────
+  { id: 'a2v155', de: 'putzen', en: ['to clean'], gloss: { es: ['limpiar'], fr: ['nettoyer'], it: ['pulire'], pt: ['limpar'] }, pos: 'verb', level: 'A2', category: 'household' },
+  { id: 'a2v156', de: 'die Wäsche', en: ['the laundry'], gloss: { es: ['la colada'], fr: ['le linge'], it: ['il bucato'], pt: ['a roupa para lavar'] }, pos: 'noun', level: 'A2', category: 'household' },
+  { id: 'a2v157', de: 'der Staubsauger', en: ['the vacuum cleaner'], gloss: { es: ['la aspiradora'], fr: ['l’aspirateur'], it: ['l’aspirapolvere'], pt: ['o aspirador de pó'] }, pos: 'noun', level: 'A2', category: 'household' },
+  { id: 'a2v158', de: 'der Balkon', en: ['the balcony'], gloss: { es: ['el balcón'], fr: ['le balcon'], it: ['il balcone'], pt: ['a varanda'] }, pos: 'noun', level: 'A2', category: 'household' },
+  { id: 'a2v159', de: 'der Keller', en: ['the cellar', 'the basement'], gloss: { es: ['el sótano'], fr: ['la cave'], it: ['la cantina'], pt: ['o porão'] }, pos: 'noun', level: 'A2', category: 'household' },
+
+  // ── study & culture ───────────────────────────────────────────────────
+  { id: 'a2v160', de: 'die Bibliothek', en: ['the library'], gloss: { es: ['la biblioteca'], fr: ['la bibliothèque'], it: ['la biblioteca'], pt: ['a biblioteca'] }, pos: 'noun', level: 'A2', category: 'study' },
+  { id: 'a2v161', de: 'das Museum', en: ['the museum'], gloss: { es: ['el museo'], fr: ['le musée'], it: ['il museo'], pt: ['o museu'] }, pos: 'noun', level: 'A2', category: 'study' },
+  { id: 'a2v162', de: 'die Universität', en: ['the university'], gloss: { es: ['la universidad'], fr: ['l’université'], it: ['l’università'], pt: ['a universidade'] }, pos: 'noun', level: 'A2', category: 'study' },
+  { id: 'a2v163', de: 'der Kurs', en: ['the course'], gloss: { es: ['el curso'], fr: ['le cours'], it: ['il corso'], pt: ['o curso'] }, pos: 'noun', level: 'A2', category: 'study' },
+  { id: 'a2v164', de: 'das Wörterbuch', en: ['the dictionary'], gloss: { es: ['el diccionario'], fr: ['le dictionnaire'], it: ['il dizionario'], pt: ['o dicionário'] }, pos: 'noun', level: 'A2', category: 'study' },
 ];

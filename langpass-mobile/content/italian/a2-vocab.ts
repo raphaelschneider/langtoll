@@ -107,7 +107,7 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'it2v073', de: 'la finestra', en: ['the window'], gloss: { de: ['das Fenster'], es: ['la ventana'], fr: ['la fenêtre'], pt: ['a janela'] }, pos: 'noun', level: 'A2', category: 'home' },
   { id: 'it2v074', de: 'il divano', en: ['the sofa'], gloss: { de: ['das Sofa'], es: ['el sofá'], fr: ['le canapé'], pt: ['o sofá'] }, pos: 'noun', level: 'A2', category: 'home' },
   { id: 'it2v075', de: 'la chiave', en: ['the key'], gloss: { de: ['der Schlüssel'], es: ['la llave'], fr: ['la clé'], pt: ['a chave'] }, pos: 'noun', level: 'A2', category: 'home' },
-  { id: 'it2v076', de: 'l’appartamento', en: ['the flat', 'the flat'], gloss: { de: ['die Wohnung'], es: ['el apartamento'], fr: ['l’appartement'], pt: ['o apartamento'] }, pos: 'noun', gender: 'm', level: 'A2', category: 'home' },
+  { id: 'it2v076', de: 'l’appartamento', en: ['the flat', 'the apartment'], gloss: { de: ['die Wohnung'], es: ['el apartamento'], fr: ['l’appartement'], pt: ['o apartamento'] }, pos: 'noun', gender: 'm', level: 'A2', category: 'home' },
   { id: 'it2v077', de: 'la porta', en: ['the door'], gloss: { de: ['die Tür'], es: ['la puerta'], fr: ['la porte'], pt: ['a porta'] }, pos: 'noun', level: 'A2', category: 'home' },
 
   // ── food & eating out ─────────────────────────────────────────────────
@@ -162,4 +162,80 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'it2v120', de: 'pieno', en: ['full'], gloss: { de: ['voll'], es: ['lleno'], fr: ['plein'], pt: ['cheio'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
   { id: 'it2v121', de: 'vuoto', en: ['empty'], gloss: { de: ['leer'], es: ['vacío'], fr: ['vide'], pt: ['vazio'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
   { id: 'it2v122', de: 'simpatico', en: ['nice', 'likeable'], gloss: { de: ['sympathisch'], es: ['simpático'], fr: ['sympathique'], pt: ['simpático'] }, pos: 'adj', level: 'A2', category: 'adjectives' },
+
+  // ── the city & finding your way ───────────────────────────────────────
+  { id: 'it2v123', de: 'la piazza', en: ['the square'], gloss: { de: ['der Platz'], es: ['la plaza'], fr: ['la place'], pt: ['a praça'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'it2v124', de: 'il ponte', en: ['the bridge'], gloss: { de: ['die Brücke'], es: ['el puente'], fr: ['le pont'], pt: ['a ponte'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'it2v125', de: 'il semaforo', en: ['the traffic light'], gloss: { de: ['die Ampel'], es: ['el semáforo'], fr: ['le feu'], pt: ['o semáforo'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'it2v126', de: 'la fermata', en: ['the stop'], gloss: { de: ['die Haltestelle'], es: ['la parada'], fr: ['l’arrêt'], pt: ['a parada'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'it2v127', de: 'il centro', en: ['the centre'], gloss: { de: ['das Zentrum'], es: ['el centro'], fr: ['le centre'], pt: ['o centro'] }, pos: 'noun', level: 'A2', category: 'city' },
+  { id: 'it2v128', de: 'girare', en: ['to turn'], gloss: { de: ['abbiegen'], es: ['girar'], fr: ['tourner'], pt: ['virar'] }, pos: 'verb', level: 'A2', category: 'city' },
+  { id: 'it2v129', de: 'attraversare', en: ['to cross'], gloss: { de: ['überqueren'], es: ['cruzar'], fr: ['traverser'], pt: ['atravessar'] }, pos: 'verb', level: 'A2', category: 'city' },
+  { id: 'it2v130', de: 'a destra', en: ['on the right'], gloss: { de: ['rechts'], es: ['a la derecha'], fr: ['à droite'], pt: ['à direita'] }, pos: 'phrase', level: 'A2', category: 'city' },
+  { id: 'it2v131', de: 'a sinistra', en: ['on the left'], gloss: { de: ['links'], es: ['a la izquierda'], fr: ['à gauche'], pt: ['à esquerda'] }, pos: 'phrase', level: 'A2', category: 'city' },
+  { id: 'it2v132', de: 'dritto', en: ['straight ahead'], gloss: { de: ['geradeaus'], es: ['recto'], fr: ['tout droit'], pt: ['em frente'] }, pos: 'adv', level: 'A2', category: 'city' },
+
+  // ── technology ────────────────────────────────────────────────────────
+  { id: 'it2v133', de: 'il cellulare', en: ['the mobile phone'], gloss: { de: ['das Handy'], es: ['el móvil'], fr: ['le portable'], pt: ['o celular'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'it2v134', de: 'lo schermo', en: ['the screen'], gloss: { de: ['der Bildschirm'], es: ['la pantalla'], fr: ['l’écran'], pt: ['a tela'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'it2v135', de: 'la tastiera', en: ['the keyboard'], gloss: { de: ['die Tastatur'], es: ['el teclado'], fr: ['le clavier'], pt: ['o teclado'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'it2v136', de: 'il messaggio', en: ['the message'], gloss: { de: ['die Nachricht'], es: ['el mensaje'], fr: ['le message'], pt: ['a mensagem'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'it2v137', de: 'il sito', en: ['the website'], gloss: { de: ['die Website'], es: ['el sitio web'], fr: ['le site'], pt: ['o site'] }, pos: 'noun', level: 'A2', category: 'technology' },
+  { id: 'it2v138', de: 'scaricare', en: ['to download'], gloss: { de: ['herunterladen'], es: ['descargar'], fr: ['télécharger'], pt: ['baixar'] }, pos: 'verb', level: 'A2', category: 'technology' },
+  { id: 'it2v139', de: 'accendere', en: ['to switch on'], gloss: { de: ['einschalten'], es: ['encender'], fr: ['allumer'], pt: ['ligar'] }, pos: 'verb', level: 'A2', category: 'technology' },
+  { id: 'it2v140', de: 'spegnere', en: ['to switch off'], gloss: { de: ['ausschalten'], es: ['apagar'], fr: ['éteindre'], pt: ['desligar'] }, pos: 'verb', level: 'A2', category: 'technology' },
+
+  // ── free time & sport ─────────────────────────────────────────────────
+  { id: 'it2v141', de: 'il calcio', en: ['the football'], gloss: { de: ['der Fußball'], es: ['el fútbol'], fr: ['le football'], pt: ['o futebol'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'it2v142', de: 'la palestra', en: ['the gym'], gloss: { de: ['das Fitnessstudio'], es: ['el gimnasio'], fr: ['la salle de sport'], pt: ['a academia'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'it2v143', de: 'la partita', en: ['the match', 'the game'], gloss: { de: ['das Spiel'], es: ['el partido'], fr: ['le match'], pt: ['a partida'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'it2v144', de: 'il film', en: ['the film'], gloss: { de: ['der Film'], es: ['la película'], fr: ['le film'], pt: ['o filme'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'it2v145', de: 'la musica', en: ['the music'], gloss: { de: ['die Musik'], es: ['la música'], fr: ['la musique'], pt: ['a música'] }, pos: 'noun', level: 'A2', category: 'leisure' },
+  { id: 'it2v146', de: 'giocare', en: ['to play'], gloss: { de: ['spielen'], es: ['jugar'], fr: ['jouer'], pt: ['jogar'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+  { id: 'it2v147', de: 'correre', en: ['to run'], gloss: { de: ['laufen'], es: ['correr'], fr: ['courir'], pt: ['correr'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+  { id: 'it2v148', de: 'nuotare', en: ['to swim'], gloss: { de: ['schwimmen'], es: ['nadar'], fr: ['nager'], pt: ['nadar'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+  { id: 'it2v149', de: 'ballare', en: ['to dance'], gloss: { de: ['tanzen'], es: ['bailar'], fr: ['danser'], pt: ['dançar'] }, pos: 'verb', level: 'A2', category: 'leisure' },
+
+  // ── travel, practical ─────────────────────────────────────────────────
+  { id: 'it2v150', de: 'la prenotazione', en: ['the booking', 'the reservation'], gloss: { de: ['die Buchung'], es: ['la reserva'], fr: ['la réservation'], pt: ['a reserva'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'it2v151', de: 'il bagaglio', en: ['the luggage'], gloss: { de: ['das Gepäck'], es: ['el equipaje'], fr: ['les bagages'], pt: ['a bagagem'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'it2v152', de: 'il ritardo', en: ['the delay'], gloss: { de: ['die Verspätung'], es: ['el retraso'], fr: ['le retard'], pt: ['o atraso'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'it2v153', de: 'il binario', en: ['the platform', 'the track'], gloss: { de: ['das Gleis'], es: ['el andén'], fr: ['le quai'], pt: ['a plataforma'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'it2v154', de: 'il parcheggio', en: ['the car park'], gloss: { de: ['der Parkplatz'], es: ['el aparcamiento'], fr: ['le parking'], pt: ['o estacionamento'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'it2v155', de: 'la benzina', en: ['the petrol'], gloss: { de: ['das Benzin'], es: ['la gasolina'], fr: ['l’essence'], pt: ['a gasolina'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'it2v156', de: 'noleggiare', en: ['to rent', 'to hire'], gloss: { de: ['mieten'], es: ['alquilar'], fr: ['louer'], pt: ['alugar'] }, pos: 'verb', level: 'A2', category: 'travel' },
+
+  // ── describing people ─────────────────────────────────────────────────
+  { id: 'it2v157', de: 'alto', en: ['tall', 'high'], gloss: { de: ['groß'], es: ['alto'], fr: ['grand'], pt: ['alto'] }, pos: 'adj', level: 'A2', category: 'people' },
+  { id: 'it2v158', de: 'basso', en: ['short', 'low'], gloss: { de: ['klein'], es: ['bajo'], fr: ['petit'], pt: ['baixo'] }, pos: 'adj', level: 'A2', category: 'people' },
+  { id: 'it2v159', de: 'magro', en: ['thin', 'slim'], gloss: { de: ['schlank'], es: ['delgado'], fr: ['mince'], pt: ['magro'] }, pos: 'adj', level: 'A2', category: 'people' },
+  { id: 'it2v160', de: 'giovane', en: ['young'], gloss: { de: ['jung'], es: ['joven'], fr: ['jeune'], pt: ['jovem'] }, pos: 'adj', level: 'A2', category: 'people' },
+  { id: 'it2v161', de: 'anziano', en: ['elderly'], gloss: { de: ['älter'], es: ['anciano'], fr: ['âgé'], pt: ['idoso'] }, pos: 'adj', level: 'A2', category: 'people' },
+  { id: 'it2v162', de: 'gentile', en: ['kind', 'polite'], gloss: { de: ['nett'], es: ['amable'], fr: ['gentil'], pt: ['gentil'] }, pos: 'adj', level: 'A2', category: 'people' },
+  { id: 'it2v163', de: 'bravo', en: ['good', 'skilled'], gloss: { de: ['tüchtig'], es: ['bueno'], fr: ['doué'], pt: ['bom'] }, pos: 'adj', level: 'A2', category: 'people' },
+
+  // ── quantity ──────────────────────────────────────────────────────────
+  { id: 'it2v164', de: 'molto', en: ['a lot', 'very'], gloss: { de: ['viel'], es: ['mucho'], fr: ['beaucoup'], pt: ['muito'] }, pos: 'adv', level: 'A2', category: 'quantity' },
+  { id: 'it2v165', de: 'poco', en: ['little', 'few'], gloss: { de: ['wenig'], es: ['poco'], fr: ['peu'], pt: ['pouco'] }, pos: 'adv', level: 'A2', category: 'quantity' },
+  { id: 'it2v166', de: 'troppo', en: ['too much'], gloss: { de: ['zu viel'], es: ['demasiado'], fr: ['trop'], pt: ['demais'] }, pos: 'adv', level: 'A2', category: 'quantity' },
+  { id: 'it2v167', de: 'abbastanza', en: ['enough', 'quite'], gloss: { de: ['genug'], es: ['bastante'], fr: ['assez'], pt: ['bastante'] }, pos: 'adv', level: 'A2', category: 'quantity' },
+  { id: 'it2v168', de: 'qualche', en: ['some', 'a few'], gloss: { de: ['einige'], es: ['algunos'], fr: ['quelques'], pt: ['alguns'] }, pos: 'adj', level: 'A2', category: 'quantity' },
+  { id: 'it2v169', de: 'tutto', en: ['all', 'everything'], gloss: { de: ['alles'], es: ['todo'], fr: ['tout'], pt: ['tudo'] }, pos: 'adj', level: 'A2', category: 'quantity' },
+  { id: 'it2v170', de: 'niente', en: ['nothing'], gloss: { de: ['nichts'], es: ['nada'], fr: ['rien'], pt: ['nada'] }, pos: 'pronoun', level: 'A2', category: 'quantity' },
+
+  // ── more verbs ────────────────────────────────────────────────────────
+  { id: 'it2v171', de: 'aiutare', en: ['to help'], gloss: { de: ['helfen'], es: ['ayudar'], fr: ['aider'], pt: ['ajudar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v172', de: 'portare', en: ['to bring', 'to carry'], gloss: { de: ['bringen'], es: ['llevar'], fr: ['apporter'], pt: ['levar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v173', de: 'chiedere', en: ['to ask'], gloss: { de: ['fragen'], es: ['preguntar'], fr: ['demander'], pt: ['perguntar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v174', de: 'rispondere', en: ['to answer'], gloss: { de: ['antworten'], es: ['responder'], fr: ['répondre'], pt: ['responder'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v175', de: 'incontrare', en: ['to meet'], gloss: { de: ['treffen'], es: ['encontrar'], fr: ['rencontrer'], pt: ['encontrar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v176', de: 'aspettare', en: ['to wait'], gloss: { de: ['warten'], es: ['esperar'], fr: ['attendre'], pt: ['esperar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v177', de: 'spiegare', en: ['to explain'], gloss: { de: ['erklären'], es: ['explicar'], fr: ['expliquer'], pt: ['explicar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+  { id: 'it2v178', de: 'provare', en: ['to try'], gloss: { de: ['versuchen'], es: ['probar'], fr: ['essayer'], pt: ['experimentar'] }, pos: 'verb', level: 'A2', category: 'verbs' },
+
+  // ── time expressions ──────────────────────────────────────────────────
+  { id: 'it2v179', de: 'scorso', en: ['last'], gloss: { de: ['letzter'], es: ['pasado'], fr: ['dernier'], pt: ['passado'] }, pos: 'adj', level: 'A2', category: 'time' },
+  { id: 'it2v180', de: 'prossimo', en: ['next'], gloss: { de: ['nächster'], es: ['próximo'], fr: ['prochain'], pt: ['próximo'] }, pos: 'adj', level: 'A2', category: 'time' },
+  { id: 'it2v181', de: 'fa', en: ['ago'], gloss: { de: ['vor'], es: ['hace'], fr: ['il y a'], pt: ['atrás'] }, pos: 'adv', level: 'A2', category: 'time' },
+  { id: 'it2v182', de: 'ancora', en: ['still', 'yet'], gloss: { de: ['noch'], es: ['todavía'], fr: ['encore'], pt: ['ainda'] }, pos: 'adv', level: 'A2', category: 'time' },
 ];

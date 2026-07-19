@@ -4,7 +4,9 @@ import { A1_SENTENCES } from './a1-sentences';
 import { A2_VOCAB } from './a2-vocab';
 import { A2_SENTENCES } from './a2-sentences';
 import { B1_VOCAB } from './b1-vocab';
+import { B2_VOCAB } from './b2-vocab';
 import { B1_SENTENCES } from './b1-sentences';
+import { B2_SENTENCES } from './b2-sentences';
 
 export * from './types';
 
@@ -53,10 +55,26 @@ export const GERMAN_B1: LanguagePack = {
   flavor: GERMAN_FLAVOR,
 };
 
-const PACKS: Record<Level, LanguagePack> = {
+export const GERMAN_B2: LanguagePack = {
+  id: 'de-b2',
+  language: 'de',
+  name: 'German · B2',
+  level: 'B2',
+  version: 1,
+  speechLocale: 'de-DE',
+  vocab: B2_VOCAB,
+  sentences: B2_SENTENCES,
+  flavor: GERMAN_FLAVOR,
+};
+
+// Partial: a language may not ship every level yet (B2 is landing pack by pack),
+// and packForLevel already falls back. A total Record would force every language
+// to gain B2 in the same commit as the type.
+const PACKS: Partial<Record<Level, LanguagePack>> = {
   A1: GERMAN_A1,
   A2: GERMAN_A2,
   B1: GERMAN_B1,
+  B2: GERMAN_B2,
 };
 
 export function packForLevel(level: Level): LanguagePack {

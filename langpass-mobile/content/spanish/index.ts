@@ -4,7 +4,9 @@ import { A1_SENTENCES } from './a1-sentences';
 import { A2_VOCAB } from './a2-vocab';
 import { A2_SENTENCES } from './a2-sentences';
 import { B1_VOCAB } from './b1-vocab';
+import { B2_VOCAB } from './b2-vocab';
 import { B1_SENTENCES } from './b1-sentences';
+import { B2_SENTENCES } from './b2-sentences';
 
 // Spanish. A1 is the first fully-glossed pack — every item carries de/fr/it/pt
 // alongside English, so a learner on any of our six UI locales trains against
@@ -53,5 +55,17 @@ export const SPANISH_B1: LanguagePack = {
   speechLocale: 'es-ES',
   vocab: B1_VOCAB,
   sentences: B1_SENTENCES,
+  flavor: SPANISH_FLAVOR,
+};
+
+export const SPANISH_B2: LanguagePack = {
+  id: 'es-b2',
+  language: 'es',
+  name: 'Spanish · B2',
+  level: 'B2',
+  version: 1,
+  speechLocale: 'es-ES',
+  vocab: B2_VOCAB,
+  sentences: B2_SENTENCES,
   flavor: SPANISH_FLAVOR,
 };

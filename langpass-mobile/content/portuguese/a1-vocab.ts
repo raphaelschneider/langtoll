@@ -125,4 +125,80 @@ export const A1_VOCAB: VocabItem[] = [
   { id: 'pv096', de: 'e', en: ['and'], gloss: { de: ['und'], es: ['y'], fr: ['et'], it: ['e'] }, pos: 'conj', level: 'A1', category: 'questions' },
   { id: 'pv097', de: 'mas', en: ['but'], gloss: { de: ['aber'], es: ['pero'], fr: ['mais'], it: ['ma'] }, pos: 'conj', level: 'A1', category: 'questions' },
   { id: 'pv098', de: 'porque', en: ['because'], gloss: { de: ['weil'], es: ['porque'], fr: ['parce que'], it: ['perché'] }, pos: 'conj', level: 'A1', category: 'questions' },
+
+  // ── colours ───────────────────────────────────────────────────────────
+  { id: 'pv099', de: 'a cor', en: ['the colour'], gloss: { de: ['die Farbe'], es: ['el color'], fr: ['la couleur'], it: ['il colore'] }, pos: 'noun', level: 'A1', category: 'colours' },
+  { id: 'pv100', de: 'vermelho', en: ['red'], gloss: { de: ['rot'], es: ['rojo'], fr: ['rouge'], it: ['rosso'] }, pos: 'adj', level: 'A1', category: 'colours' },
+  { id: 'pv101', de: 'azul', en: ['blue'], gloss: { de: ['blau'], es: ['azul'], fr: ['bleu'], it: ['blu'] }, pos: 'adj', level: 'A1', category: 'colours' },
+  { id: 'pv102', de: 'verde', en: ['green'], gloss: { de: ['grün'], es: ['verde'], fr: ['vert'], it: ['verde'] }, pos: 'adj', level: 'A1', category: 'colours' },
+  { id: 'pv103', de: 'amarelo', en: ['yellow'], gloss: { de: ['gelb'], es: ['amarillo'], fr: ['jaune'], it: ['giallo'] }, pos: 'adj', level: 'A1', category: 'colours' },
+  { id: 'pv104', de: 'preto', en: ['black'], gloss: { de: ['schwarz'], es: ['negro'], fr: ['noir'], it: ['nero'] }, pos: 'adj', level: 'A1', category: 'colours' },
+  { id: 'pv105', de: 'branco', en: ['white'], gloss: { de: ['weiß'], es: ['blanco'], fr: ['blanc'], it: ['bianco'] }, pos: 'adj', level: 'A1', category: 'colours' },
+  { id: 'pv106', de: 'cinza', en: ['grey'], gloss: { de: ['grau'], es: ['gris'], fr: ['gris'], it: ['grigio'] }, pos: 'adj', level: 'A1', category: 'colours' },
+
+  // ── clothes ───────────────────────────────────────────────────────────
+  { id: 'pv107', de: 'a roupa', en: ['the clothes'], gloss: { de: ['die Kleidung'], es: ['la ropa'], fr: ['les vêtements'], it: ['i vestiti'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv108', de: 'a camisa', en: ['the shirt'], gloss: { de: ['das Hemd'], es: ['la camisa'], fr: ['la chemise'], it: ['la camicia'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv109', de: 'a calça', en: ['the trousers'], gloss: { de: ['die Hose'], es: ['los pantalones'], fr: ['le pantalon'], it: ['i pantaloni'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv110', de: 'o sapato', en: ['the shoe'], gloss: { de: ['der Schuh'], es: ['el zapato'], fr: ['la chaussure'], it: ['la scarpa'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv111', de: 'o vestido', en: ['the dress'], gloss: { de: ['das Kleid'], es: ['el vestido'], fr: ['la robe'], it: ['il vestito'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv112', de: 'o chapéu', en: ['the hat'], gloss: { de: ['der Hut'], es: ['el sombrero'], fr: ['le chapeau'], it: ['il cappello'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv113', de: 'a bolsa', en: ['the handbag'], gloss: { de: ['die Handtasche'], es: ['el bolso'], fr: ['le sac à main'], it: ['la borsa'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+  { id: 'pv114', de: 'o casaco', en: ['the coat'], gloss: { de: ['der Mantel'], es: ['el abrigo'], fr: ['le manteau'], it: ['il cappotto'] }, pos: 'noun', level: 'A1', category: 'clothes' },
+
+  // ── more food & drink ─────────────────────────────────────────────────
+  { id: 'pv115', de: 'a fruta', en: ['the fruit'], gloss: { de: ['das Obst'], es: ['la fruta'], fr: ['le fruit'], it: ['la frutta'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv116', de: 'a banana', en: ['the banana'], gloss: { de: ['die Banane'], es: ['el plátano'], fr: ['la banane'], it: ['la banana'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv117', de: 'a laranja', en: ['the orange'], gloss: { de: ['die Orange'], es: ['la naranja'], fr: ['l’orange'], it: ['l’arancia'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv118', de: 'o bolo', en: ['the cake'], gloss: { de: ['der Kuchen'], es: ['el pastel'], fr: ['le gâteau'], it: ['la torta'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv119', de: 'o sal', en: ['the salt'], gloss: { de: ['das Salz'], es: ['la sal'], fr: ['le sel'], it: ['il sale'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv120', de: 'a sopa', en: ['the soup'], gloss: { de: ['die Suppe'], es: ['la sopa'], fr: ['la soupe'], it: ['la zuppa'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv121', de: 'o chá', en: ['the tea'], gloss: { de: ['der Tee'], es: ['el té'], fr: ['le thé'], it: ['il tè'] }, pos: 'noun', level: 'A1', category: 'food' },
+  { id: 'pv122', de: 'a manteiga', en: ['the butter'], gloss: { de: ['die Butter'], es: ['la mantequilla'], fr: ['le beurre'], it: ['il burro'] }, pos: 'noun', level: 'A1', category: 'food' },
+
+  // ── everyday objects ──────────────────────────────────────────────────
+  { id: 'pv123', de: 'a mesa', en: ['the table'], gloss: { de: ['der Tisch'], es: ['la mesa'], fr: ['la table'], it: ['il tavolo'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv124', de: 'a porta', en: ['the door'], gloss: { de: ['die Tür'], es: ['la puerta'], fr: ['la porte'], it: ['la porta'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv125', de: 'o copo', en: ['the glass'], gloss: { de: ['das Glas'], es: ['el vaso'], fr: ['le verre'], it: ['il bicchiere'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv126', de: 'a chave', en: ['the key'], gloss: { de: ['der Schlüssel'], es: ['la llave'], fr: ['la clé'], it: ['la chiave'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv127', de: 'o livro', en: ['the book'], gloss: { de: ['das Buch'], es: ['el libro'], fr: ['le livre'], it: ['il libro'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv128', de: 'a caneta', en: ['the pen'], gloss: { de: ['der Kugelschreiber'], es: ['el bolígrafo'], fr: ['le stylo'], it: ['la penna'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv129', de: 'o papel', en: ['the paper'], gloss: { de: ['das Papier'], es: ['el papel'], fr: ['le papier'], it: ['la carta'] }, pos: 'noun', level: 'A1', category: 'objects' },
+  { id: 'pv130', de: 'o relógio', en: ['the clock', 'the watch'], gloss: { de: ['die Uhr'], es: ['el reloj'], fr: ['la montre'], it: ['l’orologio'] }, pos: 'noun', level: 'A1', category: 'objects' },
+
+  // ── more common verbs ─────────────────────────────────────────────────
+  { id: 'pv131', de: 'ver', en: ['to see'], gloss: { de: ['sehen'], es: ['ver'], fr: ['voir'], it: ['vedere'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv132', de: 'ouvir', en: ['to hear', 'to listen'], gloss: { de: ['hören'], es: ['oír'], fr: ['entendre'], it: ['sentire'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv133', de: 'ler', en: ['to read'], gloss: { de: ['lesen'], es: ['leer'], fr: ['lire'], it: ['leggere'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv134', de: 'escrever', en: ['to write'], gloss: { de: ['schreiben'], es: ['escribir'], fr: ['écrire'], it: ['scrivere'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv135', de: 'abrir', en: ['to open'], gloss: { de: ['öffnen'], es: ['abrir'], fr: ['ouvrir'], it: ['aprire'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv136', de: 'fechar', en: ['to close'], gloss: { de: ['schließen'], es: ['cerrar'], fr: ['fermer'], it: ['chiudere'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv137', de: 'dar', en: ['to give'], gloss: { de: ['geben'], es: ['dar'], fr: ['donner'], it: ['dare'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+  { id: 'pv138', de: 'andar', en: ['to walk'], gloss: { de: ['laufen'], es: ['andar'], fr: ['marcher'], it: ['camminare'] }, pos: 'verb', level: 'A1', category: 'verbs' },
+
+  // ── pronouns ──────────────────────────────────────────────────────────
+  { id: 'pv139', de: 'eu', en: ['I'], gloss: { de: ['ich'], es: ['yo'], fr: ['je'], it: ['io'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv140', de: 'você', en: ['you'], gloss: { de: ['du'], es: ['tú'], fr: ['tu'], it: ['tu'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv141', de: 'ele', en: ['he'], gloss: { de: ['er'], es: ['él'], fr: ['il'], it: ['lui'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv142', de: 'ela', en: ['she'], gloss: { de: ['sie'], es: ['ella'], fr: ['elle'], it: ['lei'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv143', de: 'nós', en: ['we'], gloss: { de: ['wir'], es: ['nosotros'], fr: ['nous'], it: ['noi'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv144', de: 'eles', en: ['they'], gloss: { de: ['sie (Plural)'], es: ['ellos'], fr: ['ils'], it: ['loro'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv145', de: 'meu', en: ['my'], gloss: { de: ['mein'], es: ['mi'], fr: ['mon'], it: ['mio'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+  { id: 'pv146', de: 'seu', en: ['your'], gloss: { de: ['dein'], es: ['tu'], fr: ['ton'], it: ['tuo'] }, pos: 'pronoun', level: 'A1', category: 'pronouns' },
+
+  // ── more numbers ──────────────────────────────────────────────────────
+  { id: 'pv147', de: 'onze', en: ['eleven'], gloss: { de: ['elf'], es: ['once'], fr: ['onze'], it: ['undici'] }, pos: 'number', level: 'A1', category: 'numbers' },
+  { id: 'pv148', de: 'doze', en: ['twelve'], gloss: { de: ['zwölf'], es: ['doce'], fr: ['douze'], it: ['dodici'] }, pos: 'number', level: 'A1', category: 'numbers' },
+  { id: 'pv149', de: 'treze', en: ['thirteen'], gloss: { de: ['dreizehn'], es: ['trece'], fr: ['treize'], it: ['tredici'] }, pos: 'number', level: 'A1', category: 'numbers' },
+  { id: 'pv150', de: 'quinze', en: ['fifteen'], gloss: { de: ['fünfzehn'], es: ['quince'], fr: ['quinze'], it: ['quindici'] }, pos: 'number', level: 'A1', category: 'numbers' },
+  { id: 'pv151', de: 'vinte', en: ['twenty'], gloss: { de: ['zwanzig'], es: ['veinte'], fr: ['vingt'], it: ['venti'] }, pos: 'number', level: 'A1', category: 'numbers' },
+  { id: 'pv152', de: 'cem', en: ['one hundred'], gloss: { de: ['hundert'], es: ['cien'], fr: ['cent'], it: ['cento'] }, pos: 'number', level: 'A1', category: 'numbers' },
+
+  // ── more adjectives ───────────────────────────────────────────────────
+  { id: 'pv153', de: 'alto', en: ['tall', 'high'], gloss: { de: ['groß', 'hoch'], es: ['alto'], fr: ['grand', 'haut'], it: ['alto'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'pv154', de: 'baixo', en: ['short', 'low'], gloss: { de: ['klein', 'niedrig'], es: ['bajo'], fr: ['petit', 'bas'], it: ['basso'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'pv155', de: 'gostoso', en: ['tasty'], gloss: { de: ['lecker'], es: ['sabroso'], fr: ['délicieux'], it: ['gustoso'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'pv156', de: 'cheio', en: ['full'], gloss: { de: ['voll'], es: ['lleno'], fr: ['plein'], it: ['pieno'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'pv157', de: 'vazio', en: ['empty'], gloss: { de: ['leer'], es: ['vacío'], fr: ['vide'], it: ['vuoto'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
+  { id: 'pv158', de: 'doce', en: ['sweet'], gloss: { de: ['süß'], es: ['dulce'], fr: ['sucré'], it: ['dolce'] }, pos: 'adj', level: 'A1', category: 'adjectives' },
 ];

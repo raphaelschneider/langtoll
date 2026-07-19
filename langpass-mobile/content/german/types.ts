@@ -14,7 +14,7 @@
 // Italian in `en`. Same trade as `de`: one stable slot, name kept for history.
 import type { LocaleCode } from '@/lib/locales';
 
-export type Level = 'A1' | 'A2' | 'B1';
+export type Level = 'A1' | 'A2' | 'B1' | 'B2';
 
 /** Languages a user can learn. UI names resolve via i18n `lang.*` keys. */
 export type Language = 'de' | 'es' | 'fr' | 'pt' | 'it' | 'en';

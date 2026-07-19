@@ -6,11 +6,12 @@ import { resolvedLocale } from '@/lib/i18n';
 import { sanitizeTopic } from '@/lib/ai/topics';
 import { FALLBACK_LOCALE, type LocaleCode } from '@/lib/locales';
 
-/** Onboarding difficulty (1–10) → CEFR level. */
+/** Onboarding difficulty (1–10) → CEFR level. Four bands since B2 landed. */
 export function levelForDifficulty(d: number): Level {
   if (d <= 3) return 'A1';
   if (d <= 6) return 'A2';
-  return 'B1';
+  if (d <= 8) return 'B1';
+  return 'B2';
 }
 
 // Packs are authored with English in `en` and every other UI locale under

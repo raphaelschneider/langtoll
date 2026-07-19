@@ -30,7 +30,7 @@ export const B1_VOCAB: VocabItem[] = [
 
   // ── work & career ─────────────────────────────────────────────────────
   { id: 'it3v011', de: 'il colloquio', en: ['the job interview'], gloss: { de: ['das Vorstellungsgespräch'], es: ['la entrevista'], fr: ['l’entretien d’embauche'], pt: ['a entrevista de emprego'] }, pos: 'noun', level: 'B1', category: 'work' },
-  { id: 'it3v012', de: 'il curriculum', en: ['the CV', 'the CV'], gloss: { de: ['der Lebenslauf'], es: ['el currículum'], fr: ['le CV'], pt: ['o currículo'] }, pos: 'noun', level: 'B1', category: 'work' },
+  { id: 'it3v012', de: 'il curriculum', en: ['the CV', 'the résumé'], gloss: { de: ['der Lebenslauf'], es: ['el currículum'], fr: ['le CV'], pt: ['o currículo'] }, pos: 'noun', level: 'B1', category: 'work' },
   { id: 'it3v013', de: 'l’esperienza', en: ['the experience'], gloss: { de: ['die Erfahrung'], es: ['la experiencia'], fr: ['l’expérience'], pt: ['a experiência'] }, pos: 'noun', gender: 'f', level: 'B1', category: 'work' },
   { id: 'it3v014', de: 'la responsabilità', en: ['the responsibility'], gloss: { de: ['die Verantwortung'], es: ['la responsabilidad'], fr: ['la responsabilité'], pt: ['a responsabilidade'] }, pos: 'noun', level: 'B1', category: 'work' },
   { id: 'it3v015', de: 'la carriera', en: ['the career'], gloss: { de: ['die Karriere'], es: ['la carrera'], fr: ['la carrière'], pt: ['a carreira'] }, pos: 'noun', level: 'B1', category: 'work' },
@@ -142,7 +142,85 @@ export const B1_VOCAB: VocabItem[] = [
   { id: 'it3v103', de: 'inevitabile', en: ['inevitable'], gloss: { de: ['unvermeidlich'], es: ['inevitable'], fr: ['inévitable'], pt: ['inevitável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'it3v104', de: 'complesso', en: ['complex'], gloss: { de: ['komplex'], es: ['complejo'], fr: ['complexe'], pt: ['complexo'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'it3v105', de: 'urgente', en: ['urgent'], gloss: { de: ['dringend'], es: ['urgente'], fr: ['urgent'], pt: ['urgente'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
-  { id: 'it3v106', de: 'affidabile', en: ['reliable'], gloss: { de: ['zuverlässig'], es: ['fiable'], fr: ['fiable'], pt: ['conconfiável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+  { id: 'it3v106', de: 'affidabile', en: ['reliable'], gloss: { de: ['zuverlässig'], es: ['fiable'], fr: ['fiable'], pt: ['confiável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'it3v107', de: 'crescente', en: ['growing', 'increasing'], gloss: { de: ['wachsend'], es: ['creciente'], fr: ['croissant'], pt: ['crescente'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
   { id: 'it3v108', de: 'superficiale', en: ['superficial', 'shallow'], gloss: { de: ['oberflächlich'], es: ['superficial'], fr: ['superficiel'], pt: ['superficial'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+
+  // ── economy & money ───────────────────────────────────────────────────
+  { id: 'it3v109', de: 'l’economia', en: ['the economy'], gloss: { de: ['die Wirtschaft'], es: ['la economía'], fr: ['l’économie'], pt: ['a economia'] }, pos: 'noun', gender: 'f', level: 'B1', category: 'economy' },
+  { id: 'it3v110', de: 'il reddito', en: ['the income'], gloss: { de: ['das Einkommen'], es: ['la renta'], fr: ['le revenu'], pt: ['a renda'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'it3v111', de: 'la tassa', en: ['the tax'], gloss: { de: ['die Steuer'], es: ['el impuesto'], fr: ['l’impôt'], pt: ['o imposto'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'it3v112', de: 'il risparmio', en: ['the saving'], gloss: { de: ['die Ersparnis'], es: ['el ahorro'], fr: ['l’épargne'], pt: ['a poupança'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'it3v113', de: 'l’investimento', en: ['the investment'], gloss: { de: ['die Investition'], es: ['la inversión'], fr: ['l’investissement'], pt: ['o investimento'] }, pos: 'noun', gender: 'm', level: 'B1', category: 'economy' },
+  { id: 'it3v114', de: 'il debito', en: ['the debt'], gloss: { de: ['die Schuld'], es: ['la deuda'], fr: ['la dette'], pt: ['a dívida'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'it3v115', de: 'la crescita', en: ['the growth'], gloss: { de: ['das Wachstum'], es: ['el crecimiento'], fr: ['la croissance'], pt: ['o crescimento'] }, pos: 'noun', level: 'B1', category: 'economy' },
+  { id: 'it3v116', de: 'il bilancio', en: ['the budget', 'the balance sheet'], gloss: { de: ['der Haushalt'], es: ['el presupuesto'], fr: ['le budget'], pt: ['o orçamento'] }, pos: 'noun', level: 'B1', category: 'economy' },
+
+  // ── technology & innovation ───────────────────────────────────────────
+  { id: 'it3v117', de: 'la tecnologia', en: ['the technology'], gloss: { de: ['die Technologie'], es: ['la tecnología'], fr: ['la technologie'], pt: ['a tecnologia'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'it3v118', de: 'il dispositivo', en: ['the device'], gloss: { de: ['das Gerät'], es: ['el dispositivo'], fr: ['l’appareil'], pt: ['o dispositivo'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'it3v119', de: 'la connessione', en: ['the connection'], gloss: { de: ['die Verbindung'], es: ['la conexión'], fr: ['la connexion'], pt: ['a conexão'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'it3v120', de: 'i dati', en: ['the data'], gloss: { de: ['die Daten'], es: ['los datos'], fr: ['les données'], pt: ['os dados'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'it3v121', de: 'l’innovazione', en: ['the innovation'], gloss: { de: ['die Innovation'], es: ['la innovación'], fr: ['l’innovation'], pt: ['a inovação'] }, pos: 'noun', gender: 'f', level: 'B1', category: 'technology' },
+  { id: 'it3v122', de: 'il progresso', en: ['the progress'], gloss: { de: ['der Fortschritt'], es: ['el progreso'], fr: ['le progrès'], pt: ['o progresso'] }, pos: 'noun', level: 'B1', category: 'technology' },
+  { id: 'it3v123', de: 'aggiornare', en: ['to update'], gloss: { de: ['aktualisieren'], es: ['actualizar'], fr: ['mettre à jour'], pt: ['atualizar'] }, pos: 'verb', level: 'B1', category: 'technology' },
+
+  // ── health & wellbeing ────────────────────────────────────────────────
+  { id: 'it3v124', de: 'la salute', en: ['the health'], gloss: { de: ['die Gesundheit'], es: ['la salud'], fr: ['la santé'], pt: ['a saúde'] }, pos: 'noun', level: 'B1', category: 'health' },
+  { id: 'it3v125', de: 'la cura', en: ['the treatment', 'the care'], gloss: { de: ['die Behandlung'], es: ['el tratamiento'], fr: ['le traitement'], pt: ['o tratamento'] }, pos: 'noun', level: 'B1', category: 'health' },
+  { id: 'it3v126', de: 'la prevenzione', en: ['the prevention'], gloss: { de: ['die Vorbeugung'], es: ['la prevención'], fr: ['la prévention'], pt: ['a prevenção'] }, pos: 'noun', level: 'B1', category: 'health' },
+  { id: 'it3v127', de: 'lo stress', en: ['the stress'], gloss: { de: ['der Stress'], es: ['el estrés'], fr: ['le stress'], pt: ['o estresse'] }, pos: 'noun', level: 'B1', category: 'health' },
+  { id: 'it3v128', de: 'il benessere', en: ['the wellbeing'], gloss: { de: ['das Wohlbefinden'], es: ['el bienestar'], fr: ['le bien-être'], pt: ['o bem-estar'] }, pos: 'noun', level: 'B1', category: 'health' },
+  { id: 'it3v129', de: 'guarire', en: ['to recover', 'to heal'], gloss: { de: ['heilen'], es: ['curarse'], fr: ['guérir'], pt: ['curar-se'] }, pos: 'verb', level: 'B1', category: 'health' },
+
+  // ── culture & the arts ────────────────────────────────────────────────
+  { id: 'it3v130', de: 'la cultura', en: ['the culture'], gloss: { de: ['die Kultur'], es: ['la cultura'], fr: ['la culture'], pt: ['a cultura'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'it3v131', de: 'l’opera', en: ['the work'], gloss: { de: ['das Werk'], es: ['la obra'], fr: ['l’œuvre'], pt: ['a obra'] }, pos: 'noun', gender: 'f', level: 'B1', category: 'culture' },
+  { id: 'it3v132', de: 'il romanzo', en: ['the novel'], gloss: { de: ['der Roman'], es: ['la novela'], fr: ['le roman'], pt: ['o romance'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'it3v133', de: 'la mostra', en: ['the exhibition'], gloss: { de: ['die Ausstellung'], es: ['la exposición'], fr: ['l’exposition'], pt: ['a exposição'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'it3v134', de: 'lo spettacolo', en: ['the show', 'the performance'], gloss: { de: ['die Vorstellung'], es: ['el espectáculo'], fr: ['le spectacle'], pt: ['o espetáculo'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'it3v135', de: 'il regista', en: ['the director'], gloss: { de: ['der Regisseur'], es: ['el director'], fr: ['le réalisateur'], pt: ['o diretor'] }, pos: 'noun', level: 'B1', category: 'culture' },
+  { id: 'it3v136', de: 'la trama', en: ['the plot'], gloss: { de: ['die Handlung'], es: ['la trama'], fr: ['l’intrigue'], pt: ['o enredo'] }, pos: 'noun', level: 'B1', category: 'culture' },
+
+  // ── relationships ─────────────────────────────────────────────────────
+  { id: 'it3v137', de: 'il rapporto', en: ['the relationship'], gloss: { de: ['die Beziehung'], es: ['la relación'], fr: ['la relation'], pt: ['a relação'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'it3v138', de: 'il litigio', en: ['the argument', 'the quarrel'], gloss: { de: ['der Streit'], es: ['la discusión'], fr: ['la dispute'], pt: ['a briga'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'it3v139', de: 'il compromesso', en: ['the compromise'], gloss: { de: ['der Kompromiss'], es: ['el acuerdo'], fr: ['le compromis'], pt: ['o acordo'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'it3v140', de: 'la coppia', en: ['the couple'], gloss: { de: ['das Paar'], es: ['la pareja'], fr: ['le couple'], pt: ['o casal'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'it3v141', de: 'il sostegno', en: ['the support'], gloss: { de: ['die Unterstützung'], es: ['el apoyo'], fr: ['le soutien'], pt: ['o apoio'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'it3v142', de: 'il malinteso', en: ['the misunderstanding'], gloss: { de: ['das Missverständnis'], es: ['el malentendido'], fr: ['le malentendu'], pt: ['o mal-entendido'] }, pos: 'noun', level: 'B1', category: 'relationships' },
+  { id: 'it3v143', de: 'fidarsi', en: ['to trust'], gloss: { de: ['vertrauen'], es: ['fiarse'], fr: ['faire confiance'], pt: ['confiar'] }, pos: 'verb', level: 'B1', category: 'relationships' },
+
+  // ── law & justice ─────────────────────────────────────────────────────
+  { id: 'it3v144', de: 'il tribunale', en: ['the court'], gloss: { de: ['das Gericht'], es: ['el tribunal'], fr: ['le tribunal'], pt: ['o tribunal'] }, pos: 'noun', level: 'B1', category: 'law' },
+  { id: 'it3v145', de: 'l’avvocato', en: ['the lawyer'], gloss: { de: ['der Anwalt'], es: ['el abogado'], fr: ['l’avocat'], pt: ['o advogado'] }, pos: 'noun', gender: 'm', level: 'B1', category: 'law' },
+  { id: 'it3v146', de: 'il reato', en: ['the offence', 'the crime'], gloss: { de: ['die Straftat'], es: ['el delito'], fr: ['le délit'], pt: ['o crime'] }, pos: 'noun', level: 'B1', category: 'law' },
+  { id: 'it3v147', de: 'la giustizia', en: ['the justice'], gloss: { de: ['die Gerechtigkeit'], es: ['la justicia'], fr: ['la justice'], pt: ['a justiça'] }, pos: 'noun', level: 'B1', category: 'law' },
+  { id: 'it3v148', de: 'la multa', en: ['the fine'], gloss: { de: ['die Geldstrafe'], es: ['la multa'], fr: ['l’amende'], pt: ['a multa'] }, pos: 'noun', level: 'B1', category: 'law' },
+  { id: 'it3v149', de: 'vietare', en: ['to forbid'], gloss: { de: ['verbieten'], es: ['prohibir'], fr: ['interdire'], pt: ['proibir'] }, pos: 'verb', level: 'B1', category: 'law' },
+
+  // ── reasoning ─────────────────────────────────────────────────────────
+  { id: 'it3v150', de: 'il motivo', en: ['the reason'], gloss: { de: ['der Grund'], es: ['el motivo'], fr: ['la raison'], pt: ['o motivo'] }, pos: 'noun', level: 'B1', category: 'reasoning' },
+  { id: 'it3v151', de: 'la causa', en: ['the cause'], gloss: { de: ['die Ursache'], es: ['la causa'], fr: ['la cause'], pt: ['a causa'] }, pos: 'noun', level: 'B1', category: 'reasoning' },
+  { id: 'it3v152', de: 'la conseguenza', en: ['the consequence'], gloss: { de: ['die Folge'], es: ['la consecuencia'], fr: ['la conséquence'], pt: ['a consequência'] }, pos: 'noun', level: 'B1', category: 'reasoning' },
+  { id: 'it3v153', de: 'l’ipotesi', en: ['the hypothesis'], gloss: { de: ['die Hypothese'], es: ['la hipótesis'], fr: ['l’hypothèse'], pt: ['a hipótese'] }, pos: 'noun', gender: 'f', level: 'B1', category: 'reasoning' },
+  { id: 'it3v154', de: 'il fattore', en: ['the factor'], gloss: { de: ['der Faktor'], es: ['el factor'], fr: ['le facteur'], pt: ['o fator'] }, pos: 'noun', level: 'B1', category: 'reasoning' },
+  { id: 'it3v155', de: 'il criterio', en: ['the criterion'], gloss: { de: ['das Kriterium'], es: ['el criterio'], fr: ['le critère'], pt: ['o critério'] }, pos: 'noun', level: 'B1', category: 'reasoning' },
+  { id: 'it3v156', de: 'l’obiettivo', en: ['the objective', 'the target'], gloss: { de: ['das Ziel'], es: ['el objetivo'], fr: ['l’objectif'], pt: ['o objetivo'] }, pos: 'noun', gender: 'm', level: 'B1', category: 'reasoning' },
+
+  // ── more verbs ────────────────────────────────────────────────────────
+  { id: 'it3v157', de: 'raggiungere', en: ['to reach', 'to achieve'], gloss: { de: ['erreichen'], es: ['alcanzar'], fr: ['atteindre'], pt: ['alcançar'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+  { id: 'it3v158', de: 'ottenere', en: ['to obtain'], gloss: { de: ['erhalten'], es: ['obtener'], fr: ['obtenir'], pt: ['obter'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+  { id: 'it3v159', de: 'sostituire', en: ['to replace'], gloss: { de: ['ersetzen'], es: ['sustituir'], fr: ['remplacer'], pt: ['substituir'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+  { id: 'it3v160', de: 'ridurre', en: ['to reduce'], gloss: { de: ['reduzieren'], es: ['reducir'], fr: ['réduire'], pt: ['reduzir'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+  { id: 'it3v161', de: 'aumentare', en: ['to increase'], gloss: { de: ['erhöhen'], es: ['aumentar'], fr: ['augmenter'], pt: ['aumentar'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+  { id: 'it3v162', de: 'garantire', en: ['to guarantee'], gloss: { de: ['garantieren'], es: ['garantizar'], fr: ['garantir'], pt: ['garantir'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+  { id: 'it3v163', de: 'coinvolgere', en: ['to involve'], gloss: { de: ['einbeziehen'], es: ['involucrar'], fr: ['impliquer'], pt: ['envolver'] }, pos: 'verb', level: 'B1', category: 'verbs' },
+
+  // ── more adjectives ───────────────────────────────────────────────────
+  { id: 'it3v164', de: 'quotidiano', en: ['daily', 'everyday'], gloss: { de: ['täglich'], es: ['cotidiano'], fr: ['quotidien'], pt: ['cotidiano'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+  { id: 'it3v165', de: 'notevole', en: ['remarkable', 'considerable'], gloss: { de: ['bemerkenswert'], es: ['notable'], fr: ['remarquable'], pt: ['notável'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+  { id: 'it3v166', de: 'scarso', en: ['scarce', 'insufficient'], gloss: { de: ['knapp'], es: ['escaso'], fr: ['insuffisant'], pt: ['escasso'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+  { id: 'it3v167', de: 'diffuso', en: ['widespread'], gloss: { de: ['verbreitet'], es: ['extendido'], fr: ['répandu'], pt: ['difundido'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
+  { id: 'it3v168', de: 'imprevisto', en: ['unexpected'], gloss: { de: ['unerwartet'], es: ['imprevisto'], fr: ['imprévu'], pt: ['imprevisto'] }, pos: 'adj', level: 'B1', category: 'adjectives' },
 ];
