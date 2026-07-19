@@ -33,7 +33,30 @@ export function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'topic';
 }
 
+// Every locale the app's UI ships in. A generated pack must gloss into all of
+// them except the one being taught — otherwise a French user learning German
+// gets French glosses on authored items and English on pool items, in the same
+// session.
+export const UI_LOCALES = ['en', 'de', 'es', 'fr', 'it', 'pt'] as const;
+
+// What each level must actually look like, stated concretely. "Match CEFR B2"
+// alone produced A1 content wearing a B2 label — the model needs the grammar
+// named, not the label.
+const LEVEL_GUIDANCE: Record<string, string> = {
+  A1: 'Present tense only, concrete everyday nouns, short main clauses. No subordinate clauses, no past tense.',
+  A2: 'Past tense and near future, simple subordinate clauses (because, when, if), practical transactional situations.',
+  B1: 'Subordinate clauses throughout, opinions and reasons, conditionals, reported speech, the start of abstraction.',
+  B2: 'Argument and nuance: concession, hypothesis, consequence. Subjunctive/conditional-perfect where the language has them, passive voice, nominalisation, hedging and register control, idiom and collocation a B1 learner would not meet. If the subject cannot carry this register, write about its abstract dimension rather than dropping to simpler language.',
+};
+
 export function prompt(topic: string, langName: string, level: string, vocabCount: number, sentenceCount: number): string {
+  // Gloss into every UI locale except the one being taught.
+  const target = Object.keys(LANGS).find((k) => LANGS[k] === langName);
+  const glossLocales = UI_LOCALES.filter((l) => l !== target);
+  const glossExample = glossLocales.map((l) => `"${l}": ["…"]`).join(', ');
+  const sentenceGlossExample = glossLocales.map((l) => `"${l}": "…"`).join(', ');
+  const levelGuidance = LEVEL_GUIDANCE[level] ?? '';
+
   // The topic may be USER INPUT. It is delimited and explicitly demoted to data,
   // so a string trying to issue instructions is treated as a subject name.
   // screenUserTopic() has already rejected quotes, brackets and newlines on that
@@ -47,10 +70,12 @@ If the subject is not suitable for a general-audience language course, return {"
 
 Return ONLY a JSON object with this exact shape (no markdown, no commentary):
 {
-  "vocab": [{ "de": "die Rechnung", "en": ["the bill","the check"], "pos": "noun", "category": "<topic slug>" }],
-  "sentences": [{ "de": "Können wir bitte die Rechnung haben?", "en": "Can we have the bill, please?", "clozeWord": "Rechnung", "clozeDistractors": ["Speisekarte","Küche","Gabel"] }]
+  "vocab": [{ "de": "die Rechnung", "en": ["the bill","the check"], "gloss": {${glossExample}}, "pos": "noun", "category": "<topic slug>" }],
+  "sentences": [{ "de": "Können wir bitte die Rechnung haben?", "en": "Can we have the bill, please?", "gloss": {${sentenceGlossExample}}, "clozeWord": "Rechnung", "clozeDistractors": ["Speisekarte","Küche","Gabel"] }]
 }
 Rules:
+- "gloss" gives the translation in EVERY one of these locales: ${glossLocales.join(', ')}. For vocab it is an array of one or two translations per locale; for sentences it is a single string per locale. The app shows the learner whichever locale their interface is in, so a missing or wrong locale means a broken exercise for those users. Translate meaning, not words — an idiom becomes the equivalent idiom.
+- Every gloss must be genuinely correct in ITS OWN language. Do not let a neighbouring language leak in: Portuguese for "with" is "com", never "con".
 - Exactly ${vocabCount} vocab items and ${sentenceCount} sentences.
 - The "de" field holds the ${langName} text (keep the field name "de" regardless of language).
 - Nouns MUST include the article in "de" where the language has them.
@@ -58,7 +83,8 @@ Rules:
 - "en" is an array; first entry is the canonical English translation.
 - "de" MUST be the COMPLETE, natural sentence with EVERY word present, exactly as a person would say it. Never write underscores, blanks, dashes or ellipses in it. The app hides a word by itself.
 - "clozeWord" is the single word from "de" that the learner should have to recall — copy it EXACTLY as it appears in "de", including its capitalisation. Choose a meaningful word: a noun, verb or adjective. Never an article, and never the last word of the sentence.
-- "clozeDistractors" are 3 wrong-but-plausible ${langName} words that could grammatically replace "clozeWord". Same part of speech, must NOT include the correct word, must NOT be articles.
+- "clozeDistractors" are 3 wrong-but-plausible ${langName} words that could grammatically replace "clozeWord". They MUST be the same part of speech and the same grammatical form as clozeWord — if it is a conjugated verb, all three are conjugated verbs agreeing with the same subject; if it is a plural noun, all three are plural nouns. A learner should have to know the MEANING to choose, never be able to eliminate options because they do not fit the slot grammatically. Never the correct word, never an article.
+- The whole pack must sit at CEFR ${level} and nowhere else. ${levelGuidance}
 - Difficulty, vocabulary and grammar must match ${level} specifically — an A1 pack and a B2 pack on the same topic must look completely different. Use proper accents/diacritics.`;
 }
 
@@ -83,9 +109,32 @@ export interface GeneratedPack {
   name: string;
   language: string;
   level: string;
-  vocab: { id: string; de: string; en: string[]; pos: string; level: string; category: string }[];
-  sentences: { id: string; de: string; en: string; level: string; clozeIndex: number; clozeDistractors: string[] }[];
+  vocab: { id: string; de: string; en: string[]; gloss?: Record<string, string[]>; pos: string; level: string; category: string }[];
+  sentences: { id: string; de: string; en: string; gloss?: Record<string, string>; level: string; clozeIndex: number; clozeDistractors: string[] }[];
   createdAt: string;
+}
+
+
+/**
+ * Keep only well-formed locale entries. A gloss that is the wrong shape would
+ * render as "[object Object]" in a session, so drop it and let the app fall back
+ * to English rather than display nonsense.
+ */
+function cleanGloss(raw: unknown, asArray: boolean): Record<string, any> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out: Record<string, any> = {};
+  for (const loc of UI_LOCALES) {
+    const v = (raw as Record<string, unknown>)[loc];
+    if (asArray) {
+      const arr = Array.isArray(v)
+        ? v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0).map((x) => x.trim())
+        : typeof v === 'string' && v.trim() ? [v.trim()] : [];
+      if (arr.length) out[loc] = arr;
+    } else if (typeof v === 'string' && v.trim()) {
+      out[loc] = v.trim();
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 export function validate(topic: string, language: string, level: string, data: any): GeneratedPack {
@@ -101,6 +150,7 @@ export function validate(topic: string, language: string, level: string, data: a
       id: `topic-${id}-v${i}`,
       de: raw.de.trim(),
       en,
+      gloss: cleanGloss(raw.gloss, true) as Record<string, string[]> | undefined,
       pos: POS.includes(raw.pos) ? raw.pos : 'phrase',
       level,
       category: `topic-${id}`,
@@ -151,7 +201,7 @@ export function validate(topic: string, language: string, level: string, data: a
       : [];
     if (distractors.length < 3) continue;
 
-    sentences.push({ id: `topic-${id}-s${i}`, de, en: raw.en.trim(), level, clozeIndex: ci, clozeDistractors: distractors });
+    sentences.push({ id: `topic-${id}-s${i}`, de, en: raw.en.trim(), gloss: cleanGloss(raw.gloss, false) as Record<string, string> | undefined, level, clozeIndex: ci, clozeDistractors: distractors });
   }
 
   if (vocab.length < 5) throw new Error(`too little usable vocab (${vocab.length})`);
@@ -192,7 +242,7 @@ export async function generateTopicPack(topic: string, language: string, level: 
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt(topic, langName, level, VOCAB_PER_PACK, SENTENCES_PER_PACK) }],
     temperature: 0.4,
-    max_tokens: 4000,
+    max_tokens: 12000,
   });
   void logUsage('topics', {
     model: TOPIC_MODEL,

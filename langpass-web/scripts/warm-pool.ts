@@ -15,7 +15,7 @@
 // The pool route also warms one topic per request, but that would take thousands
 // of user requests to fill and the earliest users would see a nearly empty pool.
 // This is the deliberate version.
-import { TOPIC_CATALOGUE } from '../src/lib/ai/catalogue';
+import { topicsForLevel, CATALOGUE_SIZE } from '../src/lib/ai/catalogue';
 import { generateTopicPack, contentKeyFor, LANGS, LEVELS } from '../src/lib/ai/generate';
 import { query } from '../src/lib/db';
 
@@ -37,9 +37,14 @@ function isRateLimit(err: unknown): boolean {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// gpt-4o-mini list price at time of writing. Used ONLY for the pre-flight
-// estimate — never for billing decisions, and it will drift.
-const USD_PER_PACK = 0.0022;
+// Rough per-pack cost, for the pre-flight estimate ONLY — never for billing, and
+// it will drift as prices change. Packs now carry glosses for five locales, so
+// output is several times what it was before.
+const USD_PER_PACK_BY_MODEL: Record<string, number> = {
+  'gpt-4o': 0.05,
+  'gpt-4o-mini': 0.003,
+};
+const USD_PER_PACK = USD_PER_PACK_BY_MODEL[process.env.LANGPASS_TOPIC_MODEL || 'gpt-4o'] ?? 0.05;
 
 interface Job {
   topic: string;
@@ -69,12 +74,15 @@ async function main() {
   for (const l of languages) if (!LANGS[l]) throw new Error(`unknown language: ${l}`);
   for (const l of levels) if (!LEVELS.includes(l)) throw new Error(`unknown level: ${l}`);
 
+  // Topics are level-banded now: concrete subjects for A1/A2, abstract ones for
+  // B1/B2. A single list gave "a birthday party" at B2, which came back as A1
+  // content wearing a B2 label.
   const all: Job[] = [];
   for (const language of languages)
     for (const lvl of levels)
-      for (const topic of TOPIC_CATALOGUE) all.push({ topic, language, level: lvl });
+      for (const topic of topicsForLevel(lvl)) all.push({ topic, language, level: lvl });
 
-  console.log(`catalogue ${TOPIC_CATALOGUE.length} topics x ${languages.length} languages x ${levels.length} levels = ${all.length} packs`);
+  console.log(`catalogue ${CATALOGUE_SIZE} topics (level-banded) x ${languages.length} languages x ${levels.length} levels = ${all.length} packs`);
 
   // ONE query for the keys, not one per job. Asking cachedPack() per topic meant
   // 5,040 sequential round trips, which took longer than the generation would

@@ -7,12 +7,19 @@
 // generated once — a few dollars total — and then read from the database forever.
 // Per-user generation would scale with installs and is the thing to avoid.
 //
-// ONE LIST, EVERY LEVEL
-// The level is a parameter of the generation prompt, so the same topic yields
-// genuinely different content per level: "at the doctor" is body parts and "it
-// hurts" at A1, and describing a chronic condition to a specialist at B2. That is
-// why this is one list rather than four — it quadruples the pool for the price of
-// authoring it once.
+// LEVEL BANDS — one list per band, not one list for everything.
+//
+// This started as a single list on the argument that the level is a prompt
+// parameter, so "at the doctor" would be body parts at A1 and a specialist
+// consultation at B2. That reasoning holds for a topic with an abstract register
+// available to it. It does NOT hold for concrete everyday subjects: a generated
+// fr/B2 pack for "a birthday party" came back with le gâteau, les bougies and
+// "La fête commence à six heures du soir." There is no B2 version of birthday
+// cake, so the model produced A1 content wearing a B2 label — exactly the
+// "a B1 learner must never see hallo" failure, at scale.
+//
+// So concrete subjects are capped at A1/A2, abstract ones start at B1, and only
+// topics with genuine range appear in both.
 //
 // GROWING IT
 // Appending a string here is the cheapest content lever in the product: one line
@@ -22,7 +29,7 @@
 // Topics are deliberately concrete and everyday. Nothing political, medical-
 // advisory, or otherwise unsuitable for a general-audience app — the generator
 // also screens its output, but the catalogue should never rely on that.
-export const TOPIC_CATALOGUE: string[] = [
+export const CONCRETE_TOPICS: string[] = [
   // ── food & drink ──────────────────────────────────────────────────────
   'ordering at a restaurant',
   'in a coffee shop',
@@ -256,9 +263,76 @@ export const TOPIC_CATALOGUE: string[] = [
   'telling a story',
 ];
 
+// Subjects with genuine abstract range — argument, speculation, consequence,
+// nuance. These are what B1 and B2 draw on; a concrete topic cannot carry that
+// register no matter what level the prompt asks for.
+export const ABSTRACT_TOPICS: string[] = [
+  // ── work & economy ────────────────────────────────────────────────────
+  'negotiating a contract', 'workplace hierarchy', 'automation and jobs',
+  'the gig economy', 'inflation and prices', 'taxation', 'inequality of income',
+  'starting over in a new career', 'burnout culture', 'productivity and its limits',
+  'unions and bargaining', 'remote work and belonging', 'the cost of housing',
+  'consumer debt', 'entrepreneurship and risk',
+  // ── media & information ───────────────────────────────────────────────
+  'misinformation', 'press freedom', 'sourcing and evidence', 'clickbait economics',
+  'algorithmic feeds', 'privacy and surveillance', 'anonymity online',
+  'the attention economy', 'public broadcasting', 'documentary versus propaganda',
+  // ── science & environment ─────────────────────────────────────────────
+  'climate adaptation', 'renewable energy trade-offs', 'biodiversity loss',
+  'scientific consensus', 'vaccination and public health', 'water scarcity',
+  'urban air quality', 'waste and recycling policy', 'space exploration',
+  'the ethics of research',
+  // ── society & identity ────────────────────────────────────────────────
+  'migration and belonging', 'bilingual identity', 'generational difference',
+  'tradition versus modernity', 'regional accents and prejudice',
+  'gender roles at work', 'ageing populations', 'volunteering and civic duty',
+  'social mobility', 'community and isolation',
+  // ── law, ethics & governance ──────────────────────────────────────────
+  'the right to protest', 'privacy versus security', 'criminal rehabilitation',
+  'jury and judgement', 'contracts and obligation', 'intellectual property',
+  'whistleblowing', 'regulating new technology', 'consumer protection',
+  'freedom and its limits',
+  // ── psychology & behaviour ────────────────────────────────────────────
+  'motivation and habit', 'memory and forgetting', 'decision fatigue',
+  'risk perception', 'stress and resilience', 'persuasion and influence',
+  'procrastination', 'attention and focus', 'grief and adjustment',
+  'confidence and doubt',
+  // ── culture & the arts ────────────────────────────────────────────────
+  'what makes a classic', 'translation and meaning', 'censorship in art',
+  'the value of criticism', 'adaptation from book to film', 'street art and legality',
+  'museums and restitution', 'live performance versus recording',
+  'nostalgia in culture', 'humour across cultures',
+  // ── argument & abstraction ────────────────────────────────────────────
+  'agreeing to disagree', 'cause and consequence', 'weighing evidence',
+  'hypothesis and speculation', 'regret and hindsight', 'compromise',
+  'making a difficult decision', 'explaining a misunderstanding',
+  'defending an unpopular view', 'changing your mind',
+];
+
+/**
+ * Topics for a level. A1/A2 stay on concrete everyday subjects; B1/B2 get the
+ * abstract set PLUS the concrete topics that genuinely carry an adult register
+ * (a job interview or a hospital visit has a B2 version; birthday candles do not).
+ */
+const CONCRETE_WITH_RANGE = new Set([
+  'a job interview', 'in a meeting', 'asking for time off', 'giving a presentation',
+  'at the doctor', 'a hospital visit', 'mental wellbeing', 'quitting a bad habit',
+  'at the bank', 'a household budget', 'insurance and paperwork', 'renting a flat',
+  'problems with the landlord', 'calling customer service', 'making a complaint',
+  'travel insurance', 'a delayed flight', 'career change', 'leaving a job',
+  'salary and benefits', 'a difficult colleague', 'deadlines and pressure',
+  'starting a business', 'studying abroad', 'the local council', 'volunteering',
+]);
+
+export function topicsForLevel(level: string): string[] {
+  const upper = level.toUpperCase();
+  if (upper === 'A1' || upper === 'A2') return CONCRETE_TOPICS;
+  return [...ABSTRACT_TOPICS, ...CONCRETE_TOPICS.filter((t) => CONCRETE_WITH_RANGE.has(t))];
+}
+
 /** Stable slug for the cache key — must match the generator's own slug rule. */
 export function topicSlug(topic: string): string {
   return topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'topic';
 }
 
-export const CATALOGUE_SIZE = TOPIC_CATALOGUE.length;
+export const CATALOGUE_SIZE = CONCRETE_TOPICS.length + ABSTRACT_TOPICS.length;

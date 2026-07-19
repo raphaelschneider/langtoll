@@ -22,7 +22,7 @@ import { requireAttestation } from '@/lib/attest';
 import { rateLimit, LIMITS } from '@/lib/ratelimit';
 import { requireBudget } from '@/lib/usage';
 import { query } from '@/lib/db';
-import { TOPIC_CATALOGUE, topicSlug } from '@/lib/ai/catalogue';
+import { topicsForLevel, topicSlug, CATALOGUE_SIZE } from '@/lib/ai/catalogue';
 import { generateTopicPack, LANGS, LEVELS } from '@/lib/ai/generate';
 
 export const runtime = 'nodejs';
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     cached = Array.isArray(rows) ? (rows as typeof cached) : [];
   } catch {
     // DB unavailable — report an empty pool rather than failing the app's sync.
-    return NextResponse.json({ packs: [], complete: false, catalogue: TOPIC_CATALOGUE.length });
+    return NextResponse.json({ packs: [], complete: false, catalogue: topicsForLevel(level).length });
   }
 
   const have = new Set(cached.map((r) => r.content_key));
@@ -60,7 +60,8 @@ export async function GET(req: NextRequest) {
   // Warm exactly one missing topic, budget permitting. Ordered by the catalogue
   // so every client agrees on which topic comes next and concurrent requests
   // converge on the same one rather than racing to generate different ones.
-  const missing = TOPIC_CATALOGUE.find((t) => !have.has(`${language}:${level}:${topicSlug(t)}`));
+  const topics = topicsForLevel(level);
+  const missing = topics.find((t) => !have.has(`${language}:${level}:${topicSlug(t)}`));
   if (missing && !(await requireBudget())) {
     try {
       packs.push(await generateTopicPack(missing, language, level));
@@ -71,7 +72,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     packs,
-    complete: packs.length >= TOPIC_CATALOGUE.length,
-    catalogue: TOPIC_CATALOGUE.length,
+    complete: packs.length >= topicsForLevel(level).length,
+    catalogue: topicsForLevel(level).length,
   });
 }

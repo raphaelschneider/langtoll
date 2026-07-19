@@ -11,6 +11,16 @@ export function getOpenAI(): OpenAI {
   return client;
 }
 
-// Topic-pack generation runs on the cheap model — it's a bounded JSON generation, not open chat,
-// and gpt-4o-mini produces solid A1–B1 vocabulary. Override with LANGPASS_TOPIC_MODEL.
-export const TOPIC_MODEL = process.env.LANGPASS_TOPIC_MODEL || 'gpt-4o-mini';
+// Topic-pack generation. This started on gpt-4o-mini as "a bounded JSON
+// generation, not open chat" — but the output showed where that saving landed:
+// B2 packs written at A1 level, and cloze distractors that were nouns for a verb
+// answer. Both are judgement, not formatting, and judgement is what the larger
+// model buys.
+//
+// It also now has to translate every item into five locales correctly, where a
+// wrong gloss teaches a wrong word to everyone using that interface language.
+//
+// Generation is one-time and cached forever, so the model cost is paid once per
+// pack and amortised across every user who ever drills it. Override with
+// LANGPASS_TOPIC_MODEL.
+export const TOPIC_MODEL = process.env.LANGPASS_TOPIC_MODEL || 'gpt-4o';
