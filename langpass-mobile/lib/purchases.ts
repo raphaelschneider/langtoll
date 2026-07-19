@@ -63,6 +63,7 @@ function isPlusActive(info: any): boolean {
 }
 
 const PERIOD_BY_PRODUCT: Record<string, Period> = {
+  [PRODUCT_IDS.weekly]: 'weekly',
   [PRODUCT_IDS.monthly]: 'monthly',
   [PRODUCT_IDS.yearly]: 'yearly',
 };
@@ -129,13 +130,14 @@ export async function getPackages(): Promise<PlusPackage[]> {
 }
 
 function sortPackages(pkgs: PlusPackage[]): PlusPackage[] {
-  const order: Period[] = ['yearly', 'monthly'];
+  // Best value first: yearly anchors, weekly sits last as the entry point.
+  const order: Period[] = ['yearly', 'monthly', 'weekly'];
   return [...pkgs].sort((a, b) => order.indexOf(a.period) - order.indexOf(b.period));
 }
 
 function mockPackages(): PlusPackage[] {
   return sortPackages(
-    (['yearly', 'monthly'] as Period[]).map((period) => ({
+    (['yearly', 'monthly', 'weekly'] as Period[]).map((period) => ({
       period,
       priceString: PRICES[period].price,
       raw: null,

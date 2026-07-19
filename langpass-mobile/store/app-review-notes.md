@@ -53,8 +53,9 @@ a physical device.
 
 **In-app purchases**
 
-LangPass Plus is an auto-renewing subscription (monthly or yearly, with a 7-day
-free trial). The free tier is fully functional: the lock, the practice sessions,
+LangPass Plus is an auto-renewing subscription, offered weekly, monthly or
+yearly. The monthly and yearly plans include a 7-day free trial; the weekly plan
+does not. The free tier is fully functional: the lock, the practice sessions,
 and all six language courses are available without paying. Plus adds the ability
 to lock multiple apps and whole categories, tuning of the fare and unlock
 duration, strict mode, the full set of exercise types, AI-generated topic packs,

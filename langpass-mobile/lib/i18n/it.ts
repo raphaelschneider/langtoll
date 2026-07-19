@@ -157,6 +157,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'settings.planPlus': 'LangPass Plus · attivo',
 
   'plus.title': 'Sblocca tutto.',
+  'plus.weekly': 'Settimanale',
   'plus.monthly': 'Mensile',
   'plus.yearly': 'Annuale',
   'plus.startTrial': 'Inizia i miei {days} giorni gratis',

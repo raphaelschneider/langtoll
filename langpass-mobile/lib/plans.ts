@@ -7,12 +7,13 @@
 // strict mode, the full curriculum, AI topic packs, and new languages.
 import { isPlus as storeIsPlus, getState } from './store';
 
-export type Period = 'monthly' | 'yearly';
+export type Period = 'weekly' | 'monthly' | 'yearly';
 
 export const PLUS_ENTITLEMENT = process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT ?? 'plus';
 
 // Product identifiers configured in App Store Connect + RevenueCat.
 export const PRODUCT_IDS = {
+  weekly: 'langpass_plus_weekly',
   monthly: 'langpass_plus_monthly',
   yearly: 'langpass_plus_yearly',
 } as const;
@@ -32,6 +33,16 @@ export const PLUS_FEATURES = [
 // Fallback prices shown only until RevenueCat loads the real localized store price.
 // These are the US anchors decided for launch (see also PRODUCT_IDS).
 export const PRICES: Record<Period, { label: string; price: string; note?: string; perMonth?: string; sub?: string }> = {
+  // $3.99/wk is ≈$17.28/mo — deliberately 2.2× the monthly tier. The weekly plan
+  // is the low-commitment entry point and must not undercut monthly, or impulse
+  // buyers take it instead and the margin is lost to churn.
+  //
+  // It carries NO free trial, by decision: a 7-day trial on a 7-day cycle gives
+  // away half the commitment, and weekly trial-to-paid is where chargebacks
+  // concentrate. Nothing here enforces that — the intro offer lives in App Store
+  // Connect, and hasTrial reads it back per product (see purchases.ts), so the
+  // button correctly falls back to "Subscribe" for weekly.
+  weekly: { label: 'Weekly', price: '$3.99', sub: 'per week' },
   monthly: { label: 'Monthly', price: '$7.99', sub: 'per month' },
   yearly: { label: 'Yearly', price: '$39.99', sub: 'per year', note: 'Save 58%', perMonth: '≈ $3.33/mo' },
 };

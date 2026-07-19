@@ -167,6 +167,7 @@ export const en = {
 
   // plus / paywall
   'plus.title': 'Unlock everything.',
+  'plus.weekly': 'Weekly',
   'plus.monthly': 'Monthly',
   'plus.yearly': 'Yearly',
   'plus.startTrial': 'Start my {days}-day free trial',
