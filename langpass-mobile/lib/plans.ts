@@ -23,7 +23,10 @@ export const PLUS_FEATURES = [
   { icon: 'flame-outline', title: 'Strict mode', detail: 'No skips, no mercy: the phone stays locked until you finish the session' },
   { icon: 'school-outline', title: 'The full curriculum', detail: 'Typed answers, sentence building, listening and harder levels — free trains multiple choice' },
   { icon: 'sparkles-outline', title: 'AI topic packs', detail: 'Generate vocabulary for your world — brunch orders, match-day slang, anything' },
-  { icon: 'language-outline', title: 'Every language we add', detail: 'German today — Spanish and French land in Plus first' },
+  // Sells canUseAudio(), which is a real gate. The bullet here used to promise
+  // early access to new languages — but all six packs ship to everyone and there
+  // is no language gate anywhere, so Plus could not deliver it.
+  { icon: 'volume-high-outline', title: 'The voice', detail: 'Hear every word and sentence in a studio-tuned native voice — free practises in text' },
 ] as const;
 
 // Fallback prices shown only until RevenueCat loads the real localized store price.
