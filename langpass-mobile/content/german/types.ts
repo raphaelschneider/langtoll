@@ -63,6 +63,17 @@ export interface VocabItem {
   level: Level;
   /** Grouping used to pick plausible multiple-choice distractors. */
   category: string;
+  /**
+   * Where this item came from. Absent means authored — the hand-checked packs
+   * that ship in the binary. 'ai' marks an item from the generated pool, which
+   * is fetched and cached rather than bundled.
+   *
+   * Kept optional so the thousands of authored items need no annotation: absence
+   * IS the authored case. Surfaced in-session behind the dev-tools flag so the
+   * provenance of any exercise can be checked on a real device, and so answer
+   * quality can later be compared between the two sources.
+   */
+  source?: 'ai';
 }
 
 export interface SentenceItem {
@@ -79,6 +90,17 @@ export interface SentenceItem {
   clozeIndex: number;
   /** Wrong-but-plausible options for the blanked word. */
   clozeDistractors: string[];
+  /**
+   * Where this item came from. Absent means authored — the hand-checked packs
+   * that ship in the binary. 'ai' marks an item from the generated pool, which
+   * is fetched and cached rather than bundled.
+   *
+   * Kept optional so the thousands of authored items need no annotation: absence
+   * IS the authored case. Surfaced in-session behind the dev-tools flag so the
+   * provenance of any exercise can be checked on a real device, and so answer
+   * quality can later be compared between the two sources.
+   */
+  source?: 'ai';
 }
 
 export interface LanguagePack {

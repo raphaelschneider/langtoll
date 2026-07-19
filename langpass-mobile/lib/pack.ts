@@ -4,6 +4,7 @@ import { packFor, type LanguagePack, type Level } from '@/content';
 import { getState } from '@/lib/store';
 import { resolvedLocale } from '@/lib/i18n';
 import { sanitizeTopic } from '@/lib/ai/topics';
+import { poolItems } from '@/lib/ai/pool';
 import { FALLBACK_LOCALE, type LocaleCode } from '@/lib/locales';
 
 /** Onboarding difficulty (1–10) → CEFR level. Four bands since B2 landed. */
@@ -45,17 +46,26 @@ function localizePack(pack: LanguagePack, locale: LocaleCode): LanguagePack {
 export function activePack(): LanguagePack {
   const s = getState();
   const base = localizePack(packFor(s.learningLanguage, s.level), resolvedLocale());
+
+  // The generated pool, merged for EVERYONE. The bundled packs alone are a few
+  // hundred items per level, which a heavy user exhausts in days — this is what
+  // stops the same sentence coming round every session. Read synchronously from
+  // the in-memory cache (see lib/ai/pool), so a session never waits on network
+  // and works offline once synced.
+  const pool = poolItems(s.learningLanguage, s.level);
+
   // Sanitize on every load: packs generated before the blank-detection guards
   // existed are already persisted on devices, and a bad sentence renders an
   // unanswerable exercise ("__" offered as one of the options).
   const topic = s.customTopic ? sanitizeTopic(s.customTopic) : null;
-  if (topic && s.useCustomTopic && topic.vocab.length) {
-    return {
-      ...base,
-      name: `${base.name} · ${topic.name}`,
-      vocab: [...base.vocab, ...topic.vocab],
-      sentences: [...base.sentences, ...topic.sentences],
-    };
-  }
-  return base;
+  const useTopic = !!topic && s.useCustomTopic && topic.vocab.length > 0;
+
+  if (!useTopic && !pool.vocab.length && !pool.sentences.length) return base;
+
+  return {
+    ...base,
+    name: useTopic ? `${base.name} · ${topic!.name}` : base.name,
+    vocab: [...base.vocab, ...pool.vocab, ...(useTopic ? topic!.vocab : [])],
+    sentences: [...base.sentences, ...pool.sentences, ...(useTopic ? topic!.sentences : [])],
+  };
 }

@@ -36,6 +36,12 @@ export interface Exercise {
   reveal: string;
   /** German text for TTS (the prompt or the solution, whichever is German). */
   audio?: string;
+  /**
+   * Provenance of the underlying item — absent means authored, 'ai' means it
+   * came from the generated pool. Carried through so a dev build can show which
+   * is which on a real device, and so answer quality can be compared later.
+   */
+  source?: 'ai';
 }
 
 export interface SessionPlan {
@@ -173,6 +179,7 @@ function articleExercise(item: VocabItem, key: string): Exercise {
     key,
     type: 'article',
     itemId: item.id,
+    source: item.source,
     prompt: `___ ${noun}`,
     hint: item.en[0],
     options: [...ARTICLES],
@@ -187,6 +194,7 @@ function listenExercise(item: VocabItem, pack: LanguagePack, rand: () => number,
     key,
     type: 'listen',
     itemId: item.id,
+    source: item.source,
     prompt: '',
     options: mcOptions(item, pack, 'en', rand),
     answer: item.en[0],
@@ -204,6 +212,7 @@ function clozeExercise(s: SentenceItem, rand: () => number, key: string): Exerci
     key,
     type: 'cloze',
     itemId: s.id,
+    source: s.source,
     prompt: blanked,
     hint: s.en,
     options: shuffle([answerWord, ...s.clozeDistractors], rand),
@@ -219,6 +228,7 @@ function orderExercise(s: SentenceItem, rand: () => number, key: string): Exerci
     key,
     type: 'order',
     itemId: s.id,
+    source: s.source,
     prompt: s.en,
     options: shuffle(words, rand),
     answer: words.join(' '),
@@ -302,6 +312,7 @@ export function buildSession(
         key,
         type,
         itemId: item.id,
+    source: item.source,
         prompt: item.en[0],
         answer: item.de,
         reveal: revealFor(item),
@@ -312,6 +323,7 @@ export function buildSession(
         key,
         type,
         itemId: item.id,
+    source: item.source,
         prompt: item.de,
         options: mcOptions(item, pack, 'en', rand),
         answer: item.en[0],
@@ -323,6 +335,7 @@ export function buildSession(
         key,
         type: 'mc_en_de',
         itemId: item.id,
+    source: item.source,
         prompt: item.en[0],
         options: mcOptions(item, pack, 'de', rand),
         answer: item.de,

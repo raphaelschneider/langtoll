@@ -30,6 +30,9 @@ import { playMessageChime } from '@/lib/sound';
 import { speakGerman, stopSpeaking } from '@/lib/tts';
 import { canUseAudio } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
+
+// Same signal as the rest of the dev tooling; a production build cannot set it.
+const DEV_TOOLS = process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 import { useT, type StringKey } from '@/lib/i18n';
 
 type Phase = 'answer' | 'feedback' | 'done';
@@ -231,9 +234,29 @@ export default function Session() {
           {/* prompt */}
           <View style={styles.body}>
             <Entrance key={ex.key} from={10}>
-              <Text variant="overline" color="inkFaint">
-                {promptLabel[ex.type]}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text variant="overline" color="inkFaint">
+                  {promptLabel[ex.type]}
+                </Text>
+                {/* Provenance, dev builds only: is this exercise ours or generated?
+                    Gated on the same flag as the rest of the dev tooling, so it can
+                    never appear in a store build (the pre-install check fails a
+                    production build that sets it). */}
+                {DEV_TOOLS && (
+                  <View
+                    style={{
+                      paddingHorizontal: 6,
+                      paddingVertical: 1,
+                      borderRadius: 4,
+                      backgroundColor: ex.source === 'ai' ? 'rgba(200,255,77,0.18)' : 'rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    <Text variant="caption" color={ex.source === 'ai' ? 'ink' : 'inkFaint'}>
+                      {ex.source === 'ai' ? 'AI' : 'AUTHORED'}
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               {isListen ? (
                 <PressableScale

@@ -18,6 +18,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { hydrate, getState, isUnlocked } from '@/lib/store';
 import { configureShieldAppearance, maybeRelock } from '@/lib/blocking';
 import { configurePurchases } from '@/lib/purchases';
+import { initPool } from '@/lib/ai/pool';
 import { primeVoices, configureAudioSession, applyStoredShaping } from '@/lib/tts';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -55,6 +56,12 @@ export default function RootLayout() {
     hydrate().finally(() => {
       setStoreReady(true);
       applyStoredShaping();
+      // Generated pool for the user's current language/level: reads the on-device
+      // cache first so the very next session already has it, then refreshes in the
+      // background. Must run AFTER hydrate — it needs the persisted language and
+      // level. Deliberately not awaited: the lock never waits on a network call.
+      const s = getState();
+      void initPool(s.learningLanguage, s.level);
     });
     configurePurchases(); // no-op in mock; mirrors the live entitlement when keyed
     primeVoices(); // load the device voice list so the first speak() isn't a race
