@@ -88,13 +88,17 @@ const MONTHS_PER_PERIOD: Record<Period, number> = {
 };
 
 /**
- * Per-month equivalent, in the store's currency. Shown only where it tells the
- * user something they don't already see — a monthly plan's own price is already
- * its monthly cost.
+ * Per-month equivalent, in the store's currency — yearly only.
+ *
+ * Monthly's own price is already its monthly cost, so the line would be noise.
+ * Weekly's equivalent is ≈4.3× its sticker price, which makes the entry tier
+ * read as expensive; that figure is true, but it isn't one we volunteer. The
+ * amount billed and the period it covers stay fully disclosed on every card
+ * either way — this only decides which derived comparison we surface.
  */
 export function perMonthEquivalent(p: PlusPackage): string | null {
-  if (p.period === 'monthly' || p.amount <= 0) return null;
-  return formatMoney(p.amount / MONTHS_PER_PERIOD[p.period], p.currency);
+  if (p.period !== 'yearly' || p.amount <= 0) return null;
+  return formatMoney(p.amount / MONTHS_PER_PERIOD.yearly, p.currency);
 }
 
 /**
