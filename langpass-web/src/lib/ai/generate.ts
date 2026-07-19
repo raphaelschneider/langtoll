@@ -48,7 +48,7 @@ If the subject is not suitable for a general-audience language course, return {"
 Return ONLY a JSON object with this exact shape (no markdown, no commentary):
 {
   "vocab": [{ "de": "die Rechnung", "en": ["the bill","the check"], "pos": "noun", "category": "<topic slug>" }],
-  "sentences": [{ "de": "Können wir bitte die Rechnung haben?", "en": "Can we have the bill, please?", "clozeIndex": 4, "clozeDistractors": ["Speisekarte","Küche","Gabel"] }]
+  "sentences": [{ "de": "Können wir bitte die Rechnung haben?", "en": "Can we have the bill, please?", "clozeWord": "Rechnung", "clozeDistractors": ["Speisekarte","Küche","Gabel"] }]
 }
 Rules:
 - Exactly ${vocabCount} vocab items and ${sentenceCount} sentences.
@@ -56,9 +56,9 @@ Rules:
 - Nouns MUST include the article in "de" where the language has them.
 - "pos" is one of: ${POS.join(', ')}.
 - "en" is an array; first entry is the canonical English translation.
-- "de" MUST be a COMPLETE, natural sentence. Do NOT put blanks, underscores, dashes or ellipses in it — the app creates the blank itself from clozeIndex. A sentence containing "___" is rejected.
-- "clozeIndex" is the 0-based index (splitting "de" on spaces) of the most interesting word to blank — never an article, and never the final word (its trailing punctuation would give the answer away).
-- "clozeDistractors" are 3 wrong-but-plausible ${langName} words that could grammatically replace the word at clozeIndex. Same part of speech, must NOT include the correct word, must NOT be articles.
+- "de" MUST be the COMPLETE, natural sentence with EVERY word present, exactly as a person would say it. Never write underscores, blanks, dashes or ellipses in it. The app hides a word by itself.
+- "clozeWord" is the single word from "de" that the learner should have to recall — copy it EXACTLY as it appears in "de", including its capitalisation. Choose a meaningful word: a noun, verb or adjective. Never an article, and never the last word of the sentence.
+- "clozeDistractors" are 3 wrong-but-plausible ${langName} words that could grammatically replace "clozeWord". Same part of speech, must NOT include the correct word, must NOT be articles.
 - Difficulty, vocabulary and grammar must match ${level} specifically — an A1 pack and a B2 pack on the same topic must look completely different. Use proper accents/diacritics.`;
 }
 
@@ -117,8 +117,22 @@ export function validate(topic: string, language: string, level: string, data: a
     const words = de.split(/\s+/);
     if (words.length < 3) continue;
 
-    let ci = typeof raw.clozeIndex === 'number' ? Math.floor(raw.clozeIndex) : -1;
     const usable = (n: number) => n >= 0 && n < words.length - 1 && !isArticle(words[n]);
+
+    // Prefer clozeWord over clozeIndex. Asking for an INDEX made the model write
+    // the blank into the sentence itself ("Ich habe ___ im Kopf.") for roughly
+    // two thirds of packs — every one of which HAS_BLANK then rejected, leaving
+    // packs with full vocab and no sentences at all. Naming the word instead
+    // removes the whole notion of a gap from the model's side of the contract.
+    let ci = -1;
+    if (typeof raw.clozeWord === 'string' && raw.clozeWord.trim()) {
+      const want = bare(raw.clozeWord);
+      ci = words.findIndex((w: string) => bare(w) === want);
+    }
+    // clozeIndex remains accepted so packs cached under the older prompt still
+    // validate identically if they are ever re-run.
+    if (ci < 0 && typeof raw.clozeIndex === 'number') ci = Math.floor(raw.clozeIndex);
+
     if (!usable(ci)) {
       const alt = words.findIndex((_w: string, n: number) => usable(n));
       if (alt < 0) continue;
