@@ -248,7 +248,10 @@ export function configureShieldAppearance(): void {
         // object itself and runs the open on the main queue, which is the
         // variant most likely to survive the extension being torn down. The URL
         // is ours: expo-linking treats `langpass` as the canonical scheme.
-        primary: { behavior: 'close', type: 'openUrlWithDispatch', url: 'langpass://' },
+        // A bare `langpass://` has no host and no path, which iOS may not resolve
+        // to anything. `langpass://session` is a real expo-router route, so the
+        // URL is well-formed and lands directly on the practice screen.
+        primary: { behavior: 'close', type: 'openUrlWithDispatch', url: 'langpass://session' },
         secondary: { behavior: 'defer' },
       },
       'langpass:configureShield'

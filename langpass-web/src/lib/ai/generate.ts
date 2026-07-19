@@ -105,6 +105,56 @@ const ARTICLES = new Set([
 const bare = (w: string) => w.replace(/^[¿¡"'(]+|[.,!?;:"')]+$/g, '').toLowerCase();
 const isArticle = (w: string) => ARTICLES.has(bare(w));
 
+// Pronouns and auxiliaries. Blanking one tests nothing — the learner already used
+// it to parse the rest of the sentence. An audit found 1,385 of these live,
+// nearly all produced by the fallback that used to pick "the first usable word".
+const FUNCTION_WORDS = new Set([
+  'ich','du','er','sie','es','wir','ihr','man','mich','dich','sich','uns','euch',
+  'ist','sind','war','waren','hat','haben','hatte','wird','werden','kann','muss','soll',
+  'i','you','he','she','it','we','they','me','him','her','us','them',
+  'is','are','was','were','has','have','had','will','would','can','must','should',
+  'yo','tú','él','ella','nosotros','vosotros','ellos','me','te','se','nos',
+  'es','son','era','fue','ha','han','había','será','puede','debe',
+  'je','tu','il','elle','nous','vous','ils','elles','on',
+  'est','sont','était','a','ont','avait','sera','peut','doit',
+  'io','lui','lei','noi','voi','loro','mi','ti','si','ci',
+  'è','sono','ha','hanno','aveva','sarà','può','deve',
+  'eu','ele','ela','nós','vocês','eles','é','são','foi','tem','têm','tinha','pode','deve',
+]);
+const isFunctionWord = (w: string) => FUNCTION_WORDS.has(bare(w));
+
+/**
+ * Is this a defensible slot to blank? Not an article, not a function word, and
+ * never the final word — trailing punctuation there gives the answer away.
+ */
+export function isUsableClozeIndex(words: string[], ci: number): boolean {
+  if (!(ci >= 0 && ci < words.length - 1)) return false;
+  return !isArticle(words[ci]) && !isFunctionWord(words[ci]);
+}
+
+/**
+ * Do the distractors plausibly fit the same slot as the answer?
+ *
+ * Capitalisation is a cheap part-of-speech proxy and it is the one that matters
+ * most here: German capitalises nouns, so a capitalised answer against lowercase
+ * options is a noun slot offering adjectives — "Das [___] ist kaputt." with
+ * options neu/groß/klein. Sentence-initial answers are exempt, since they are
+ * capitalised for position rather than word class.
+ */
+export function distractorsCoherent(answer: string, distractors: string[], ci: number): boolean {
+  if (distractors.length !== 3) return false;
+  const lowered = distractors.map((d) => bare(d));
+  if (new Set(lowered).size !== 3) return false;
+  if (lowered.includes(bare(answer))) return false;
+  if (ci === 0) return true;
+  const answerUpper = answer[0] === answer[0]?.toUpperCase() && /\p{L}/u.test(answer[0] ?? '');
+  return distractors.every((d) => {
+    const c = d.replace(/^[¿¡"'(]+/, '')[0];
+    if (!c || !/\p{L}/u.test(c)) return true;
+    return (c === c.toUpperCase()) === answerUpper;
+  });
+}
+
 export interface GeneratedPack {
   name: string;
   language: string;
@@ -167,13 +217,10 @@ export function validate(topic: string, language: string, level: string, data: a
     const words = de.split(/\s+/);
     if (words.length < 3) continue;
 
-    const usable = (n: number) => n >= 0 && n < words.length - 1 && !isArticle(words[n]);
-
     // Prefer clozeWord over clozeIndex. Asking for an INDEX made the model write
-    // the blank into the sentence itself ("Ich habe ___ im Kopf.") for roughly
-    // two thirds of packs — every one of which HAS_BLANK then rejected, leaving
-    // packs with full vocab and no sentences at all. Naming the word instead
-    // removes the whole notion of a gap from the model's side of the contract.
+    // the blank into the sentence itself ("Ich habe ___ im Kopf."), which
+    // HAS_BLANK then rejected — leaving packs with full vocab and no sentences.
+    // Naming the word removes the notion of a gap from the model's side.
     let ci = -1;
     if (typeof raw.clozeWord === 'string' && raw.clozeWord.trim()) {
       const want = bare(raw.clozeWord);
@@ -183,11 +230,12 @@ export function validate(topic: string, language: string, level: string, data: a
     // validate identically if they are ever re-run.
     if (ci < 0 && typeof raw.clozeIndex === 'number') ci = Math.floor(raw.clozeIndex);
 
-    if (!usable(ci)) {
-      const alt = words.findIndex((_w: string, n: number) => usable(n));
-      if (alt < 0) continue;
-      ci = alt;
-    }
+    // REJECT, never repair. This used to fall back to "the first usable word",
+    // which is almost always the subject pronoun — and it kept the distractors
+    // the model wrote for a DIFFERENT word. That one line produced 1,385
+    // function-word blanks and 237 slots whose options were the wrong part of
+    // speech. A missing sentence costs nothing; an unanswerable one costs trust.
+    if (!isUsableClozeIndex(words, ci)) continue;
     const answer = bare(words[ci]);
     // Explicitly string[]: Set<unknown> widens the element type back to unknown,
     // which the stricter web tsconfig rejects at the push below.
@@ -199,7 +247,10 @@ export function validate(topic: string, language: string, level: string, data: a
             .filter((d: string) => bare(d) !== answer && !isArticle(d))
         )).slice(0, 3)
       : [];
-    if (distractors.length < 3) continue;
+    // Options must plausibly fit the slot. Without this a noun answer could be
+    // offered against three adjectives, which a learner discards on grammar
+    // without ever knowing the word.
+    if (!distractorsCoherent(words[ci], distractors, ci)) continue;
 
     sentences.push({ id: `topic-${id}-s${i}`, de, en: raw.en.trim(), gloss: cleanGloss(raw.gloss, false) as Record<string, string> | undefined, level, clozeIndex: ci, clozeDistractors: distractors });
   }
