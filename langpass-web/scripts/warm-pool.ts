@@ -16,7 +16,8 @@
 // of user requests to fill and the earliest users would see a nearly empty pool.
 // This is the deliberate version.
 import { TOPIC_CATALOGUE } from '../src/lib/ai/catalogue';
-import { generateTopicPack, cachedPack, LANGS, LEVELS } from '../src/lib/ai/generate';
+import { generateTopicPack, contentKeyFor, LANGS, LEVELS } from '../src/lib/ai/generate';
+import { query } from '../src/lib/db';
 
 // Modest: each call is ~4k output tokens, and the point is to finish reliably,
 // not fast. Raise only if the account's rate limits are comfortable.
@@ -60,11 +61,20 @@ async function main() {
 
   console.log(`catalogue ${TOPIC_CATALOGUE.length} topics x ${languages.length} languages x ${levels.length} levels = ${all.length} packs`);
 
+  // ONE query for the keys, not one per job. Asking cachedPack() per topic meant
+  // 5,040 sequential round trips, which took longer than the generation would
+  // have — and pulled every cached pack's full JSON across the wire to answer a
+  // question about key existence.
   process.stdout.write('checking what is already cached… ');
-  const missing: Job[] = [];
-  for (const job of all) {
-    if (!(await cachedPack(job.language, job.level, job.topic))) missing.push(job);
-  }
+  const rows = await query(
+    `SELECT content_key FROM topic_packs WHERE language IN (${languages.map(() => '?').join(',')})
+       AND level IN (${levels.map(() => '?').join(',')})`,
+    [...languages, ...levels]
+  );
+  const have = new Set(
+    (Array.isArray(rows) ? (rows as { content_key: string }[]) : []).map((r) => r.content_key)
+  );
+  const missing = all.filter((j) => !have.has(contentKeyFor(j.language, j.level, j.topic)));
   console.log(`${all.length - missing.length} cached, ${missing.length} missing`);
 
   if (!missing.length) return console.log('pool is complete — nothing to do.');
