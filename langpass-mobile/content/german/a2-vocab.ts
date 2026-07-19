@@ -19,8 +19,8 @@ export const A2_VOCAB: VocabItem[] = [
 
   // ── travel ────────────────────────────────────────────────────────────
   { id: 'a2v011', de: 'die Reise', en: ['the trip', 'the journey'], gloss: { es: ['el viaje'], fr: ['le voyage'], it: ['il viaggio'], pt: ['a viagem'] }, pos: 'noun', level: 'A2', category: 'travel' },
-  { id: 'a2v012', de: 'der Flughafen', en: ['the airport'], gloss: { es: ['el aeropuerto'], fr: ['l’aéroport'], it: ['l’aeroporto'], pt: ['o aeroporto'] }, pos: 'noun', level: 'A2', category: 'travel' },
-  { id: 'a2v013', de: 'der Bahnhof', en: ['the train station'], gloss: { es: ['la estación de tren'], fr: ['la gare'], it: ['la stazione'], pt: ['a estação de trem'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'a2v012', de: 'die Ankunft', en: ['the arrival'], gloss: { es: ['la llegada'], fr: ['l’arrivée'], it: ['l’arrivo'], pt: ['a chegada'] }, pos: 'noun', level: 'A2', category: 'travel' },
+  { id: 'a2v013', de: 'die Abfahrt', en: ['the departure'], gloss: { es: ['la salida'], fr: ['le départ'], it: ['la partenza'], pt: ['a partida'] }, pos: 'noun', level: 'A2', category: 'travel' },
   { id: 'a2v014', de: 'das Gleis', en: ['the platform', 'the track'], gloss: { es: ['el andén', 'la vía'], fr: ['le quai', 'la voie'], it: ['il binario'], pt: ['a plataforma', 'o trilho'] }, pos: 'noun', level: 'A2', category: 'travel' },
   { id: 'a2v015', de: 'die Verspätung', en: ['the delay'], gloss: { es: ['el retraso'], fr: ['le retard'], it: ['il ritardo'], pt: ['o atraso'] }, pos: 'noun', level: 'A2', category: 'travel' },
   { id: 'a2v016', de: 'der Koffer', en: ['the suitcase'], gloss: { es: ['la maleta'], fr: ['la valise'], it: ['la valigia'], pt: ['a mala'] }, pos: 'noun', level: 'A2', category: 'travel' },
@@ -32,7 +32,7 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'a2v022', de: 'verpassen', en: ['to miss (a train)'], gloss: { es: ['perder (el tren)'], fr: ['rater (un train)'], it: ['perdere (il treno)'], pt: ['perder (o trem)'] }, pos: 'verb', level: 'A2', category: 'travel' },
 
   // ── health & body ─────────────────────────────────────────────────────
-  { id: 'a2v023', de: 'der Kopf', en: ['the head'], gloss: { es: ['la cabeza'], fr: ['la tête'], it: ['la testa'], pt: ['a cabeça'] }, pos: 'noun', level: 'A2', category: 'health' },
+  { id: 'a2v023', de: 'der Hals', en: ['the neck', 'the throat'], gloss: { es: ['el cuello', 'la garganta'], fr: ['le cou', 'la gorge'], it: ['il collo', 'la gola'], pt: ['o pescoço', 'a garganta'] }, pos: 'noun', level: 'A2', category: 'health' },
   { id: 'a2v024', de: 'der Bauch', en: ['the belly', 'the stomach'], gloss: { es: ['la barriga', 'el estómago'], fr: ['le ventre'], it: ['la pancia'], pt: ['a barriga'] }, pos: 'noun', level: 'A2', category: 'health' },
   { id: 'a2v025', de: 'der Rücken', en: ['the back'], gloss: { es: ['la espalda'], fr: ['le dos'], it: ['la schiena'], pt: ['as costas'] }, pos: 'noun', level: 'A2', category: 'health' },
   { id: 'a2v026', de: 'die Erkältung', en: ['the cold (illness)'], gloss: { es: ['el resfriado'], fr: ['le rhume'], it: ['il raffreddore'], pt: ['o resfriado'] }, pos: 'noun', level: 'A2', category: 'health' },
@@ -45,9 +45,9 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'a2v033', de: 'wehtun', en: ['to hurt'], gloss: { es: ['doler'], fr: ['faire mal'], it: ['fare male'], pt: ['doer'] }, pos: 'verb', level: 'A2', category: 'health' },
 
   // ── weather & nature ──────────────────────────────────────────────────
-  { id: 'a2v034', de: 'das Wetter', en: ['the weather'], gloss: { es: ['el tiempo'], fr: ['le temps'], it: ['il tempo'], pt: ['o tempo'] }, pos: 'noun', level: 'A2', category: 'weather' },
-  { id: 'a2v035', de: 'der Regen', en: ['the rain'], gloss: { es: ['la lluvia'], fr: ['la pluie'], it: ['la pioggia'], pt: ['a chuva'] }, pos: 'noun', level: 'A2', category: 'weather' },
-  { id: 'a2v036', de: 'der Schnee', en: ['the snow'], gloss: { es: ['la nieve'], fr: ['la neige'], it: ['la neve'], pt: ['a neve'] }, pos: 'noun', level: 'A2', category: 'weather' },
+  { id: 'a2v034', de: 'der Nebel', en: ['the fog'], gloss: { es: ['la niebla'], fr: ['le brouillard'], it: ['la nebbia'], pt: ['a neblina'] }, pos: 'noun', level: 'A2', category: 'weather' },
+  { id: 'a2v035', de: 'die Hitze', en: ['the heat'], gloss: { es: ['el calor'], fr: ['la chaleur'], it: ['il caldo'], pt: ['o calor'] }, pos: 'noun', level: 'A2', category: 'weather' },
+  { id: 'a2v036', de: 'die Kälte', en: ['the cold'], gloss: { es: ['el frío'], fr: ['le froid'], it: ['il freddo'], pt: ['o frio'] }, pos: 'noun', level: 'A2', category: 'weather' },
   { id: 'a2v037', de: 'die Wolke', en: ['the cloud'], gloss: { es: ['la nube'], fr: ['le nuage'], it: ['la nuvola'], pt: ['a nuvem'] }, pos: 'noun', level: 'A2', category: 'weather' },
   { id: 'a2v038', de: 'der Wind', en: ['the wind'], gloss: { es: ['el viento'], fr: ['le vent'], it: ['il vento'], pt: ['o vento'] }, pos: 'noun', level: 'A2', category: 'weather' },
   { id: 'a2v039', de: 'das Gewitter', en: ['the thunderstorm'], gloss: { es: ['la tormenta'], fr: ['l’orage'], it: ['il temporale'], pt: ['a tempestade'] }, pos: 'noun', level: 'A2', category: 'weather' },
@@ -106,12 +106,12 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'a2v084', de: 'sich freuen auf', en: ['to look forward to'], gloss: { es: ['tener ganas de'], fr: ['avoir hâte de'], it: ['non vedere l’ora di'], pt: ['estar ansioso por'] }, pos: 'phrase', level: 'A2', category: 'feelings' },
 
   // ── time & frequency ──────────────────────────────────────────────────
-  { id: 'a2v085', de: 'gestern', en: ['yesterday'], gloss: { es: ['ayer'], fr: ['hier'], it: ['ieri'], pt: ['ontem'] }, pos: 'adv', level: 'A2', category: 'time' },
+  { id: 'a2v085', de: 'neulich', en: ['recently', 'the other day'], gloss: { es: ['hace poco', 'el otro día'], fr: ['récemment', 'l’autre jour'], it: ['di recente', 'l’altro giorno'], pt: ['recentemente', 'outro dia'] }, pos: 'adv', level: 'A2', category: 'time' },
   { id: 'a2v086', de: 'vorgestern', en: ['the day before yesterday'], gloss: { es: ['anteayer'], fr: ['avant-hier'], it: ['l’altro ieri'], pt: ['anteontem'] }, pos: 'adv', level: 'A2', category: 'time' },
   { id: 'a2v087', de: 'übermorgen', en: ['the day after tomorrow'], gloss: { es: ['pasado mañana'], fr: ['après-demain'], it: ['dopodomani'], pt: ['depois de amanhã'] }, pos: 'adv', level: 'A2', category: 'time' },
   { id: 'a2v088', de: 'meistens', en: ['mostly', 'usually'], gloss: { es: ['normalmente', 'la mayoría de las veces'], fr: ['la plupart du temps'], it: ['di solito'], pt: ['geralmente'] }, pos: 'adv', level: 'A2', category: 'time' },
   { id: 'a2v089', de: 'selten', en: ['rarely', 'seldom'], gloss: { es: ['pocas veces', 'raramente'], fr: ['rarement'], it: ['raramente'], pt: ['raramente'] }, pos: 'adv', level: 'A2', category: 'time' },
-  { id: 'a2v090', de: 'nie', en: ['never'], gloss: { es: ['nunca'], fr: ['jamais'], it: ['mai'], pt: ['nunca'] }, pos: 'adv', level: 'A2', category: 'time' },
+  { id: 'a2v090', de: 'manchmal', en: ['sometimes'], gloss: { es: ['a veces'], fr: ['parfois', 'quelquefois'], it: ['a volte'], pt: ['às vezes'] }, pos: 'adv', level: 'A2', category: 'time' },
   { id: 'a2v091', de: 'schon', en: ['already'], gloss: { es: ['ya'], fr: ['déjà'], it: ['già'], pt: ['já'] }, pos: 'adv', level: 'A2', category: 'time' },
   { id: 'a2v092', de: 'noch nicht', en: ['not yet'], gloss: { es: ['todavía no'], fr: ['pas encore'], it: ['non ancora'], pt: ['ainda não'] }, pos: 'phrase', level: 'A2', category: 'time' },
   { id: 'a2v093', de: 'sofort', en: ['immediately', 'right away'], gloss: { es: ['inmediatamente', 'enseguida'], fr: ['tout de suite'], it: ['subito'], pt: ['imediatamente'] }, pos: 'adv', level: 'A2', category: 'time' },
@@ -121,7 +121,7 @@ export const A2_VOCAB: VocabItem[] = [
   { id: 'a2v095', de: 'die Wohnung', en: ['the flat', 'the flat'], gloss: { es: ['el piso'], fr: ['l’appartement'], it: ['l’appartamento'], pt: ['o apartamento'] }, pos: 'noun', level: 'A2', category: 'household' },
   { id: 'a2v096', de: 'die Miete', en: ['the rent'], gloss: { es: ['el alquiler'], fr: ['le loyer'], it: ['l’affitto'], pt: ['o aluguel'] }, pos: 'noun', level: 'A2', category: 'household' },
   { id: 'a2v097', de: 'der Nachbar', en: ['the neighbour'], gloss: { es: ['el vecino'], fr: ['le voisin'], it: ['il vicino'], pt: ['o vizinho'] }, pos: 'noun', level: 'A2', category: 'household' },
-  { id: 'a2v098', de: 'der Schlüssel', en: ['the key'], gloss: { es: ['la llave'], fr: ['la clé'], it: ['la chiave'], pt: ['a chave'] }, pos: 'noun', level: 'A2', category: 'household' },
+  { id: 'a2v098', de: 'der Schrank', en: ['the cupboard', 'the wardrobe'], gloss: { es: ['el armario'], fr: ['l’armoire'], it: ['l’armadio'], pt: ['o armário'] }, pos: 'noun', level: 'A2', category: 'household' },
   { id: 'a2v099', de: 'die Waschmaschine', en: ['the washing machine'], gloss: { es: ['la lavadora'], fr: ['la machine à laver'], it: ['la lavatrice'], pt: ['a máquina de lavar'] }, pos: 'noun', level: 'A2', category: 'household' },
   { id: 'a2v100', de: 'der Kühlschrank', en: ['the fridge'], gloss: { es: ['la nevera'], fr: ['le réfrigérateur'], it: ['il frigorifero'], pt: ['a geladeira'] }, pos: 'noun', level: 'A2', category: 'household' },
   { id: 'a2v101', de: 'der Herd', en: ['the cooker'], gloss: { es: ['la cocina (aparato)'], fr: ['la cuisinière'], it: ['il fornello'], pt: ['o fogão'] }, pos: 'noun', level: 'A2', category: 'household' },
