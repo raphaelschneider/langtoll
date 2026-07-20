@@ -115,7 +115,7 @@ export const fr: Partial<Record<StringKey, string>> = {
   'ob.lockCtaWait': "Choisis d'abord des apps",
 
   'lock.enable': "Activer Temps d'écran",
-  'lock.authBody': "Autorise Temps d'écran pour que LangPass puisse bloquer tes apps. Apple ne le demande qu'une fois.",
+  'lock.authBody': 'Autorise Temps d’écran pour que LangPass verrouille tes apps, et les notifications pour que le blocage puisse te ramener ici. Apple ne le demande qu’une fois.',
   'lock.choose': 'Choisir les apps à verrouiller',
   'lock.selected': 'Apps sélectionnées — tout est prêt',
   'lock.simNote': "Sur ton iPhone, tu les choisiras dans le sélecteur Temps d'écran d'Apple (il s'ouvre automatiquement ici).",

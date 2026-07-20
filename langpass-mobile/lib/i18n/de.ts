@@ -115,7 +115,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.lockCtaWait': 'Erst Apps wählen',
 
   'lock.enable': 'Bildschirmzeit erlauben',
-  'lock.authBody': 'Erlaube Bildschirmzeit, damit LangPass deine Apps sperren kann. Apple fragt nur einmal.',
+  'lock.authBody': 'Erlaube Bildschirmzeit, damit LangPass deine Apps sperren kann, und Mitteilungen, damit die Sperre dich zurückholen kann. Apple fragt nur einmal.',
   'lock.choose': 'Apps zum Sperren wählen',
   'lock.selected': 'Apps gewählt — alles bereit',
   'lock.simNote': 'Auf deinem iPhone wählst du sie in Apples Bildschirmzeit-Picker (öffnet sich hier automatisch).',

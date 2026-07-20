@@ -115,7 +115,7 @@ export const es: Partial<Record<StringKey, string>> = {
   'ob.lockCtaWait': 'Elige apps primero',
 
   'lock.enable': 'Activar Tiempo de uso',
-  'lock.authBody': 'Permite Tiempo de uso para que LangPass pueda bloquear tus apps. Apple lo pregunta una sola vez.',
+  'lock.authBody': 'Permite Tiempo de uso para que LangPass bloquee tus apps, y las notificaciones para que el bloqueo pueda traerte de vuelta. Apple lo pregunta una sola vez.',
   'lock.choose': 'Elige las apps a bloquear',
   'lock.selected': 'Apps elegidas — todo listo',
   'lock.simNote': 'En tu iPhone las eliges en el selector de Tiempo de uso de Apple (aquí se abre solo).',

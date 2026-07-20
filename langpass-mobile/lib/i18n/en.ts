@@ -123,7 +123,7 @@ export const en = {
 
   // lock setup
   'lock.enable': 'Enable Screen Time',
-  'lock.authBody': 'Allow Screen Time so LangPass can shield your apps. Apple asks once.',
+  'lock.authBody': 'Allow Screen Time so LangPass can shield your apps, and notifications so the lock screen can bring you back. Apple asks once.',
   'lock.choose': 'Choose apps to lock',
   'lock.selected': 'Apps selected — you’re set',
   'lock.simNote': 'On your iPhone, you’ll pick these in Apple’s Screen Time picker (it opens automatically here).',

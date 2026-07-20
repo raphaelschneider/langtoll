@@ -2,7 +2,7 @@
 // (physical iOS device + module). Handles the two-step gate: authorize, then
 // pick apps via Apple's own FamilyActivityPicker sheet. In stub mode this
 // component renders nothing — settings falls back to the demo chip list.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
@@ -19,7 +19,7 @@ import {
   configureShieldAppearance,
   maybeRelock,
 } from '@/lib/blocking';
-import { requestNotificationPermission } from '@/lib/notify';
+import { requestNotificationPermission, notificationsGranted, openSystemSettings } from '@/lib/notify';
 import { isPlus, isUnlocked, getState } from '@/lib/store';
 import { selectionExceedsFreeLimit } from '@/lib/plans';
 
@@ -42,6 +42,14 @@ export function AppPicker() {
   const [configured, setConfigured] = useState(hasSelection());
   const [overLimit, setOverLimit] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Null = not checked yet, so nothing is claimed before we know.
+  const [notifsOn, setNotifsOn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void notificationsGranted().then((ok) => alive && setNotifsOn(ok));
+    return () => { alive = false; };
+  }, []);
 
   if (!isNativeAvailable()) return null;
   const mod = nativeModule();
@@ -54,7 +62,7 @@ export function AppPicker() {
     if (ok) {
       configureShieldAppearance();
       // The shield button needs this to do anything at all.
-      void requestNotificationPermission();
+      void requestNotificationPermission().then(setNotifsOn);
     }
     setBusy(false);
   }
@@ -141,6 +149,21 @@ export function AppPicker() {
         full
         style={{ marginTop: space.md }}
       />
+      {notifsOn === false && (
+        <View style={[styles.overLimit, { borderColor: theme.amber, backgroundColor: theme.fill }]}>
+          <Text variant="caption" color="amber">
+            Notifications are off. The &quot;Practice now&quot; button on the lock screen sends one to bring
+            you back here — without it, that button can&apos;t do anything. iOS doesn&apos;t let a lock
+            screen open an app any other way.
+          </Text>
+          <Button
+            label="Turn on notifications"
+            onPress={openSystemSettings}
+            full
+            style={{ marginTop: space.sm }}
+          />
+        </View>
+      )}
       {overLimit && !plus && (
         <View style={[styles.overLimit, { borderColor: theme.amber, backgroundColor: theme.fill }]}>
           <Text variant="caption" color="amber">
