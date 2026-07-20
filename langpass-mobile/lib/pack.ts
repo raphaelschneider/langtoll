@@ -1,6 +1,6 @@
 // Resolves the pack the user actually trains on: their language + CEFR level's
 // bundled pack, plus the AI topic pack merged in when one is generated and enabled.
-import { packFor, type LanguagePack, type Level } from '@/content';
+import { packFor, type LanguagePack, type Level, type VocabItem, type SentenceItem } from '@/content';
 import { getState } from '@/lib/store';
 import { resolvedLocale } from '@/lib/i18n';
 import { sanitizeTopic } from '@/lib/ai/topics';
@@ -43,29 +43,55 @@ function localizePack(pack: LanguagePack, locale: LocaleCode): LanguagePack {
   return out;
 }
 
+// Same swap localizePack applies to bundled items, for items that arrive OUTSIDE
+// the bundled pack — the pool and custom topics. These were appended after
+// localizePack ran, so their glosses were never consulted and a Portuguese user
+// saw English hints on every AI exercise while bundled ones localized correctly.
+function localizeItems<V extends VocabItem[], S extends SentenceItem[]>(
+  vocab: V,
+  sentences: S,
+  locale: LocaleCode
+): { vocab: VocabItem[]; sentences: SentenceItem[] } {
+  if (locale === FALLBACK_LOCALE) return { vocab, sentences };
+  return {
+    vocab: vocab.map((v) => {
+      const g = v.gloss?.[locale];
+      return g && g.length ? { ...v, en: g } : v;
+    }),
+    sentences: sentences.map((s) => {
+      const g = s.gloss?.[locale];
+      return g ? { ...s, en: g } : s;
+    }),
+  };
+}
+
 export function activePack(): LanguagePack {
   const s = getState();
-  const base = localizePack(packFor(s.learningLanguage, s.level), resolvedLocale());
+  const locale = resolvedLocale();
+  const base = localizePack(packFor(s.learningLanguage, s.level), locale);
 
   // The generated pool, merged for EVERYONE. The bundled packs alone are a few
   // hundred items per level, which a heavy user exhausts in days — this is what
   // stops the same sentence coming round every session. Read synchronously from
   // the in-memory cache (see lib/ai/pool), so a session never waits on network
-  // and works offline once synced.
-  const pool = poolItems(s.learningLanguage, s.level);
+  // and works offline once synced. Localized here because it bypasses
+  // localizePack entirely.
+  const rawPool = poolItems(s.learningLanguage, s.level);
+  const pool = localizeItems(rawPool.vocab, rawPool.sentences, locale);
 
   // Sanitize on every load: packs generated before the blank-detection guards
   // existed are already persisted on devices, and a bad sentence renders an
   // unanswerable exercise ("__" offered as one of the options).
   const topic = s.customTopic ? sanitizeTopic(s.customTopic) : null;
   const useTopic = !!topic && s.useCustomTopic && topic.vocab.length > 0;
+  const topicItems = useTopic ? localizeItems(topic!.vocab, topic!.sentences, locale) : null;
 
-  if (!useTopic && !pool.vocab.length && !pool.sentences.length) return base;
+  if (!topicItems && !pool.vocab.length && !pool.sentences.length) return base;
 
   return {
     ...base,
     name: useTopic ? `${base.name} · ${topic!.name}` : base.name,
-    vocab: [...base.vocab, ...pool.vocab, ...(useTopic ? topic!.vocab : [])],
-    sentences: [...base.sentences, ...pool.sentences, ...(useTopic ? topic!.sentences : [])],
+    vocab: [...base.vocab, ...pool.vocab, ...(topicItems?.vocab ?? [])],
+    sentences: [...base.sentences, ...pool.sentences, ...(topicItems?.sentences ?? [])],
   };
 }
