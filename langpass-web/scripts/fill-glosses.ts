@@ -117,6 +117,9 @@ async function main() {
   const level = get('--level');
   const lang = get('--lang');
   const concurrency = Number(get('--concurrency')) || DEFAULT_CONCURRENCY;
+  // Deliberately available so a change can be proven on a handful of packs before
+  // being turned loose on thousands.
+  const limit = Number(get('--limit')) || 0;
 
   const where: string[] = [];
   if (level) where.push(`level = '${level.toUpperCase()}'`);
@@ -125,11 +128,12 @@ async function main() {
     `SELECT content_key, pack FROM topic_packs${where.length ? ' WHERE ' + where.join(' AND ') : ''}`
   )) as { content_key: string; pack: string }[];
 
-  const needing = rows
+  let needing = rows
     .map((r) => ({ key: r.content_key, pack: (typeof r.pack === 'string' ? JSON.parse(r.pack) : r.pack) as Pack }))
     .filter(({ pack }) =>
       pack.vocab?.some((v) => gaps(v.gloss, pack.language).length) ||
       pack.sentences?.some((s) => gaps(s.gloss, pack.language).length));
+  if (limit) needing = needing.slice(0, limit);
 
   console.log(`${rows.length} packs, ${needing.length} with gloss gaps`);
   if (!needing.length || dry) return console.log(dry ? '--dry: stopping.' : 'nothing to do.');
