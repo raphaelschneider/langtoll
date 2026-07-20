@@ -115,6 +115,13 @@ export function prompt(topic: string, langName: string, level: string, vocabCoun
   };
   const glossExample = glossLocales.map((l) => `"${l}": ["${VOCAB_SAMPLE[l]}"]`).join(', ');
   const sentenceGlossExample = glossLocales.map((l) => `"${l}": "${SENTENCE_SAMPLE[l]}"`).join(', ');
+  // The example ITSELF must be in the target language. It used to be German for
+  // every language — a field named "de" plus a German example outweighed the one
+  // line of prose saying "write ${langName} here", and all 612 English packs
+  // came back teaching German. The model imitates the example, not the caveat.
+  const exampleVocab = VOCAB_SAMPLE[target ?? 'de'] ?? VOCAB_SAMPLE.de;
+  const exampleSentence = SENTENCE_SAMPLE[target ?? 'de'] ?? SENTENCE_SAMPLE.de;
+  const exampleClozeWord = exampleVocab.split(' ').pop();
   const levelGuidance = LEVEL_GUIDANCE[level] ?? '';
   const regionGuidance = REGION_GUIDANCE[target ?? ''] ?? '';
   // Each gloss must respect its OWN language's regional standard too — a pt
@@ -140,14 +147,14 @@ If the subject is not suitable for a general-audience language course, return {"
 
 Return ONLY a JSON object with this exact shape (no markdown, no commentary):
 {
-  "vocab": [{ "de": "die Rechnung", "en": ["the bill","the check"], "gloss": {${glossExample}}, "pos": "noun", "category": "<topic slug>" }],
-  "sentences": [{ "de": "Können wir bitte die Rechnung haben?", "en": "Can we have the bill, please?", "gloss": {${sentenceGlossExample}}, "clozeWord": "Rechnung", "clozeDistractors": ["Speisekarte","Küche","Gabel"] }]
+  "vocab": [{ "de": "${exampleVocab}", "en": ["the bill"], "gloss": {${glossExample}}, "pos": "noun", "category": "<topic slug>" }],
+  "sentences": [{ "de": "${exampleSentence}", "en": "Can we have the bill, please?", "gloss": {${sentenceGlossExample}}, "clozeWord": "${exampleClozeWord}", "clozeDistractors": ["...","...","..."] }]
 }
 Rules:
 - "gloss" gives the translation in EVERY one of these locales: ${glossLocales.join(', ')}. For vocab it is an array of one or two translations per locale; for sentences it is a single string per locale. The app shows the learner whichever locale their interface is in, so a missing or wrong locale means a broken exercise for those users. Translate meaning, not words — an idiom becomes the equivalent idiom.
 - Every gloss must be genuinely correct in ITS OWN language. Do not let a neighbouring language leak in: Portuguese for "with" is "com", never "con".
 - Exactly ${vocabCount} vocab items and ${sentenceCount} sentences.
-- The "de" field holds the ${langName} text (keep the field name "de" regardless of language).
+- The "de" field holds the ${langName} text — the field is NAMED "de" for legacy reasons but its CONTENT is always ${langName}, exactly as in the example above. For an English pack it contains English.
 - Nouns MUST include the article in "de" where the language has them.
 - "pos" is one of: ${POS.join(', ')}.
 - "en" is an array; first entry is the canonical English translation.
