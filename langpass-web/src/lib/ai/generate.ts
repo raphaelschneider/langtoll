@@ -21,6 +21,29 @@ export const LANGS: Record<string, string> = {
 
 export const LEVELS = ['A1', 'A2', 'B1', 'B2'];
 
+// Regional standard per language. The AUTHORED packs have carried these rules
+// from the start — Brazilian Portuguese only, Peninsular Spanish, British
+// English — and the generator did not, so the same app was teaching two
+// standards depending on whether an item came from the bundle or the pool.
+//
+// These apply to the taught text AND to that language's glosses inside other
+// packs, which is the larger surface: five of six packs carry a pt gloss.
+const REGION_GUIDANCE: Record<string, string> = {
+  pt:
+    'BRAZILIAN Portuguese ONLY — never European. Use o celular, o ônibus, a geladeira, o trem, o aluguel, a tela, o banheiro, o café da manhã, você. ' +
+    'Never telemóvel, autocarro, comboio, casa de banho, pequeno-almoço, ecrã, or tu as the default subject. ' +
+    'Clitics go BEFORE the verb in finite clauses (me chamo, se casaram), never after (chamo-me). Enclisis on infinitives (levantar-se) is correct and fine.',
+  es:
+    'PENINSULAR Spanish (Spain) ONLY. Use el móvil, el coche, el ordenador, el billete, aparcar, and vosotros where natural. ' +
+    'Never el celular, el carro, la computadora, el boleto, manejar. No regional slang.',
+  en:
+    'BRITISH English ONLY. Use lift, flat, underground, autumn, rubbish, queue, mobile, and British spelling (colour, realise, centre, travelling). ' +
+    'Never elevator, apartment, subway, fall, trash, line, cell phone, or American spellings.',
+  de: 'Standard German (Hochdeutsch). No regional dialect forms.',
+  fr: 'Standard metropolitan French. Keep tu/vous consistent within a single sentence.',
+  it: 'Standard Italian. No regional dialect forms.',
+};
+
 // Sentences were the scarce resource — ~20 per level against ~110 vocab — which
 // is why cloze, order and listen exercises recycled constantly. Generated packs
 // are deliberately sentence-heavy to correct that ratio.
@@ -89,6 +112,12 @@ export function prompt(topic: string, langName: string, level: string, vocabCoun
   const glossExample = glossLocales.map((l) => `"${l}": ["${VOCAB_SAMPLE[l]}"]`).join(', ');
   const sentenceGlossExample = glossLocales.map((l) => `"${l}": "${SENTENCE_SAMPLE[l]}"`).join(', ');
   const levelGuidance = LEVEL_GUIDANCE[level] ?? '';
+  const regionGuidance = REGION_GUIDANCE[target ?? ''] ?? '';
+  // Each gloss must respect its OWN language's regional standard too — a pt
+  // gloss inside a German pack must still be Brazilian.
+  const glossRegionRules = glossLocales
+    .map((l) => `  ${l}: ${REGION_GUIDANCE[l] ?? ''}`)
+    .join('\n');
 
   // The topic may be USER INPUT. It is delimited and explicitly demoted to data,
   // so a string trying to issue instructions is treated as a subject name.
@@ -122,6 +151,9 @@ Rules:
 - "clozeWord" is the single word from "de" that the learner should have to recall — copy it EXACTLY as it appears in "de", including its capitalisation. Choose a meaningful word: a noun, verb or adjective. Never an article, and never the last word of the sentence.
 - "clozeDistractors" are 3 wrong-but-plausible ${langName} words that could grammatically replace "clozeWord". They MUST be the same part of speech and the same grammatical form as clozeWord — if it is a conjugated verb, all three are conjugated verbs agreeing with the same subject; if it is a plural noun, all three are plural nouns. A learner should have to know the MEANING to choose, never be able to eliminate options because they do not fit the slot grammatically. Never the correct word, never an article.
 - The whole pack must sit at CEFR ${level} and nowhere else. ${levelGuidance}
+- REGIONAL STANDARD for the ${langName} you write: ${regionGuidance}
+- Each gloss must follow its own language's regional standard:
+${glossRegionRules}
 - Difficulty, vocabulary and grammar must match ${level} specifically — an A1 pack and a B2 pack on the same topic must look completely different. Use proper accents/diacritics.`;
 }
 
