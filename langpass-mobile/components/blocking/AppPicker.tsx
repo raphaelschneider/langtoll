@@ -17,8 +17,9 @@ import {
   selectionCounts,
   clearSelection,
   configureShieldAppearance,
+  maybeRelock,
 } from '@/lib/blocking';
-import { isPlus } from '@/lib/store';
+import { isPlus, isUnlocked, getState } from '@/lib/store';
 import { selectionExceedsFreeLimit } from '@/lib/plans';
 
 // The native module (and its view components) only exist in a dev build.
@@ -78,7 +79,18 @@ export function AppPicker() {
       setOverLimit(true);
     } else {
       setOverLimit(false);
-      setConfigured(hasSelection());
+      const has = hasSelection();
+      setConfigured(has);
+      // Apply the shield to the NEW selection right away. Onboarding already did
+      // this (LockSetup calls lockNow after its picker), but changing apps later
+      // in Settings did not — so newly chosen apps stayed open until the next
+      // launch or foreground, whenever maybeRelock happens to run. Selecting an
+      // app while the pass is expired should lock it there and then.
+      //
+      // maybeRelock rather than lockNow: it shields only when the pass is not
+      // active, so editing the list during an unlock does not slam the gate on
+      // someone who has already paid the fare.
+      if (has) maybeRelock(isUnlocked(getState()));
     }
   }
 
