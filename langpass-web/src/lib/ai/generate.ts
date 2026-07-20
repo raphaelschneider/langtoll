@@ -56,11 +56,15 @@ export function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'topic';
 }
 
-// Every locale the app's UI ships in. A generated pack must gloss into all of
-// them except the one being taught — otherwise a French user learning German
-// gets French glosses on authored items and English on pool items, in the same
-// session.
-export const UI_LOCALES = ['en', 'de', 'es', 'fr', 'it', 'pt'] as const;
+// Locales a pack must gloss into.
+//
+// `en` is deliberately ABSENT. Every item already carries its canonical English
+// in the top-level `en` field, and localizePack() returns the pack untouched when
+// the reader's locale is English — so gloss.en is never read by anything. Asking
+// for it produced invented paraphrases ("an expression of regret" alongside a
+// top-level "apology"), wasted tokens on every call, and generated phantom audit
+// failures for a field no code path consumes.
+export const UI_LOCALES = ['de', 'es', 'fr', 'it', 'pt'] as const;
 
 // What each level must actually look like, stated concretely. "Match CEFR B2"
 // alone produced A1 content wearing a B2 label — the model needs the grammar

@@ -22,7 +22,10 @@ import subprocess
 import sys
 from collections import defaultdict
 
-LOCALES = ["en", "de", "es", "fr", "it", "pt"]
+# `en` excluded on purpose: it lives in the top-level `en` field and gloss.en is
+# never read (localizePack returns early for English). Auditing it reported
+# thousands of failures in dead data.
+LOCALES = ["de", "es", "fr", "it", "pt"]
 
 # Blanking one of these tests nothing — the learner recalls grammar they already
 # used to parse the rest of the sentence. Seen live: "[___] müssen die Abflugzeit
@@ -84,7 +87,7 @@ def audit_pack(pack: dict) -> list[tuple[str, str]]:
         missing = [l for l in LOCALES if l != lang and l not in g]
         if missing:
             out.append(("vocab missing glosses", f"{v.get('de')} missing {','.join(missing)}"))
-        bad = [l for l, val in g.items() if placeholder(val)]
+        bad = [l for l, val in g.items() if l in LOCALES and placeholder(val)]
         if bad:
             out.append(("vocab PLACEHOLDER gloss", f"{v.get('de')} -> {','.join(bad)} are literally '…'"))
 
@@ -121,7 +124,7 @@ def audit_pack(pack: dict) -> list[tuple[str, str]]:
         missing = [l for l in LOCALES if l != lang and l not in g]
         if missing:
             out.append(("sentence missing glosses", f"{s.get('de')} missing {','.join(missing)}"))
-        bad = [l for l, val in g.items() if placeholder(val)]
+        bad = [l for l, val in g.items() if l in LOCALES and placeholder(val)]
         if bad:
             out.append(("sentence PLACEHOLDER gloss", f"{s.get('de')} -> {','.join(bad)} are literally '…'"))
 
