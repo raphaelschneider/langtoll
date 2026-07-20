@@ -74,8 +74,7 @@ Translate the MEANING, not the words. Never leave a value empty, and never answe
 
 ${items}
 
-Return ONLY: {"0": {"es": "…translation…", "fr": "…translation…"}, "1": {...}}
-with one entry per item number, containing exactly the requested locales.`,
+Return ONLY a JSON object shaped like {"0": {"es": "la cuenta", "fr": "l'addition"}, "1": {"es": "...", "fr": "..."}} — one entry per item number, each containing exactly the locales that item asked for. The word JSON is required here by the API's response format.`,
     }],
     temperature: 0.2,
     max_tokens: 8000,
