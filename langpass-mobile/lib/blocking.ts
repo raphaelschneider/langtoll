@@ -24,6 +24,18 @@ import { Platform } from 'react-native';
 
 export type BlockingMode = 'native' | 'stub';
 
+/**
+ * Result of the LAST attempt to schedule the background re-lock. startMonitoring
+ * is async and was previously fire-and-forget, so an iOS rejection vanished as
+ * an unhandled promise rejection — the monitor silently didn't exist and apps
+ * never re-locked in the background. The dev screen renders this so a scheduling
+ * failure is visible on the device the moment a session completes.
+ */
+let lastRelock: { at: string; ok: boolean; detail: string } | null = null;
+export function relockStatus(): { at: string; ok: boolean; detail: string } | null {
+  return lastRelock;
+}
+
 /** The stable id the user's "distracting apps" selection is persisted under. */
 const SELECTION_ID = 'langpass-blocked';
 const ACTIVITY_NAME = 'langpass-relock';
@@ -205,18 +217,32 @@ export function grantUnlock(minutes: number): void {
     } catch {
       // no prior monitor — fine
     }
-    m.startMonitoring(
-      ACTIVITY_NAME,
-      {
-        intervalStart: dc(now),
-        intervalEnd: dc(monitorEnd),
-        repeats: false,
-      },
-      []
-    );
-    console.log(
-      `[blocking] relock monitor scheduled ${now.toLocaleTimeString()} -> ${monitorEnd.toLocaleTimeString()}`
-    );
+    void (async () => {
+      try {
+        await m.startMonitoring(
+          ACTIVITY_NAME,
+          { intervalStart: dc(now), intervalEnd: dc(monitorEnd), repeats: false },
+          []
+        );
+        // Trust nothing: read back whether iOS actually registered the monitor.
+        const active: string[] = m.getActivities?.() ?? [];
+        const ok = active.includes(ACTIVITY_NAME);
+        lastRelock = {
+          at: new Date().toLocaleTimeString(),
+          ok,
+          detail: ok
+            ? `armed until ${monitorEnd.toLocaleTimeString()}`
+            : `startMonitoring resolved but monitor is MISSING (activities: ${active.join(',') || 'none'})`,
+        };
+      } catch (e) {
+        lastRelock = {
+          at: new Date().toLocaleTimeString(),
+          ok: false,
+          detail: `startMonitoring REJECTED: ${e instanceof Error ? e.message : String(e)}`,
+        };
+      }
+      console.log('[blocking] relock:', JSON.stringify(lastRelock));
+    })();
     // When the interval ends, re-block — runs in the extension even if the app is closed.
     m.configureActions({
       activityName: ACTIVITY_NAME,

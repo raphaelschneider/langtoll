@@ -21,7 +21,7 @@ import {
   applyEntitlement,
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable } from '@/lib/ai/topics';
-import { isNativeAvailable } from '@/lib/blocking';
+import { isNativeAvailable, relockStatus } from '@/lib/blocking';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
@@ -639,6 +639,16 @@ export default function Settings() {
 
           {DEV_TOOLS && (
             <View style={{ marginTop: space.xl, gap: space.sm }}>
+              {/* Did the last unlock actually arm the background re-lock? iOS can
+                  reject the DeviceActivity schedule, and before this was surfaced
+                  the rejection vanished as an unhandled promise — the monitor
+                  silently didn't exist and apps never re-locked in the background. */}
+              <Text variant="caption" color={relockStatus()?.ok === false ? 'amber' : 'inkFaint'}>
+                {(() => {
+                  const r = relockStatus();
+                  return r ? `Relock monitor @ ${r.at}: ${r.detail}` : 'Relock monitor: no unlock this launch yet';
+                })()}
+              </Text>
               <Button
                 label={plus ? 'Downgrade to free (dev)' : 'Grant Plus (dev)'}
                 variant="ghost"
