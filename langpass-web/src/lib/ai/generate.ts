@@ -68,8 +68,26 @@ export function prompt(topic: string, langName: string, level: string, vocabCoun
   // Gloss into every UI locale except the one being taught.
   const target = Object.keys(LANGS).find((k) => LANGS[k] === langName);
   const glossLocales = UI_LOCALES.filter((l) => l !== target);
-  const glossExample = glossLocales.map((l) => `"${l}": ["…"]`).join(', ');
-  const sentenceGlossExample = glossLocales.map((l) => `"${l}": "…"`).join(', ');
+  // Show a REAL translation per locale, never a placeholder. These examples used
+  // to render as "pt": "…" and gpt-4o-mini copied the ellipsis verbatim into
+  // 21,459 sentence glosses and 9,759 vocab glosses — a gloss that is present,
+  // passes a completeness check, and says nothing. gpt-4o translated the
+  // placeholder instead of copying it, which is why only the mini-generated
+  // levels were affected and why it went unnoticed.
+  const VOCAB_SAMPLE: Record<string, string> = {
+    en: 'the bill', de: 'die Rechnung', es: 'la cuenta',
+    fr: "l'addition", it: 'il conto', pt: 'a conta',
+  };
+  const SENTENCE_SAMPLE: Record<string, string> = {
+    en: 'Can we have the bill, please?',
+    de: 'Können wir bitte die Rechnung haben?',
+    es: '¿Nos trae la cuenta, por favor?',
+    fr: "Pouvons-nous avoir l'addition, s'il vous plaît ?",
+    it: 'Possiamo avere il conto, per favore?',
+    pt: 'Pode trazer a conta, por favor?',
+  };
+  const glossExample = glossLocales.map((l) => `"${l}": ["${VOCAB_SAMPLE[l]}"]`).join(', ');
+  const sentenceGlossExample = glossLocales.map((l) => `"${l}": "${SENTENCE_SAMPLE[l]}"`).join(', ');
   const levelGuidance = LEVEL_GUIDANCE[level] ?? '';
 
   // The topic may be USER INPUT. It is delimited and explicitly demoted to data,

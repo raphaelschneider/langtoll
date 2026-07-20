@@ -71,11 +71,22 @@ def audit_pack(pack: dict) -> list[tuple[str, str]]:
     out: list[tuple[str, str]] = []
     fn = FUNCTION_WORDS.get(lang, set())
 
+    # The prompt shows the gloss shape with "…" as a placeholder. Weaker models
+    # copy the placeholder instead of translating, and a presence check passes it
+    # — the gloss IS there, it just says nothing. Caught only when a native
+    # speaker read the output.
+    def placeholder(val) -> bool:
+        vals = val if isinstance(val, list) else [val]
+        return any(isinstance(x, str) and x.strip() in {"…", "...", ""} for x in vals)
+
     for v in pack.get("vocab", []):
         g = v.get("gloss") or {}
         missing = [l for l in LOCALES if l != lang and l not in g]
         if missing:
             out.append(("vocab missing glosses", f"{v.get('de')} missing {','.join(missing)}"))
+        bad = [l for l, val in g.items() if placeholder(val)]
+        if bad:
+            out.append(("vocab PLACEHOLDER gloss", f"{v.get('de')} -> {','.join(bad)} are literally '…'"))
 
     for s in pack.get("sentences", []):
         words = (s.get("de") or "").split()
@@ -110,6 +121,9 @@ def audit_pack(pack: dict) -> list[tuple[str, str]]:
         missing = [l for l in LOCALES if l != lang and l not in g]
         if missing:
             out.append(("sentence missing glosses", f"{s.get('de')} missing {','.join(missing)}"))
+        bad = [l for l, val in g.items() if placeholder(val)]
+        if bad:
+            out.append(("sentence PLACEHOLDER gloss", f"{s.get('de')} -> {','.join(bad)} are literally '…'"))
 
     return out
 
