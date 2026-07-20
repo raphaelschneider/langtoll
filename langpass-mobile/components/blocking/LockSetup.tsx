@@ -22,6 +22,7 @@ import {
   configureShieldAppearance,
   lockNow,
 } from '@/lib/blocking';
+import { requestNotificationPermission } from '@/lib/notify';
 import { useT } from '@/lib/i18n';
 
 function nativeModule(): any | null {
@@ -52,7 +53,11 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
     setBusy(true);
     const ok = await requestAuthorization();
     setAuthed(ok);
-    if (ok) configureShieldAppearance();
+    if (ok) {
+      configureShieldAppearance();
+      // The shield button needs this to do anything at all.
+      void requestNotificationPermission();
+    }
     setBusy(false);
   }
 

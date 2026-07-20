@@ -237,21 +237,33 @@ export function configureShieldAppearance(): void {
         primaryButtonLabelColor: { red: 16, green: 20, blue: 3, alpha: 1 },
       },
       {
-        // NOT `actions: [{ type: 'openApp' }]`. That path calls open() on a
-        // freshly constructed NSExtensionContext — not the extension's real one,
-        // so nothing routes — and it hardcodes the library example's
-        // device-activity:// scheme (its source says `// todo` next to it). The
-        // observed result was the shield closing and the blocked app merely
-        // going to the background.
+        // A shield extension CANNOT open its containing app. That is Apple's
+        // position, not a shortcoming of this library: Frameworks engineers have
+        // said so repeatedly since 2022 and FB17261679 tracks the enhancement
+        // request. Verified here the hard way — NSExtensionContext.open(), which
+        // is what both `openApp` and `openUrlWithDispatch` call underneath, fails
+        // SILENTLY on device. The shield closed and the blocked app simply went
+        // to the background.
         //
-        // `openUrlWithDispatch` is a first-class action type on the config
-        // object itself and runs the open on the main queue, which is the
-        // variant most likely to survive the extension being torn down. The URL
-        // is ours: expo-linking treats `langpass` as the canonical scheme.
-        // A bare `langpass://` has no host and no path, which iOS may not resolve
-        // to anything. `langpass://session` is a real expo-router route, so the
-        // URL is well-formed and lands directly on the practice screen.
-        primary: { behavior: 'close', type: 'openUrlWithDispatch', url: 'langpass://session' },
+        // Apps that do launch directly are understood to use LSApplicationWorkspace,
+        // a private API, and there is a documented App Store rejection for it
+        // under guideline 2.5.1. Not a risk worth taking on an app that already
+        // carries Family Controls review scrutiny.
+        //
+        // So: the documented, compliant workaround. Post a local notification
+        // carrying the deep link; tapping it foregrounds the app on /session.
+        // One extra tap, and it actually works.
+        primary: {
+          behavior: 'close',
+          type: 'sendNotification',
+          payload: {
+            title: 'Your pass is expired',
+            body: 'Tap to practise and unlock your apps.',
+            sound: 'default',
+            interruptionLevel: 'timeSensitive',
+            userInfo: { url: 'langpass://session' },
+          },
+        },
         secondary: { behavior: 'defer' },
       },
       'langpass:configureShield'

@@ -19,6 +19,7 @@ import {
   configureShieldAppearance,
   maybeRelock,
 } from '@/lib/blocking';
+import { requestNotificationPermission } from '@/lib/notify';
 import { isPlus, isUnlocked, getState } from '@/lib/store';
 import { selectionExceedsFreeLimit } from '@/lib/plans';
 
@@ -50,7 +51,11 @@ export function AppPicker() {
     setBusy(true);
     const ok = await requestAuthorization();
     setAuthed(ok);
-    if (ok) configureShieldAppearance();
+    if (ok) {
+      configureShieldAppearance();
+      // The shield button needs this to do anything at all.
+      void requestNotificationPermission();
+    }
     setBusy(false);
   }
 

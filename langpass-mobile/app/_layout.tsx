@@ -19,6 +19,7 @@ import { hydrate, getState, isUnlocked } from '@/lib/store';
 import { configureShieldAppearance, maybeRelock } from '@/lib/blocking';
 import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
+import { handleNotificationTaps } from '@/lib/notify';
 import { primeVoices, configureAudioSession, applyStoredShaping } from '@/lib/tts';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -75,13 +76,19 @@ export default function RootLayout() {
     if (!ready) return;
     configureShieldAppearance();
     maybeRelock(isUnlocked(getState()));
+    // The shield's button posts a notification instead of opening the app —
+    // iOS gives an extension no way to do the latter. This routes the tap.
+    const stopTaps = handleNotificationTaps();
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && next === 'active') {
         maybeRelock(isUnlocked(getState()));
       }
       appState.current = next;
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      stopTaps();
+    };
   }, [ready]);
 
   // Hide the splash as soon as JS mounts, so the diagnostic/loading screen
