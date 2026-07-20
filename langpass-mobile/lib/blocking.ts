@@ -178,6 +178,27 @@ export function grantUnlock(minutes: number): void {
 
     const now = new Date();
     const end = new Date(now.getTime() + minutes * 60_000);
+
+    // FULL date components, not just hour/minute. With time-of-day only,
+    // DeviceActivity reads the schedule as a daily wall-clock pattern — so an
+    // unlock crossing midnight (23:50 + 30min → end "00:20") is inverted and the
+    // re-lock never fires. This was the background-relock bug: apps stayed open
+    // until LangPass was next foregrounded and maybeRelock ran.
+    const dc = (d: Date) => ({
+      year: d.getFullYear(),
+      month: d.getMonth() + 1,
+      day: d.getDate(),
+      hour: d.getHours(),
+      minute: d.getMinutes(),
+      second: d.getSeconds(),
+    });
+
+    // Apple rejects DeviceActivity intervals under 15 minutes outright. Plus can
+    // customise the unlock length, so clamp the MONITOR (not the store's
+    // countdown): a 10-minute pass still re-locks, at most 15 minutes in — and
+    // maybeRelock on foreground stays the earlier bound.
+    const monitorEnd = minutes < 15 ? new Date(now.getTime() + 15 * 60_000) : end;
+
     // Fresh interval each grant; stop any prior one first.
     try {
       m.stopMonitoring([ACTIVITY_NAME]);
@@ -187,11 +208,14 @@ export function grantUnlock(minutes: number): void {
     m.startMonitoring(
       ACTIVITY_NAME,
       {
-        intervalStart: { hour: now.getHours(), minute: now.getMinutes(), second: now.getSeconds() },
-        intervalEnd: { hour: end.getHours(), minute: end.getMinutes(), second: end.getSeconds() },
+        intervalStart: dc(now),
+        intervalEnd: dc(monitorEnd),
         repeats: false,
       },
       []
+    );
+    console.log(
+      `[blocking] relock monitor scheduled ${now.toLocaleTimeString()} -> ${monitorEnd.toLocaleTimeString()}`
     );
     // When the interval ends, re-block — runs in the extension even if the app is closed.
     m.configureActions({
