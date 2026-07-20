@@ -244,10 +244,17 @@ export function grantUnlock(minutes: number): void {
       console.log('[blocking] relock:', JSON.stringify(lastRelock));
     })();
     // When the interval ends, re-block — runs in the extension even if the app is closed.
+    //
+    // KEY NAME MATTERS: generic ACTION dicts are read by the extension as
+    // action["familyActivitySelectionId"]. The direct blockSelection() CALL uses
+    // a different parser that takes `activitySelectionId`, and copying that key
+    // here made the action a silent no-op — intervalDidEnd fired on schedule for
+    // days while the extension found no selection id in the dict and did
+    // nothing. This was the background-relock bug.
     m.configureActions({
       activityName: ACTIVITY_NAME,
       callbackName: 'intervalDidEnd',
-      actions: [{ type: 'blockSelection', activitySelectionId: SELECTION_ID }],
+      actions: [{ type: 'blockSelection', familyActivitySelectionId: SELECTION_ID }],
     });
   } catch (e) {
     console.warn('[blocking] unblock/schedule failed', e);
