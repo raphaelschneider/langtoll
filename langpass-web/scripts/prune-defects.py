@@ -55,9 +55,24 @@ def main() -> None:
         if not defects:
             continue
 
-        bad_texts = {s["de"] for _, example in defects
-                     for s in pack.get("sentences", [])
-                     if s.get("de") and s["de"] in example}
+        # Two example formats: gloss defects quote the raw sentence, cloze
+        # defects quote it with the blank masked as [___]. Match both, else the
+        # function-word blanks survive the prune (they did, first run).
+        def masked(sent):
+            w = (sent.get("de") or "").split()
+            ci = sent.get("clozeIndex", -1)
+            if not (0 <= ci < len(w)):
+                return None
+            return " ".join("[___]" if i == ci else x for i, x in enumerate(w))
+
+        bad_texts = set()
+        for _, example in defects:
+            for sent in pack.get("sentences", []):
+                de = sent.get("de")
+                if not de:
+                    continue
+                if de in example or ((m := masked(sent)) and m in example):
+                    bad_texts.add(de)
         if not bad_texts:
             continue
 
