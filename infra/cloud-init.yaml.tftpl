@@ -43,6 +43,14 @@ write_files:
         request_body {
           max_size 10MB
         }
+        log {
+          output file /var/log/caddy/api-access.log {
+            roll_size 50MiB
+            roll_keep 10
+            roll_keep_for 720h
+          }
+          format json
+        }
       }
 
       # Public landing + legal site (privacy, terms). Same Next.js app on :3000, different
@@ -51,6 +59,14 @@ write_files:
       ${web_domain} {
         reverse_proxy 127.0.0.1:3000 {
           flush_interval -1
+        }
+        log {
+          output file /var/log/caddy/web-access.log {
+            roll_size 50MiB
+            roll_keep 10
+            roll_keep_for 720h
+          }
+          format json
         }
       }
 %{ if is_prod ~}
@@ -126,6 +142,8 @@ runcmd:
   - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
   - apt-get update
   - DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confold" caddy
+  # access logs: ensure the log dir exists + is writable by the caddy service user before start
+  - mkdir -p /var/log/caddy && chown caddy:caddy /var/log/caddy
   - systemctl enable --now caddy
 
   # firewall (80 needed for the ACME HTTP challenge + HTTP-to-HTTPS redirect)

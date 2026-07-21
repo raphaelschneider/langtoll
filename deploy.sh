@@ -86,11 +86,27 @@ $API_HOST {
   request_body {
     max_size 10MB
   }
+  log {
+    output file /var/log/caddy/api-access.log {
+      roll_size 50MiB
+      roll_keep 10
+      roll_keep_for 720h
+    }
+    format json
+  }
 }
 
 $LANDING_HOST {
   reverse_proxy 127.0.0.1:3000 {
     flush_interval -1
+  }
+  log {
+    output file /var/log/caddy/web-access.log {
+      roll_size 50MiB
+      roll_keep 10
+      roll_keep_for 720h
+    }
+    format json
   }
 }
 EOF
