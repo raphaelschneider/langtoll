@@ -11,6 +11,6 @@ export async function updatePricing(formData: FormData): Promise<void> {
     yearly: Number(formData.get('yearly')),
     currency: String(formData.get('currency') ?? 'USD'),
   });
-  revalidatePath('/langpass-adm');
+  revalidatePath('/langtoll-adm');
   revalidatePath('/');
 }

@@ -1,4 +1,4 @@
-// Editable app settings, stored in MySQL (one JSON row per key) and edited from /langpass-adm.
+// Editable app settings, stored in MySQL (one JSON row per key) and edited from /langtoll-adm.
 // Pricing is the source of truth for the landing page card + MRR estimate. It is NOT what
 // users actually pay — the app shows the live App Store / RevenueCat price; this is the
 // marketing/display figure, kept here so it can be changed without a deploy.
@@ -15,8 +15,8 @@ export interface Pricing {
 }
 
 // Fallback before any admin edit and whenever the DB is unreachable. Keep roughly in sync
-// with the app's RevenueCat products (langpass-mobile/lib/plans.ts).
-export const DEFAULT_PRICING: Pricing = { monthly: 12.99, yearly: 59.99, currency: 'USD' };
+// with the app's RevenueCat products (langtoll-mobile/lib/plans.ts).
+export const DEFAULT_PRICING: Pricing = { monthly: 7.99, yearly: 39.99, currency: 'USD' };
 
 // The running droplet won't re-run cloud-init, so the table self-heals on first use. Cheap:
 // CREATE TABLE IF NOT EXISTS is a no-op once it exists, and we only attempt it once per process.

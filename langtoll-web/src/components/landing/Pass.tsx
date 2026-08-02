@@ -1,17 +1,20 @@
 'use client';
-// The hero pass — an interactive React client component.
-//   • Desktop (fine pointer): hovering the card flips it ACTIVE → EXPIRED (stamp slams
-//     in), and it tilts to the pointer. Leaving resets it and the countdown resumes.
+// The hero pass — an interactive React client component, now styled as the travelcard.
+//   • Desktop (fine pointer): hovering the card flips it ACTIVE → EXPIRED (the green VALID
+//     stamp fades and the red EXPIRED stamp slams in), and it tilts to the pointer. Leaving
+//     resets it and the countdown resumes.
 //   • Mobile (coarse pointer): as the card scrolls up past the middle of the screen it
 //     animates to EXPIRED on its own, so touch users see the same beat.
 //   • Tap / Enter / Space toggles it too (keyboard-accessible).
-// The barcode and perforation are real markup and the countdown is React state, so
-// nothing here depends on a fragile inline <script>.
-// All ticket wording comes in as `copy` (COPY[locale].pass) so the card is localized too.
+// The countdown IS the product: the timer is the phone-time your reps bought; EXPIRED means
+// the wall is back. The barcode, line dots, perforation and stamps are real markup, so nothing
+// depends on a fragile inline <script>. All wording comes in as `copy` (COPY[locale].pass).
 import { useEffect, useRef, useState } from 'react';
 import type { LandingCopy } from '@/lib/landing-copy';
 
 const BARCODE = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 1, 2, 2, 1, 4, 1, 3, 1, 2, 1, 1, 3];
+// The six lines the pass is valid on — transit-line colours, matched to the languages board.
+const LINES = ['#C63A24', '#1C5A66', '#2E7D46', '#B5852A', '#7A4EA3', '#35618E'];
 const START = 29 * 60 + 37; // 29:37
 const TOTAL = 30 * 60;
 
@@ -100,22 +103,39 @@ export function Pass({ copy }: { copy: LandingCopy['pass'] }) {
         aria-label={expired ? copy.ariaExpired : copy.ariaActive}
       >
         <div className="pass-head">
-          <span className="label">{copy.brandLabel}</span>
+          <span className="pass-issuer">
+            <svg width="18" height="18" viewBox="0 0 30 30" aria-hidden="true">
+              <circle cx="15" cy="15" r="13" fill="none" stroke="currentColor" strokeWidth="3" />
+              <rect x="4" y="12.5" width="22" height="5" fill="currentColor" />
+            </svg>
+            {copy.brandLabel}
+          </span>
           <span className="chip"><span className="dot" />{expired ? copy.stateExpired : copy.stateActive}</span>
         </div>
+
         <div className="pass-timer">{timeStr}</div>
         <p className="pass-note">{expired ? copy.noteExpired : copy.noteActive}</p>
         <div className="pass-track"><div className="pass-fill" style={{ width: `${fillPct}%` }} /></div>
-        <div className="pass-passenger">
-          <span className="label">{copy.passengerLabel}</span>
-          <div className="who">{copy.passengerName}</div>
+
+        <div className="pass-lines" aria-hidden="true">
+          {LINES.map((c, i) => <i key={i} style={{ background: c }} />)}
         </div>
-        <div className="perf">{Array.from({ length: 12 }).map((_, i) => <i key={i} />)}</div>
-        <div className="pass-stub">
-          <div className="barcode">{BARCODE.map((w, i) => <i key={i} style={{ width: w }} />)}</div>
-          <div className="stub-meta">{copy.stubMeta}<br />№ 0047</div>
+
+        <div className="perf" aria-hidden="true" />
+
+        <div className="pass-data">
+          <div>
+            <span className="k">{copy.passengerLabel}</span>
+            <span className="v">{copy.passengerName}</span>
+          </div>
+          <div className="pass-stub">
+            <span className="barcode" aria-hidden="true">{BARCODE.map((w, i) => <i key={i} style={{ width: w }} />)}</span>
+            <span className="stub-meta">{copy.stubMeta}<br />№ 0047</span>
+          </div>
         </div>
-        <span className="stamp" aria-hidden>{copy.stamp}</span>
+
+        <span className="stamp stamp-valid" aria-hidden>{copy.stateActive}</span>
+        <span className="stamp stamp-expired" aria-hidden>{copy.stamp}</span>
       </div>
     </div>
   );

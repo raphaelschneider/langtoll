@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // In-memory stand-in for the MySQL rate_limits table so the 429 path is provable in tests
-// (locally the limiter is usually disabled via LANGPASS_RATELIMIT_OFF for screenshot bursts,
+// (locally the limiter is usually disabled via LANGTOLL_RATELIMIT_OFF for screenshot bursts,
 // so an integration probe can't distinguish "off" from "broken").
 const store = new Map<string, { count: number; reset_at: number }>();
 vi.mock('@/lib/db', () => ({
@@ -37,7 +37,7 @@ const fakeReq = (ip = '203.0.113.7') =>
 
 beforeEach(() => {
   store.clear();
-  delete process.env.LANGPASS_RATELIMIT_OFF;
+  delete process.env.LANGTOLL_RATELIMIT_OFF;
 });
 
 describe('rateLimit', () => {
@@ -64,8 +64,8 @@ describe('rateLimit', () => {
     expect(store.get([...store.keys()][0])!.count).toBe(3); // still 3, not 4
   });
 
-  it('honours the LANGPASS_RATELIMIT_OFF dev escape hatch', async () => {
-    process.env.LANGPASS_RATELIMIT_OFF = '1';
+  it('honours the LANGTOLL_RATELIMIT_OFF dev escape hatch', async () => {
+    process.env.LANGTOLL_RATELIMIT_OFF = '1';
     for (let i = 0; i < 10; i++) {
       expect(await rateLimit(fakeReq(), 'test', windows)).toBeNull();
     }

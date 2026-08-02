@@ -9,7 +9,7 @@ import { readJsonLimited, BODY_LIMITS } from '@/lib/bodylimit';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Mirror of langpass-mobile/lib/telemetry.ts TelemetryEvent — keep the two in lockstep.
+// Mirror of langtoll-mobile/lib/telemetry.ts TelemetryEvent — keep the two in lockstep.
 const KNOWN_EVENTS = new Set([
   'app_open',
   'onboarded',

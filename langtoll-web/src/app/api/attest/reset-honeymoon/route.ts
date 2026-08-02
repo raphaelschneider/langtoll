@@ -1,7 +1,7 @@
 // DEV/admin tool: clear one physical device's DeviceCheck honeymoon flag so a tester can
 // re-experience the free week on their own phone after many reinstalls. This UNDOES the
 // reinstall-abuse protection for a single device, so it is gated behind the admin password
-// (ADMIN_PASSWORD — the same secret that guards /langpass-adm), sent as x-admin-key. The app's
+// (ADMIN_PASSWORD — the same secret that guards /langtoll-adm), sent as x-admin-key. The app's
 // dev-tools button prompts for it; it is never embedded in the bundle.
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   if (!authorized(req)) {
     return new NextResponse('Authentication required', {
       status: 401,
-      headers: { 'WWW-Authenticate': 'Basic realm="LangPass admin", charset="UTF-8"' },
+      headers: { 'WWW-Authenticate': 'Basic realm="LangToll admin", charset="UTF-8"' },
     });
   }
   if (!deviceCheckConfigured()) {

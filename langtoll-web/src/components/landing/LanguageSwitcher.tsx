@@ -5,7 +5,7 @@
 // names: the whole point of this control is to be usable by someone who cannot read the
 // language currently on screen. "German" is useless to a German speaker looking at English.
 //
-// Clicking a language writes the `langpass-locale` cookie, which makes the choice sticky —
+// Clicking a language writes the `langtoll-locale` cookie, which makes the choice sticky —
 // the middleware only auto-redirects `/` when that cookie is absent, so an explicit pick is
 // never overridden by Accept-Language afterwards. The links are plain <a> elements, so they
 // still work with JS disabled (the middleware also sets the cookie server-side when it serves

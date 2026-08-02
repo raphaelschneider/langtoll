@@ -26,7 +26,7 @@ export function siteMetadata(locale: Locale): Metadata {
     metadataBase: new URL(SITE_URL),
     title: {
       default: c.seo.title,
-      template: '%s · LangPass',
+      template: '%s · LangToll',
     },
     description: c.seo.description,
     keywords: [
@@ -43,7 +43,7 @@ export function siteMetadata(locale: Locale): Metadata {
     openGraph: {
       type: 'website',
       url: new URL(pathForLocale(locale), SITE_URL).toString(),
-      siteName: 'LangPass',
+      siteName: 'LangToll',
       title: c.seo.title,
       description: c.seo.description,
       locale: OG_LOCALE[locale],
@@ -61,7 +61,7 @@ export function siteMetadata(locale: Locale): Metadata {
       follow: true,
       googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
     },
-    appleWebApp: { title: 'LangPass' },
+    appleWebApp: { title: 'LangToll' },
     category: 'education',
   };
 }

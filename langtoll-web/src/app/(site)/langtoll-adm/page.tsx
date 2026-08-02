@@ -1,4 +1,4 @@
-// LangPass admin dashboard — onboarding, engagement, and subscription numbers at a glance.
+// LangToll admin dashboard — onboarding, engagement, and subscription numbers at a glance.
 // Server-rendered straight from MySQL telemetry tables; refresh the page for live data.
 import { query } from '@/lib/db';
 import { getPricing, fmtPrice } from '@/lib/settings';
@@ -8,7 +8,7 @@ import { BarChart } from './Charts';
 
 export const dynamic = 'force-dynamic';
 
-// internal dashboard at the deliberately non-obvious /langpass-adm — Basic-auth gated in middleware,
+// internal dashboard at the deliberately non-obvious /langtoll-adm — Basic-auth gated in middleware,
 // kept out of search engines, and (unlike /admin) NOT named in robots.txt so the path isn't leaked.
 export const metadata = { robots: { index: false, follow: false } };
 
@@ -69,7 +69,32 @@ async function getStats() {
            DATE_FORMAT(created_at, '%b %e') AS joined
     FROM app_users ORDER BY last_seen_at DESC LIMIT 12`);
 
-  return { totals, subs, signups, activity, events, recent };
+  // Per-device visibility (ported from relift 2026-07-31): the aggregates hid WHO does what — a
+  // user could look like a ghost while practicing daily. Two grouped queries, tiny at this scale,
+  // no new endpoint (server-rendered like everything else here).
+  const weekByDevice = await query(`
+    SELECT device_id, event, COUNT(*) AS n
+    FROM app_events WHERE created_at >= NOW() - INTERVAL 7 DAY
+    GROUP BY device_id, event`);
+  const activityMap: Record<string, Record<string, number>> = {};
+  for (const r of weekByDevice as any[]) {
+    (activityMap[r.device_id] ??= {})[r.event] = Number(r.n);
+  }
+  // Which LANGUAGE·LEVEL each install practices, from session_completed events. Deliberately
+  // coarse: the words a user studies never leave the phone (the privacy promise) — the language
+  // and CEFR level already ride the telemetry event and are the most the server knows.
+  const langsByDevice = await query(`
+    SELECT device_id,
+           CONCAT(JSON_UNQUOTE(JSON_EXTRACT(data, '$.language')), ' ',
+                  JSON_UNQUOTE(JSON_EXTRACT(data, '$.level'))) AS ll
+    FROM app_events WHERE event = 'session_completed' AND data IS NOT NULL
+    GROUP BY device_id, ll`);
+  const langsMap: Record<string, string[]> = {};
+  for (const r of langsByDevice as any[]) {
+    if (r.ll && !r.ll.includes('null')) (langsMap[r.device_id] ??= []).push(String(r.ll));
+  }
+
+  return { totals, subs, signups, activity, events, recent, activityMap, langsMap };
 }
 
 function Stat({ label, value, sub, tint, hint }: { label: string; value: string; sub?: string; tint?: string; hint?: string }) {
@@ -98,8 +123,8 @@ function Stat({ label, value, sub, tint, hint }: { label: string; value: string;
 // Tab bar — server-rendered links (state lives in ?tab=). Each tab fetches only its own data.
 function Tabs({ active }: { active: 'dashboard' | 'support' }) {
   const tabs = [
-    { key: 'dashboard' as const, label: 'Dashboard', href: '/langpass-adm' },
-    { key: 'support' as const, label: 'Support', href: '/langpass-adm?tab=support' },
+    { key: 'dashboard' as const, label: 'Dashboard', href: '/langtoll-adm' },
+    { key: 'support' as const, label: 'Support', href: '/langtoll-adm?tab=support' },
   ];
   return (
     <div style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${BRAND.line}`, margin: '0 0 28px' }}>
@@ -126,7 +151,7 @@ function Tabs({ active }: { active: 'dashboard' | 'support' }) {
 
 // DASHBOARD tab — the operational/business numbers (users, subs, MRR, AI usage, events, pricing).
 async function DashboardTab() {
-  const [{ totals, subs, signups, activity, events, recent }, pricing, usage] = await Promise.all([
+  const [{ totals, subs, signups, activity, events, recent, activityMap, langsMap }, pricing, usage] = await Promise.all([
     getStats(),
     getPricing(),
     getUsageByDay(30),
@@ -248,6 +273,8 @@ async function DashboardTab() {
                 <tr style={{ color: BRAND.inkSoft, textAlign: 'left' }}>
                   <th style={{ padding: '6px 4px', fontWeight: 600 }}>Device</th>
                   <th style={{ padding: '6px 4px', fontWeight: 600 }}>Plan</th>
+                  <th style={{ padding: '6px 4px', fontWeight: 600 }}>Learning</th>
+                  <th style={{ padding: '6px 4px', fontWeight: 600 }} title="last 7 days: opens · sessions · unlocks">7d o·s·u</th>
                   <th style={{ padding: '6px 4px', fontWeight: 600 }}>Onboarded</th>
                   <th style={{ padding: '6px 4px', fontWeight: 600 }}>Joined</th>
                   <th style={{ padding: '6px 4px', fontWeight: 600 }}>Last seen</th>
@@ -257,7 +284,10 @@ async function DashboardTab() {
                 {recent.map((u: any) => (
                   <tr key={u.device_id} style={{ borderTop: `1px solid ${BRAND.line}` }}>
                     <td style={{ padding: '8px 4px', fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>
-                      {String(u.device_id).slice(0, 14)}…
+                      {/* → the Support drill-down (same page, ?tab=support) — full event timeline */}
+                      <a href={`/langtoll-adm?tab=support&code=${String(u.device_id).replace(/^dev_/, '').slice(0, 8)}`} style={{ color: 'inherit' }}>
+                        {String(u.device_id).slice(0, 14)}…
+                      </a>
                     </td>
                     <td style={{ padding: '8px 4px' }}>
                       <span
@@ -271,6 +301,12 @@ async function DashboardTab() {
                       >
                         {u.plan}
                       </span>
+                    </td>
+                    <td style={{ padding: '8px 4px', color: BRAND.inkSoft, fontSize: 12 }}>
+                      {(langsMap[u.device_id] ?? []).join(' · ') || '—'}
+                    </td>
+                    <td style={{ padding: '8px 4px', color: BRAND.inkSoft, fontSize: 12, fontFamily: 'ui-monospace, monospace' }}>
+                      {`${(activityMap[u.device_id] ?? {}).app_open ?? 0}·${(activityMap[u.device_id] ?? {}).session_completed ?? 0}·${(activityMap[u.device_id] ?? {}).unlocked ?? 0}`}
                     </td>
                     <td style={{ padding: '8px 4px' }}>{u.onboarded ? '✓' : '—'}</td>
                     <td style={{ padding: '8px 4px', color: BRAND.inkSoft }}>{u.joined}</td>
@@ -326,7 +362,7 @@ async function DashboardTab() {
             </button>
           </form>
           <div style={{ fontSize: 12, color: BRAND.inkSoft, marginTop: 12 }}>
-            Drives the langpass.app pricing card &amp; the MRR estimate. The app itself always shows the live App Store price.
+            Drives the langtoll.app pricing card &amp; the MRR estimate. The app itself always shows the live App Store price.
           </div>
         </div>
 
@@ -343,7 +379,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   return (
     <main style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: 'ui-sans-serif, system-ui' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-        <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700 }}>LangPass</div>
+        <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700 }}>LangToll</div>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
         <Tabs active={active} />
         {active === 'support' ? await SupportTab(code) : await DashboardTab()}
@@ -374,6 +410,12 @@ async function SupportTab(rawCode?: string) {
       const deviceId = String(u.device_id);
       const subs = await query('SELECT plan, status, period, rc_user, started_at, ended_at FROM subscriptions WHERE device_id = ? ORDER BY id DESC LIMIT 5', [deviceId]);
       const keys = await query('SELECT key_id, honeymoon_ok, sign_count, created_at FROM attest_keys WHERE device_id = ? ORDER BY created_at DESC LIMIT 5', [deviceId]);
+      // The install's whole story, event by event — the view that answers "what is this person
+      // actually doing?" without guessing from aggregates. Server-rendered; no extra endpoint.
+      const timeline = await query(
+        "SELECT event, data, DATE_FORMAT(created_at, '%b %e, %H:%i') AS at FROM app_events WHERE device_id = ? ORDER BY id DESC LIMIT 60",
+        [deviceId]
+      );
       const rcUser = (Array.isArray(subs) && (subs.find((s: Record<string, unknown>) => s.rc_user) as Record<string, unknown> | undefined)?.rc_user) || null;
 
       let rcLive: string = rcUser ? 'RC check failed' : 'no RevenueCat id on file (purchase predates rc_user capture, or no purchase)';
@@ -428,6 +470,20 @@ async function SupportTab(rawCode?: string) {
             ))}
             {(keys as unknown[]).length === 0 ? <tr><td style={cell}>no attest keys for this device (older app version, or never reached a paid route)</td></tr> : null}
           </tbody></table>
+
+          <h3 style={{ fontFamily: 'Georgia, serif', margin: '20px 0 8px' }}>Activity — last 60 events</h3>
+          <table style={{ borderCollapse: 'collapse' }}><tbody>
+            {(timeline as Record<string, unknown>[]).map((ev, i) => (
+              <tr key={i}>
+                <td style={cell}>{String(ev.at)}</td>
+                <td style={cell}><strong>{String(ev.event)}</strong></td>
+                <td style={{ ...cell, color: BRAND.inkSoft, fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>
+                  {ev.data ? String(ev.data).slice(0, 90) : ''}
+                </td>
+              </tr>
+            ))}
+            {(timeline as unknown[]).length === 0 ? <tr><td style={cell}>no events recorded for this device</td></tr> : null}
+          </tbody></table>
         </div>
       );
     }
@@ -436,7 +492,7 @@ async function SupportTab(rawCode?: string) {
   return (
     <div>
       <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 24, margin: '0 0 12px' }}>Support lookup</h2>
-      <form method="get" action="/langpass-adm">
+      <form method="get" action="/langtoll-adm">
         <input type="hidden" name="tab" value="support" />
         <input
           name="code"

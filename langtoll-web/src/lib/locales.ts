@@ -1,4 +1,4 @@
-// Locale primitives for LangPass: the locale list, the URL/hreflang mapping and the sticky
+// Locale primitives for LangToll: the locale list, the URL/hreflang mapping and the sticky
 // language cookie.
 //
 // Deliberately SEPARATE from landing-copy.ts, which holds every translated string for all six
@@ -14,11 +14,11 @@ export const DEFAULT_LOCALE: Locale = 'en';
 /** Locales served under /<locale>. English stays at `/` so the canonical URL is preserved. */
 export const NON_DEFAULT_LOCALES = LOCALES.filter((l) => l !== DEFAULT_LOCALE) as Exclude<Locale, 'en'>[];
 
-export const SITE_URL = 'https://langpass.app';
+export const SITE_URL = 'https://langtoll.app';
 
 /** Sticky language preference. Set by the switcher (client) and by the middleware when it
  *  serves a localized page; its mere PRESENCE suppresses the Accept-Language auto-redirect. */
-export const LOCALE_COOKIE = 'langpass-locale';
+export const LOCALE_COOKIE = 'langtoll-locale';
 
 export function isLocale(v: string): v is Locale {
   return (LOCALES as readonly string[]).includes(v);

@@ -1,4 +1,4 @@
-// AI topic-pack generation — LangPass's only paid AI route.
+// AI topic-pack generation — LangToll's only paid AI route.
 // Server-side so the OpenAI key never ships in the app. Same gate chain:
 //   attestation → rate limit → entitlement (Plus/honeymoon) → global budget.
 // Generated packs are cached in `topic_packs` (keyed by language+level+topic) so a

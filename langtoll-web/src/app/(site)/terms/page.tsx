@@ -1,10 +1,10 @@
 export const metadata = {
   title: 'Terms of Use',
-  description: 'LangPass terms: a language-learning app that gates distracting apps behind practice. Subscriptions, app-blocking, AI content, and acceptable use.',
+  description: 'LangToll terms: a language-learning app that gates distracting apps behind practice. Subscriptions, app-blocking, AI content, and acceptable use.',
   alternates: { canonical: '/terms' },
 };
 
-// LangPass terms of use — language-learning positioning, Screen Time/app-blocking
+// LangToll terms of use — language-learning positioning, Screen Time/app-blocking
 // disclaimer, AI-content limitations, subscriptions, acceptable use.
 const C = { ink: '#f2f2f4', soft: '#a6a6b0', paper: '#0a0a0c', line: 'rgba(255,255,255,0.10)', accent: '#c8ff4d' };
 
@@ -18,28 +18,28 @@ export default function TermsOfUsePage() {
   return (
     <main style={{ minHeight: '100vh', background: C.paper, padding: '64px 24px', fontFamily: 'var(--font-inter), ui-sans-serif, system-ui' }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
-        <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: C.accent, fontWeight: 700 }}>LangPass</div>
+        <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: C.accent, fontWeight: 700 }}>LangToll</div>
         <h1 style={{ fontFamily: 'var(--font-fraunces), Georgia, serif', fontSize: 40, margin: '4px 0 8px', color: C.ink }}>Terms of Use</h1>
         <p style={{ ...S.p, fontSize: 14 }}>Last updated: July 17, 2026</p>
 
-        <h2 style={S.h2}>1. What LangPass is</h2>
+        <h2 style={S.h2}>1. What LangToll is</h2>
         <p style={S.p}>
-          LangPass is a language-learning app. It uses Apple’s Screen Time (Family Controls) framework to
+          LangToll is a language-learning app. It uses Apple’s Screen Time (Family Controls) framework to
           shield the distracting apps you choose until you complete short practice sessions, which unlock
-          a fixed window of phone time before the shield returns. LangPass is an independent product and
+          a fixed window of phone time before the shield returns. LangToll is an independent product and
           is not affiliated with, endorsed by, or sponsored by Apple.
         </p>
 
         <h2 style={S.h2}>2. App blocking is best-effort — don’t rely on it for anything critical</h2>
         <p style={S.p}>
-          To lock apps, LangPass needs your permission to use Screen Time, which you grant on your device
+          To lock apps, LangToll needs your permission to use Screen Time, which you grant on your device
           and can withdraw at any time in iOS Settings. You choose which apps to shield, and you can
           change or clear that selection whenever you like. Shielding is a productivity aid provided “as
           is”: it depends on iOS behaving as expected and may be bypassed, delayed, or interrupted.
         </p>
         <ul style={{ paddingLeft: 22 }}>
           <li style={S.li}>Do not shield apps you may need for safety, health, work, or emergencies.</li>
-          <li style={S.li}>LangPass never blocks phone calls, Messages, or your ability to reach emergency services.</li>
+          <li style={S.li}>LangToll never blocks phone calls, Messages, or your ability to reach emergency services.</li>
           <li style={S.li}>You are responsible for the apps you choose to lock and for unlocking them when you need them.</li>
         </ul>
 
@@ -53,8 +53,8 @@ export default function TermsOfUsePage() {
 
         <h2 style={S.h2}>4. Subscriptions &amp; auto-renewal</h2>
         <p style={S.p}>
-          The core lock and bundled curriculum are free. LangPass also offers an optional auto-renewing
-          subscription, <strong style={{ color: C.ink }}>LangPass Plus</strong>, available as a monthly or
+          The core lock and bundled curriculum are free. LangToll also offers an optional auto-renewing
+          subscription, <strong style={{ color: C.ink }}>LangToll Plus</strong>, available as a monthly or
           yearly plan, which adds custom fares, strict mode, the full curriculum, AI topic packs, and
           additional languages as we add them. New users get a one-week introductory period of full
           access. The exact title, length, and price of each plan — in your local currency — are shown in
@@ -97,12 +97,12 @@ export default function TermsOfUsePage() {
           We may update these terms; material changes will be shown in the app before they take effect.
           Continued use after changes means acceptance. These terms are governed by the laws of Germany,
           without prejudice to any mandatory consumer-protection rights you have where you live. If any
-          provision is found unenforceable, the remainder stays in effect. LangPass is operated from
-          Germany. Contact: legal@langpass.app.
+          provision is found unenforceable, the remainder stays in effect. LangToll is operated from
+          Germany. Contact: legal@langtoll.app.
         </p>
 
         <div style={{ borderTop: `1px solid ${C.line}`, marginTop: 40, paddingTop: 16, fontSize: 13, color: C.soft }}>
-          Erst lernen, dann scrollen. LangPass · <a href="/privacy" style={{ color: C.accent }}>Privacy Policy</a>
+          Erst lernen, dann scrollen. LangToll · <a href="/privacy" style={{ color: C.accent }}>Privacy Policy</a>
         </div>
       </div>
     </main>

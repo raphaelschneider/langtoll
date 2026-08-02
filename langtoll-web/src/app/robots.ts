@@ -5,10 +5,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      // Only /api/ is named. The admin dashboard (/langpass-adm) is deliberately NOT listed —
+      // Only /api/ is named. The admin dashboard (/langtoll-adm) is deliberately NOT listed —
       // robots.txt is public, so listing a secret path just hands it to scanners.
       disallow: ['/api/'],
     },
-    sitemap: 'https://langpass.app/sitemap.xml',
+    sitemap: 'https://langtoll.app/sitemap.xml',
   };
 }

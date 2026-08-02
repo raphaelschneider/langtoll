@@ -58,9 +58,9 @@ export async function rateLimit(
   route: string,
   windows: RateWindow[]
 ): Promise<NextResponse | null> {
-  // Dev escape hatch: turn the limiter off entirely (e.g. LANGPASS_RATELIMIT_OFF=1 in .env.local)
+  // Dev escape hatch: turn the limiter off entirely (e.g. LANGTOLL_RATELIMIT_OFF=1 in .env.local)
   // so heavy local screenshot/seeding bursts don't hit 429s. NEVER set this in production.
-  if (process.env.LANGPASS_RATELIMIT_OFF === '1') return null;
+  if (process.env.LANGTOLL_RATELIMIT_OFF === '1') return null;
 
   const now = Date.now();
   const id = identity(req);

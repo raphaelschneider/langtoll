@@ -1,4 +1,4 @@
-// Lightweight usage tracking for cost estimation (see /langpass-adm). Records each ACTUAL OpenAI call —
+// Lightweight usage tracking for cost estimation (see /langtoll-adm). Records each ACTUAL OpenAI call —
 // image generations (cache misses) and agent chat turns — into `usage_log`. Every function here
 // is best-effort: it must never break a user request, so writes/reads swallow errors (e.g. if the
 // table hasn't been migrated yet — run database/create_usage_log_table.sql).

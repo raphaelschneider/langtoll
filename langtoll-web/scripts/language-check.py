@@ -51,7 +51,7 @@ WORD = re.compile(r"[a-zA-ZäöüßáéíóúàèìòùâêîôûãõçñÄÖÜ'
 def mysql(sql: str) -> str:
     env = os.environ
     cmd = ["mysql", "-h", env.get("DB_HOST", "localhost"), "-u", env.get("DB_USER", "root"),
-           f"-p{env.get('DB_PASSWORD','')}", "-N", "-B", "-e", sql, env.get("DB_NAME", "langpass")]
+           f"-p{env.get('DB_PASSWORD','')}", "-N", "-B", "-e", sql, env.get("DB_NAME", "langtoll")]
     return subprocess.run(cmd, capture_output=True, text=True).stdout
 
 

@@ -49,7 +49,7 @@ const USD_PER_PACK_BY_MODEL: Record<string, number> = {
   'gpt-4o': 0.023,
   'gpt-4o-mini': 0.0014,
 };
-const USD_PER_PACK = USD_PER_PACK_BY_MODEL[process.env.LANGPASS_TOPIC_MODEL || 'gpt-4o'] ?? 0.05;
+const USD_PER_PACK = USD_PER_PACK_BY_MODEL[process.env.LANGTOLL_TOPIC_MODEL || 'gpt-4o'] ?? 0.05;
 
 interface Job {
   topic: string;

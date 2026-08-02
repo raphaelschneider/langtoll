@@ -14,7 +14,7 @@ import { verifyAttestation, verifyAssertion } from 'node-app-attest';
 import { query } from '@/lib/db';
 
 const TEAM_ID = process.env.APPLE_TEAM_ID || '';
-const BUNDLE_ID = process.env.APP_BUNDLE_ID || 'com.langpass.app';
+const BUNDLE_ID = process.env.APP_BUNDLE_ID || 'com.langtoll.app';
 const HMAC_SECRET = process.env.ATTEST_HMAC_SECRET || '';
 const ALLOW_DEV = process.env.ATTEST_ALLOW_DEV === '1'; // accept development-environment attestations
 const ENFORCE = process.env.ATTEST_ENFORCE === '1';

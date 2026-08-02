@@ -25,7 +25,7 @@ export interface ScreenResult {
   reason?: string;
 }
 
-const MODERATION_MODEL = process.env.LANGPASS_MODERATION_MODEL || 'omni-moderation-latest';
+const MODERATION_MODEL = process.env.LANGTOLL_MODERATION_MODEL || 'omni-moderation-latest';
 
 // Letters (any script), marks, digits, spaces and a small punctuation set. This
 // deliberately excludes quotes, braces, angle brackets, backslashes and newlines

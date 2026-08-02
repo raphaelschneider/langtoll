@@ -1,9 +1,9 @@
 // Edge middleware — one image runs as two deployments, so each hides the half it shouldn't serve:
-//   - LANDING_ONLY=1 (the langpass.app app): 404 the app surface (/api/*, /langpass-adm).
-//   - API_ONLY=1     (the api.langpass.app app): 404 the marketing pages (everything NOT /api or
-//     /langpass-adm), so the landing isn't duplicated on the API host.
+//   - LANDING_ONLY=1 (the langtoll.app app): 404 the app surface (/api/*, /langtoll-adm).
+//   - API_ONLY=1     (the api.langtoll.app app): 404 the marketing pages (everything NOT /api or
+//     /langtoll-adm), so the landing isn't duplicated on the API host.
 // Plus: gate the admin dashboard with HTTP Basic auth (ADMIN_USER / ADMIN_PASSWORD). It lives at
-// the non-obvious path /langpass-adm (not /admin) so bots scanning the well-known path find nothing,
+// the non-obvious path /langtoll-adm (not /admin) so bots scanning the well-known path find nothing,
 // and is NOT listed in robots.txt. Localhost passes for dev; elsewhere creds are REQUIRED, and if
 // unconfigured the route is denied (fail closed).
 // Plus: language negotiation for the marketing landing page — see negotiateLocale() below.
@@ -13,7 +13,7 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from '@/lib/loca
 // The admin dashboard path — deliberately not /admin (the path bots brute-force) and kept out of
 // robots.txt, so it's discoverable only by someone who already knows it. Basic auth is still the
 // real gate; the obscure path just cuts the noise/attack surface.
-const ADMIN_PATH = '/langpass-adm';
+const ADMIN_PATH = '/langtoll-adm';
 
 // Run on everything except Next internals + favicon (so we can gate marketing pages, not just /api).
 export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] };
@@ -21,7 +21,7 @@ export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)
 function unauthorized(): NextResponse {
   return new NextResponse('Authentication required', {
     status: 401,
-    headers: { 'WWW-Authenticate': 'Basic realm="LangPass admin", charset="UTF-8"' },
+    headers: { 'WWW-Authenticate': 'Basic realm="LangToll admin", charset="UTF-8"' },
   });
 }
 
@@ -93,7 +93,7 @@ export function middleware(req: NextRequest): NextResponse {
   // Landing deployment: hide the app surface (404 — these routes shouldn't exist here).
   if (process.env.LANDING_ONLY === '1' && isAppSurface) return notFound();
   // API deployment: a marketing path on the API host → 301 to the canonical landing (preserving the
-  // path + query), so link equity consolidates on langpass.app instead of duplicating. Falls back
+  // path + query), so link equity consolidates on langtoll.app instead of duplicating. Falls back
   // to 404 if LANDING_URL isn't configured.
   if (process.env.API_ONLY === '1' && !isAppSurface) {
     const base = process.env.LANDING_URL;
@@ -127,7 +127,7 @@ export function middleware(req: NextRequest): NextResponse {
   }
 
   // --- landing language negotiation ---------------------------------------------------
-  // Only the marketing surface below this point: /api and /langpass-adm have already been
+  // Only the marketing surface below this point: /api and /langtoll-adm have already been
   // handled (404'd, redirected, or auth-gated) and returned above.
   if (isAppSurface) return NextResponse.next();
 

@@ -4,7 +4,7 @@
 // page, statically rendered, and the whole point is SEO-indexable HTML per locale. A
 // runtime i18n runtime would buy us nothing and cost a dependency.
 //
-// SCOPE: the landing page only. /privacy, /terms and /langpass-adm stay English-only by
+// SCOPE: the landing page only. /privacy, /terms and /langtoll-adm stay English-only by
 // deliberate decision (legal text + internal tooling).
 //
 // TRANSLATORS: fill in every locale entry below. `en` is the source of truth — the other
@@ -116,6 +116,23 @@ export interface LandingCopy {
     stamp: string;
     ariaActive: string;
     ariaExpired: string;
+    /** Static labels printed on the travelcard graphic (the language name itself
+     *  rotates in sync with the hero and is derived from ENDONYMS, not stored here).
+     *  NOTE: en is the source of truth; the other locales currently hold the English
+     *  values as placeholders — translate the ticket chrome when localizing. */
+    card: {
+      classLine: string;
+      subLine: string;
+      from: string;
+      tear: string;
+      passNo: string;
+      issued: string;
+      validThru: string;
+      validThruValue: string;
+      holder: string;
+      holderValue: string;
+      valid: string;
+    };
   };
   how: {
     eyebrow: string;
@@ -131,6 +148,16 @@ export interface LandingCopy {
     passCaption: string;
     practiceAlt: string;
     practiceCaption: string;
+    walletAlt: string;
+    walletCaption: string;
+  };
+  /** Meet-Tolly section. Captions in fixed mood order:
+   *  happy · stern · sad · asleep · celebrate · island. */
+  tolly: {
+    eyebrow: string;
+    title: string;
+    lede: string;
+    captions: [string, string, string, string, string, string];
   };
   features: {
     eyebrow: string;
@@ -151,8 +178,13 @@ export interface LandingCopy {
     title: string;
     planName: string;
     planBlurb: string;
+    /** Prefix before the yearly figure, e.g. "from". Apple prices per territory,
+     *  so the site quotes a reference price rather than a promise. */
+    fromPrefix: string;
     /** Suffix after the yearly figure, e.g. " / year". */
     perYear: string;
+    /** Under the figure: the App Store, not this page, is the price of record. */
+    localNote: string;
     /** `{price}` = formatted monthly price. */
     monthlyNote: string;
     /** `{pct}` = yearly saving. Appended to monthlyNote only when there is a saving. */
@@ -194,17 +226,17 @@ export interface LandingCopy {
 
 const en: LandingCopy = {
   seo: {
-    title: 'LangPass — Lock the apps. Learn the language.',
+    title: 'LangToll — Lock the apps. Learn the language.',
     description:
-      'LangPass locks the apps that eat your nights until you have done your language reps. Five quick exercises buy 30 minutes of phone time, then the wall comes back. A real Screen Time fare gate on your worst habit — German, Spanish, French, Italian, Portuguese and English.',
-    ogImageAlt: 'LangPass — lock the apps, learn the language.',
+      'LangToll locks the apps that eat your nights until you have done your language reps. Five quick exercises buy 30 minutes of phone time, then the wall comes back. A real Screen Time fare gate on your worst habit — German, Spanish, French, Italian, Portuguese and English.',
+    ogImageAlt: 'LangToll — lock the apps, learn the language.',
   },
   jsonLd: {
     description:
-      'LangPass locks the apps that eat your nights until you have done your language reps. Five quick exercises buy 30 minutes of phone time, then the wall comes back — a real Screen Time fare gate on your worst habit. German, Spanish, French, Italian, Portuguese and English.',
+      'LangToll locks the apps that eat your nights until you have done your language reps. Five quick exercises buy 30 minutes of phone time, then the wall comes back — a real Screen Time fare gate on your worst habit. German, Spanish, French, Italian, Portuguese and English.',
     offerFree: 'Free (the lock, forever)',
-    offerMonthly: 'LangPass Plus (monthly)',
-    offerYearly: 'LangPass Plus (yearly)',
+    offerMonthly: 'LangToll Plus (monthly)',
+    offerYearly: 'LangToll Plus (yearly)',
   },
   nav: {
     cta: 'Get early access',
@@ -219,7 +251,7 @@ const en: LandingCopy = {
       { headline: 'Prima l’italiano, poi Reddit.', lang: 'Italian', code: 'it' },
       { headline: 'English first, TikTok after.', lang: 'English', code: 'en' },
     ],
-    subBefore: 'LangPass locks the apps that eat your nights — until you’ve done your ',
+    subBefore: 'LangToll locks the apps that eat your nights — until you’ve done your ',
     subAfter: ' reps. ',
     subStrong: 'Five quick exercises buy 30 minutes of phone time.',
     subTail: ' Then the wall comes back. You’ll learn, because you can’t not.',
@@ -227,7 +259,7 @@ const en: LandingCopy = {
     ctaSecondary: 'See the deal',
   },
   pass: {
-    brandLabel: 'LangPass',
+    brandLabel: 'LangToll',
     stateActive: 'ACTIVE',
     stateExpired: 'EXPIRED',
     noteActive: 'of phone time left',
@@ -238,6 +270,19 @@ const en: LandingCopy = {
     stamp: 'EXPIRED',
     ariaActive: 'Active pass — hover to see it expire',
     ariaExpired: 'Expired pass',
+    card: {
+      classLine: 'Pay as you go',
+      subLine: 'Non-transferable',
+      from: 'Travelling from',
+      tear: 'Tear here',
+      passNo: 'Pass no.',
+      issued: 'Issued',
+      validThru: 'Valid thru',
+      validThruValue: 'Rolling',
+      holder: 'Holder',
+      holderValue: 'You',
+      valid: 'Valid',
+    },
   },
   how: {
     eyebrow: 'The deal',
@@ -261,19 +306,34 @@ const en: LandingCopy = {
         label: 'Fare gate · 3',
         title: 'The pass expires',
         body:
-          '30 minutes later the wall is back — even if you never reopen LangPass. Scroll enough and you’ll be fluent out of spite.',
+          '30 minutes later the wall is back — even if you never reopen LangToll. Scroll enough and you’ll be fluent out of spite.',
       },
     ],
   },
   shots: {
     eyebrow: 'The app',
-    title: 'Built like a members club, not a classroom.',
-    lede: 'Graphite glass, one acid accent, and a ticket you’ll actually want to earn.',
+    title: 'Pay the toll. Collect your pass.',
+    lede: 'Five exercises buy your phone back. Watch the whole ritual.',
     passAlt:
-      'LangPass home screen: an expired pass with the fare — 5 exercises for 30 minutes of phone time',
+      'LangToll home screen: an expired pass with the fare — 5 exercises for 30 minutes of phone time',
     passCaption: 'The pass — expired, stamped, waiting.',
-    practiceAlt: 'LangPass practice session: a German vocabulary exercise with voice playback',
+    practiceAlt: 'LangToll practice session: a German vocabulary exercise with voice playback',
     practiceCaption: 'Practice — with a voice that speaks your language.',
+    walletAlt: 'LangToll wallet: every word you have met as a ticket stub — mastered words stamped and collected',
+    walletCaption: 'The wallet — every word a ticket. Collect them all.',
+  },
+  tolly: {
+    eyebrow: 'The operator',
+    title: 'Meet Tolly.',
+    lede: 'The little operator who runs your fare gate. He stamps your pass, guards your apps — and takes your scrolling personally.',
+    captions: [
+      'Fare paid. Pass stamped and issued.',
+      'No pass? The gate stays shut.',
+      'Expired. He’s not angry — just disappointed.',
+      'Off-peak. You’ve earned the quiet.',
+      'Five for five — cap’s off.',
+      'Always on watch — even while you’re in other apps.',
+    ],
   },
   features: {
     eyebrow: 'What’s inside',
@@ -286,7 +346,7 @@ const en: LandingCopy = {
           'Apple Screen Time shielding. Your apps stay locked until the fare is paid — no snooze, no swipe-away.',
       },
       {
-        tag: 'A1 → B1',
+        tag: 'A1 → B2',
         title: 'Levels that grow with you',
         body:
           'Curated packs from first words to real conversations, per language. Onboarding reads your difficulty and starts you at the right one.',
@@ -295,7 +355,7 @@ const en: LandingCopy = {
         tag: '7 drill types',
         title: 'Not just word-matching',
         body:
-          'Multiple choice, gendered-article drills, typed answers with accent-forgiving grading, cloze, sentence building, listening.',
+          'Multiple choice, typed answers with accent-forgiving grading, cloze, sentence building, listening — and article drills where your language has them.',
       },
       {
         tag: 'Voice',
@@ -306,7 +366,7 @@ const en: LandingCopy = {
       {
         tag: 'Offline',
         title: 'Works with no signal',
-        body: 'The whole curriculum ships in the app. Your 7am unlock doesn’t care about your reception.',
+        body: 'Every lesson through B1 ships inside the app; B2 syncs once and stays. Your 7am unlock doesn’t care about your reception.',
       },
       {
         tag: 'Plus',
@@ -320,7 +380,7 @@ const en: LandingCopy = {
     eyebrow: 'Why it works',
     title: 'Every other app begs you to open it.',
     lede:
-      'LangPass owns the door to the apps you were opening anyway. Motivation is optional by design.',
+      'LangToll owns the door to the apps you were opening anyway. Motivation is optional by design.',
     themTitle: 'The streak-and-guilt model',
     themPoints: [
       'Needs you to remember it exists',
@@ -337,10 +397,12 @@ const en: LandingCopy = {
   pricing: {
     eyebrow: 'Fare table',
     title: 'Week one is the full experience. Free.',
-    planName: 'LangPass Plus',
+    planName: 'LangToll Plus',
     planBlurb:
       'Custom fares, strict mode, the full curriculum, AI topic packs, and every language we add. The lock itself stays free forever.',
+    fromPrefix: 'from',
     perYear: ' / year',
+    localNote: 'US pricing. Your local price is shown in the App Store.',
     monthlyNote: 'or {price}/mo',
     saveNote: ' — save {pct}% on the year',
     trialNote: '. 7-day free trial, no card to start.',
@@ -350,8 +412,8 @@ const en: LandingCopy = {
   languages: {
     eyebrow: 'Six languages',
     title: 'Pick the one your nights pay for.',
-    lede: 'Every language ships A1 to B1 — a real curriculum, not a phrasebook.',
-    levels: 'A1 – B1',
+    lede: 'Every language ships A1 to B2 — a real curriculum, not a phrasebook.',
+    levels: 'A1 – B2',
     items: [
       { flag: '🇩🇪', name: 'German' },
       { flag: '🇪🇸', name: 'Spanish' },
@@ -362,10 +424,10 @@ const en: LandingCopy = {
     ],
   },
   footer: {
-    tagline: 'Learn first, scroll later. · Six languages, A1 to B1 — new levels every month',
+    tagline: 'Learn first, scroll later. · Six languages, A1 to B2 — new levels every month',
     privacy: 'Privacy',
     terms: 'Terms',
-    copyright: '© 2026 LangPass',
+    copyright: '© 2026 LangToll',
   },
   switcher: {
     ariaLabel: 'Language',
@@ -384,17 +446,17 @@ const en: LandingCopy = {
 // German — translated. Voice: du, transit metaphor per lib/i18n/de.ts.
 const de: LandingCopy = {
   seo: {
-    title: 'LangPass — Apps sperren. Sprache lernen.',
+    title: 'LangToll — Apps sperren. Sprache lernen.',
     description:
-      'LangPass sperrt die Apps, die deine Abende fressen — bis du geübt hast. Fünf kurze Übungen kaufen 30 Minuten Handyzeit, dann steht die Wand wieder. Eine echte Schranke aus Apples Bildschirmzeit, vor deiner schlimmsten Gewohnheit.',
-    ogImageAlt: 'LangPass — Apps sperren, Sprache lernen.',
+      'LangToll sperrt die Apps, die deine Abende fressen — bis du geübt hast. Fünf kurze Übungen kaufen 30 Minuten Handyzeit, dann steht die Wand wieder. Eine echte Schranke aus Apples Bildschirmzeit, vor deiner schlimmsten Gewohnheit.',
+    ogImageAlt: 'LangToll — Apps sperren, Sprache lernen.',
   },
   jsonLd: {
     description:
-      'LangPass sperrt die Apps, die deine Abende fressen, bis du deine Übungen gemacht hast. Fünf kurze Übungen kaufen 30 Minuten Handyzeit, dann steht die Wand wieder — eine echte Schranke aus Apples Bildschirmzeit vor deiner schlimmsten Gewohnheit. Deutsch, Spanisch, Portugiesisch und mehr.',
+      'LangToll sperrt die Apps, die deine Abende fressen, bis du deine Übungen gemacht hast. Fünf kurze Übungen kaufen 30 Minuten Handyzeit, dann steht die Wand wieder — eine echte Schranke aus Apples Bildschirmzeit vor deiner schlimmsten Gewohnheit. Deutsch, Spanisch, Portugiesisch und mehr.',
     offerFree: 'Kostenlos (die Sperre, für immer)',
-    offerMonthly: 'LangPass Plus (monatlich)',
-    offerYearly: 'LangPass Plus (jährlich)',
+    offerMonthly: 'LangToll Plus (monatlich)',
+    offerYearly: 'LangToll Plus (jährlich)',
   },
   nav: {
     cta: 'Früh dabei sein',
@@ -409,7 +471,7 @@ const de: LandingCopy = {
       { headline: 'Prima l’italiano, poi Reddit.', lang: 'Italienisch', code: 'it' },
       { headline: 'English first, TikTok after.', lang: 'Englisch', code: 'en' },
     ],
-    subBefore: 'LangPass sperrt die Apps, die deine Abende fressen — bis du deine Übungen auf ',
+    subBefore: 'LangToll sperrt die Apps, die deine Abende fressen — bis du deine Übungen auf ',
     subAfter: ' gemacht hast. ',
     subStrong: 'Fünf kurze Übungen kaufen 30 Minuten Handyzeit.',
     subTail: ' Dann steht die Wand wieder. Du wirst lernen — weil du nicht anders kannst.',
@@ -417,7 +479,7 @@ const de: LandingCopy = {
     ctaSecondary: 'Den Deal ansehen',
   },
   pass: {
-    brandLabel: 'LangPass',
+    brandLabel: 'LangToll',
     stateActive: 'AKTIV',
     stateExpired: 'ABGELAUFEN',
     noteActive: 'Handyzeit übrig',
@@ -430,6 +492,19 @@ const de: LandingCopy = {
     stamp: 'UNGÜLTIG',
     ariaActive: 'Aktiver Pass — drüberfahren, um ihn ablaufen zu sehen',
     ariaExpired: 'Abgelaufener Pass',
+    card: {
+      classLine: 'Pay as you go',
+      subLine: 'Non-transferable',
+      from: 'Travelling from',
+      tear: 'Tear here',
+      passNo: 'Pass no.',
+      issued: 'Issued',
+      validThru: 'Valid thru',
+      validThruValue: 'Rolling',
+      holder: 'Holder',
+      holderValue: 'You',
+      valid: 'Valid',
+    },
   },
   how: {
     eyebrow: 'Der Deal',
@@ -453,19 +528,34 @@ const de: LandingCopy = {
         label: 'Schranke · 3',
         title: 'Der Pass läuft ab',
         body:
-          '30 Minuten später steht die Wand wieder — auch wenn du LangPass nie wieder öffnest. Scroll genug, und du wirst aus Trotz fließend.',
+          '30 Minuten später steht die Wand wieder — auch wenn du LangToll nie wieder öffnest. Scroll genug, und du wirst aus Trotz fließend.',
       },
     ],
   },
   shots: {
     eyebrow: 'Die App',
-    title: 'Gebaut wie ein Members Club, nicht wie ein Klassenzimmer.',
-    lede: 'Graphitglas, ein einziger greller Akzent und eine Fahrkarte, die du dir verdienen willst.',
+    title: 'Fahrpreis zahlen. Pass abholen.',
+    lede: 'Fünf Übungen kaufen dir dein Handy zurück. Das ganze Ritual im Video.',
     passAlt:
-      'LangPass-Startbildschirm: ein abgelaufener Pass mit dem Fahrpreis — 5 Übungen für 30 Minuten Handyzeit',
+      'LangToll-Startbildschirm: ein abgelaufener Pass mit dem Fahrpreis — 5 Übungen für 30 Minuten Handyzeit',
     passCaption: 'Der Pass — abgelaufen, abgestempelt, wartend.',
-    practiceAlt: 'LangPass-Übungssession: eine deutsche Vokabelübung mit Sprachausgabe',
+    practiceAlt: 'LangToll-Übungssession: eine deutsche Vokabelübung mit Sprachausgabe',
     practiceCaption: 'Üben — mit einer Stimme, die deine Sprache spricht.',
+    walletAlt: 'LangToll-Portemonnaie: jedes gelernte Wort als Ticketabriss — gemeisterte Wörter gestempelt und gesammelt',
+    walletCaption: 'Das Portemonnaie — jedes Wort ein Ticket. Sammle sie alle.',
+  },
+  tolly: {
+    eyebrow: 'Der Schaffner',
+    title: 'Das ist Tolly.',
+    lede: 'Der kleine Schaffner an deinem Fahrgate. Er stempelt deinen Pass, bewacht deine Apps — und nimmt dein Scrollen persönlich.',
+    captions: [
+      'Fahrpreis bezahlt. Pass gestempelt und ausgestellt.',
+      'Kein Pass? Das Gate bleibt zu.',
+      'Abgelaufen. Er ist nicht sauer — nur enttäuscht.',
+      'Nebenzeit. Du hast dir die Ruhe verdient.',
+      'Fünf von fünf — Mütze ab.',
+      'Immer auf Posten — auch während du in anderen Apps bist.',
+    ],
   },
   features: {
     eyebrow: 'Was drinsteckt',
@@ -478,7 +568,7 @@ const de: LandingCopy = {
           'Sperre über Apples Bildschirmzeit. Deine Apps bleiben zu, bis der Fahrpreis bezahlt ist — kein Snooze, kein Wegwischen.',
       },
       {
-        tag: 'A1 → B1',
+        tag: 'A1 → B2',
         title: 'Niveaus, die mit dir wachsen',
         body:
           'Kuratierte Pakete von den ersten Wörtern bis zu echten Gesprächen, pro Sprache. Das Onboarding liest deine Schwierigkeit und setzt dich richtig ein.',
@@ -487,7 +577,7 @@ const de: LandingCopy = {
         tag: '7 Übungstypen',
         title: 'Mehr als Wörter zuordnen',
         body:
-          'Multiple Choice, Artikeltraining, getippte Antworten mit nachsichtiger Akzent-Bewertung, Lückentexte, Satzbau, Hörverstehen.',
+          'Multiple Choice, getippte Antworten mit nachsichtiger Akzent-Bewertung, Lückentexte, Satzbau, Hörverstehen — und Artikeltraining, wo deine Sprache es braucht.',
       },
       {
         tag: 'Stimme',
@@ -498,7 +588,7 @@ const de: LandingCopy = {
       {
         tag: 'Offline',
         title: 'Läuft ohne Empfang',
-        body: 'Das ganze Curriculum steckt in der App. Deine Entsperrung um sieben Uhr früh schert sich nicht um dein Netz.',
+        body: 'Alles bis B1 steckt fest in der App; B2 lädt einmal und bleibt. Deine Entsperrung um sieben Uhr früh schert sich nicht um dein Netz.',
       },
       {
         tag: 'Plus',
@@ -512,7 +602,7 @@ const de: LandingCopy = {
     eyebrow: 'Warum es funktioniert',
     title: 'Jede andere App bettelt darum, geöffnet zu werden.',
     lede:
-      'LangPass sitzt an der Tür zu den Apps, die du sowieso aufgemacht hättest. Motivation ist hier bewusst optional.',
+      'LangToll sitzt an der Tür zu den Apps, die du sowieso aufgemacht hättest. Motivation ist hier bewusst optional.',
     themTitle: 'Das Modell aus Serie und schlechtem Gewissen',
     themPoints: [
       'Du musst dich daran erinnern, dass es existiert',
@@ -529,10 +619,12 @@ const de: LandingCopy = {
   pricing: {
     eyebrow: 'Fahrpreistabelle',
     title: 'Woche eins ist das volle Erlebnis. Gratis.',
-    planName: 'LangPass Plus',
+    planName: 'LangToll Plus',
     planBlurb:
       'Eigener Fahrpreis, strikter Modus, das volle Curriculum, KI-Themenpakete und jede Sprache, die dazukommt. Die Sperre selbst bleibt für immer kostenlos.',
+    fromPrefix: 'ab',
     perYear: ' / Jahr',
+    localNote: 'US-Preis. Dein lokaler Preis steht im App Store.',
     monthlyNote: 'oder {price}/Monat',
     saveNote: ' — {pct} % günstiger im Jahr',
     trialNote: '. 7 Tage gratis, keine Karte zum Starten.',
@@ -542,8 +634,8 @@ const de: LandingCopy = {
   languages: {
     eyebrow: 'Sechs Sprachen',
     title: 'Wähl die, für die deine Nächte zahlen.',
-    lede: 'Jede Sprache kommt mit A1 bis B1 — echtes Curriculum, kein Sprachführer.',
-    levels: 'A1 – B1',
+    lede: 'Jede Sprache kommt mit A1 bis B2 — echtes Curriculum, kein Sprachführer.',
+    levels: 'A1 – B2',
     items: [
       { flag: '🇩🇪', name: 'Deutsch' },
       { flag: '🇪🇸', name: 'Spanisch' },
@@ -554,10 +646,10 @@ const de: LandingCopy = {
     ],
   },
   footer: {
-    tagline: 'Erst lernen, dann scrollen. · Sechs Sprachen, A1 bis B1 — jeden Monat neue Level',
+    tagline: 'Erst lernen, dann scrollen. · Sechs Sprachen, A1 bis B2 — jeden Monat neue Level',
     privacy: 'Datenschutz',
     terms: 'AGB',
-    copyright: '© 2026 LangPass',
+    copyright: '© 2026 LangToll',
   },
   switcher: {
     ariaLabel: 'Sprache',
@@ -567,17 +659,17 @@ const de: LandingCopy = {
 // Spanish (Peninsular) — translated. Voice: tú, transit metaphor per lib/i18n/es.ts.
 const es: LandingCopy = {
   seo: {
-    title: 'LangPass — Bloquea las apps. Aprende el idioma.',
+    title: 'LangToll — Bloquea las apps. Aprende el idioma.',
     description:
-      'LangPass bloquea las apps que te comen las noches hasta que haces tus repeticiones. Cinco ejercicios compran 30 minutos de móvil y luego vuelve el muro.',
-    ogImageAlt: 'LangPass — bloquea las apps, aprende el idioma.',
+      'LangToll bloquea las apps que te comen las noches hasta que haces tus repeticiones. Cinco ejercicios compran 30 minutos de móvil y luego vuelve el muro.',
+    ogImageAlt: 'LangToll — bloquea las apps, aprende el idioma.',
   },
   jsonLd: {
     description:
-      'LangPass bloquea las apps que te comen las noches hasta que haces tus repeticiones. Cinco ejercicios rápidos compran 30 minutos de móvil y luego vuelve el muro: un torniquete de Tiempo de uso de verdad sobre tu peor hábito. Alemán, español, portugués y más.',
+      'LangToll bloquea las apps que te comen las noches hasta que haces tus repeticiones. Cinco ejercicios rápidos compran 30 minutos de móvil y luego vuelve el muro: un torniquete de Tiempo de uso de verdad sobre tu peor hábito. Alemán, español, portugués y más.',
     offerFree: 'Gratis (el bloqueo, para siempre)',
-    offerMonthly: 'LangPass Plus (mensual)',
-    offerYearly: 'LangPass Plus (anual)',
+    offerMonthly: 'LangToll Plus (mensual)',
+    offerYearly: 'LangToll Plus (anual)',
   },
   nav: {
     cta: 'Conseguir acceso anticipado',
@@ -592,7 +684,7 @@ const es: LandingCopy = {
       { headline: 'Prima l’italiano, poi Reddit.', lang: 'italiano', code: 'it' },
       { headline: 'English first, TikTok after.', lang: 'inglés', code: 'en' },
     ],
-    subBefore: 'LangPass bloquea las apps que te comen las noches — hasta que hagas tus repeticiones de ',
+    subBefore: 'LangToll bloquea las apps que te comen las noches — hasta que hagas tus repeticiones de ',
     subAfter: '. ',
     subStrong: 'Cinco ejercicios rápidos compran 30 minutos de móvil.',
     subTail: ' Después vuelve el muro. Vas a aprender, porque no te queda otra.',
@@ -600,7 +692,7 @@ const es: LandingCopy = {
     ctaSecondary: 'Ver el trato',
   },
   pass: {
-    brandLabel: 'LangPass',
+    brandLabel: 'LangToll',
     stateActive: 'ACTIVO',
     stateExpired: 'CADUCADO',
     noteActive: 'de móvil te quedan',
@@ -611,6 +703,19 @@ const es: LandingCopy = {
     stamp: 'CADUCADO',
     ariaActive: 'Pase activo — pasa el ratón para verlo caducar',
     ariaExpired: 'Pase caducado',
+    card: {
+      classLine: 'Pay as you go',
+      subLine: 'Non-transferable',
+      from: 'Travelling from',
+      tear: 'Tear here',
+      passNo: 'Pass no.',
+      issued: 'Issued',
+      validThru: 'Valid thru',
+      validThruValue: 'Rolling',
+      holder: 'Holder',
+      holderValue: 'You',
+      valid: 'Valid',
+    },
   },
   how: {
     eyebrow: 'El trato',
@@ -634,19 +739,34 @@ const es: LandingCopy = {
         label: 'Torniquete · 3',
         title: 'El pase caduca',
         body:
-          'A los 30 minutos vuelve el muro, aunque no vuelvas a abrir LangPass. Scrollea lo suficiente y acabarás hablándolo por pura cabezonería.',
+          'A los 30 minutos vuelve el muro, aunque no vuelvas a abrir LangToll. Scrollea lo suficiente y acabarás hablándolo por pura cabezonería.',
       },
     ],
   },
   shots: {
     eyebrow: 'La app',
-    title: 'Hecha como un club privado, no como un aula.',
-    lede: 'Cristal grafito, un solo acento ácido y un billete que querrás ganarte.',
+    title: 'Paga el peaje. Recoge tu pase.',
+    lede: 'Cinco ejercicios te devuelven el móvil. Mira el ritual completo.',
     passAlt:
-      'Pantalla de inicio de LangPass: un pase caducado con la tarifa — 5 ejercicios por 30 minutos de móvil',
+      'Pantalla de inicio de LangToll: un pase caducado con la tarifa — 5 ejercicios por 30 minutos de móvil',
     passCaption: 'El pase — caducado, sellado, esperando.',
-    practiceAlt: 'Sesión de práctica de LangPass: un ejercicio de vocabulario de alemán con voz',
+    practiceAlt: 'Sesión de práctica de LangToll: un ejercicio de vocabulario de alemán con voz',
     practiceCaption: 'Práctica — con una voz que habla tu idioma.',
+    walletAlt: 'Cartera de LangToll: cada palabra aprendida como un resguardo de billete — las dominadas, selladas y coleccionadas',
+    walletCaption: 'La cartera — cada palabra un billete. Colecciónalos todos.',
+  },
+  tolly: {
+    eyebrow: 'El operario',
+    title: 'Este es Tolly.',
+    lede: 'El pequeño operario de tu puerta de peaje. Sella tu pase, vigila tus apps — y se toma tu scroll como algo personal.',
+    captions: [
+      'Tarifa pagada. Pase sellado y emitido.',
+      '¿Sin pase? La puerta no se abre.',
+      'Caducado. No está enfadado — solo decepcionado.',
+      'Hora valle. Te has ganado la calma.',
+      'Cinco de cinco — se quita la gorra.',
+      'Siempre de guardia — incluso mientras estás en otras apps.',
+    ],
   },
   features: {
     eyebrow: 'Qué lleva dentro',
@@ -659,7 +779,7 @@ const es: LandingCopy = {
           'Bloqueo con Tiempo de uso de Apple. Tus apps siguen cerradas hasta que pagues la tarifa: sin posponer, sin apartarlo de un gesto.',
       },
       {
-        tag: 'A1 → B1',
+        tag: 'A1 → B2',
         title: 'Niveles que crecen contigo',
         body:
           'Packs cuidados que van de las primeras palabras a conversaciones reales, en cada idioma. El onboarding mide tu nivel y te coloca en el que toca.',
@@ -668,7 +788,7 @@ const es: LandingCopy = {
         tag: '7 tipos de ejercicio',
         title: 'Más que emparejar palabras',
         body:
-          'Opción múltiple, artículos y género, respuestas escritas que perdonan las tildes, rellenar huecos, construir frases y escucha.',
+          'Opción múltiple, respuestas escritas que perdonan las tildes, rellenar huecos, construir frases y escucha — y artículos y género donde tu idioma los tiene.',
       },
       {
         tag: 'Voz',
@@ -679,7 +799,7 @@ const es: LandingCopy = {
       {
         tag: 'Sin conexión',
         title: 'Funciona sin cobertura',
-        body: 'Todo el plan de estudios viene dentro de la app. A tu desbloqueo de las siete de la mañana le da igual tu cobertura.',
+        body: 'Todo hasta B1 viene dentro de la app; B2 se sincroniza una vez y se queda. A tu desbloqueo de las siete de la mañana le da igual tu cobertura.',
       },
       {
         tag: 'Plus',
@@ -693,7 +813,7 @@ const es: LandingCopy = {
     eyebrow: 'Por qué funciona',
     title: 'Las demás apps te suplican que las abras.',
     lede:
-      'LangPass es la dueña de la puerta de las apps que ibas a abrir igual. La motivación sobra, por diseño.',
+      'LangToll es la dueña de la puerta de las apps que ibas a abrir igual. La motivación sobra, por diseño.',
     themTitle: 'El modelo de racha y culpa',
     themPoints: [
       'Necesita que te acuerdes de que existe',
@@ -710,10 +830,12 @@ const es: LandingCopy = {
   pricing: {
     eyebrow: 'Tabla de tarifas',
     title: 'La primera semana es la experiencia completa. Gratis.',
-    planName: 'LangPass Plus',
+    planName: 'LangToll Plus',
     planBlurb:
       'Tarifas a tu medida, modo estricto, el plan de estudios completo, packs temáticos con IA y todos los idiomas que vayamos añadiendo. El bloqueo en sí es gratis para siempre.',
+    fromPrefix: 'desde',
     perYear: ' / año',
+    localNote: 'Precio de EE. UU. Tu precio local aparece en el App Store.',
     monthlyNote: 'o {price}/mes',
     saveNote: ' — ahorra un {pct}% con el anual',
     trialNote: '. 7 días de prueba gratis, sin tarjeta para empezar.',
@@ -723,8 +845,8 @@ const es: LandingCopy = {
   languages: {
     eyebrow: 'Seis idiomas',
     title: 'Elige el que van a pagar tus noches.',
-    lede: 'Cada idioma llega de A1 a B1 — currículo de verdad, no un manual de frases.',
-    levels: 'A1 – B1',
+    lede: 'Cada idioma llega de A1 a B2 — currículo de verdad, no un manual de frases.',
+    levels: 'A1 – B2',
     items: [
       { flag: '🇩🇪', name: 'Alemán' },
       { flag: '🇪🇸', name: 'Español' },
@@ -735,10 +857,10 @@ const es: LandingCopy = {
     ],
   },
   footer: {
-    tagline: 'Primero aprende, luego scrollea. · Seis idiomas, de A1 a B1 — niveles nuevos cada mes',
+    tagline: 'Primero aprende, luego scrollea. · Seis idiomas, de A1 a B2 — niveles nuevos cada mes',
     privacy: 'Privacidad',
     terms: 'Términos',
-    copyright: '© 2026 LangPass',
+    copyright: '© 2026 LangToll',
   },
   switcher: {
     ariaLabel: 'Idioma',
@@ -748,17 +870,17 @@ const es: LandingCopy = {
 // French — translated. Voice: tu, transit metaphor per lib/i18n/fr.ts.
 const fr: LandingCopy = {
   seo: {
-    title: 'LangPass — Verrouille tes apps. Apprends la langue.',
+    title: 'LangToll — Verrouille tes apps. Apprends la langue.',
     description:
-      'LangPass verrouille les apps qui bouffent tes soirées. Cinq exercices = 30 min de téléphone, puis le mur revient. Allemand, espagnol, portugais.',
-    ogImageAlt: 'LangPass — verrouille les apps, apprends la langue.',
+      'LangToll verrouille les apps qui bouffent tes soirées. Cinq exercices = 30 min de téléphone, puis le mur revient. Allemand, espagnol, portugais.',
+    ogImageAlt: 'LangToll — verrouille les apps, apprends la langue.',
   },
   jsonLd: {
     description:
-      'LangPass verrouille les apps qui bouffent tes soirées tant que tu n’as pas fait tes exercices. Cinq exercices rapides t’achètent 30 minutes de téléphone, puis le mur revient — un vrai portillon Temps d’écran sur ta pire habitude. Allemand, espagnol, portugais et plus encore.',
+      'LangToll verrouille les apps qui bouffent tes soirées tant que tu n’as pas fait tes exercices. Cinq exercices rapides t’achètent 30 minutes de téléphone, puis le mur revient — un vrai portillon Temps d’écran sur ta pire habitude. Allemand, espagnol, portugais et plus encore.',
     offerFree: 'Gratuit (le verrou, pour toujours)',
-    offerMonthly: 'LangPass Plus (mensuel)',
-    offerYearly: 'LangPass Plus (annuel)',
+    offerMonthly: 'LangToll Plus (mensuel)',
+    offerYearly: 'LangToll Plus (annuel)',
   },
   nav: {
     cta: 'Accès anticipé',
@@ -774,7 +896,7 @@ const fr: LandingCopy = {
       { headline: 'English first, TikTok after.', lang: 'anglais', code: 'en' },
     ],
     subBefore:
-      'LangPass verrouille les apps qui bouffent tes soirées — tant que tu n’as pas fait tes exercices en ',
+      'LangToll verrouille les apps qui bouffent tes soirées — tant que tu n’as pas fait tes exercices en ',
     subAfter: '. ',
     subStrong: 'Cinq exercices rapides t’achètent 30 minutes de téléphone.',
     subTail: ' Puis le mur revient. Tu vas apprendre, parce que tu n’as pas le choix.',
@@ -782,7 +904,7 @@ const fr: LandingCopy = {
     ctaSecondary: 'Voir le deal',
   },
   pass: {
-    brandLabel: 'LangPass',
+    brandLabel: 'LangToll',
     stateActive: 'VALIDE',
     stateExpired: 'EXPIRÉ',
     noteActive: 'de temps restant',
@@ -793,6 +915,19 @@ const fr: LandingCopy = {
     stamp: 'EXPIRÉ',
     ariaActive: 'Pass valide — survole-le pour le voir expirer',
     ariaExpired: 'Pass expiré',
+    card: {
+      classLine: 'Pay as you go',
+      subLine: 'Non-transferable',
+      from: 'Travelling from',
+      tear: 'Tear here',
+      passNo: 'Pass no.',
+      issued: 'Issued',
+      validThru: 'Valid thru',
+      validThruValue: 'Rolling',
+      holder: 'Holder',
+      holderValue: 'You',
+      valid: 'Valid',
+    },
   },
   how: {
     eyebrow: 'Le deal',
@@ -816,20 +951,35 @@ const fr: LandingCopy = {
         label: 'Portillon · 3',
         title: 'Le pass expire',
         body:
-          '30 minutes plus tard, le mur est de retour — même si tu ne rouvres jamais LangPass. Scrolle assez et tu deviendras bilingue par pure rancune.',
+          '30 minutes plus tard, le mur est de retour — même si tu ne rouvres jamais LangToll. Scrolle assez et tu deviendras bilingue par pure rancune.',
       },
     ],
   },
   shots: {
     eyebrow: 'L’app',
-    title: 'Conçue comme un club privé, pas comme une salle de classe.',
-    lede: 'Verre graphite, un seul accent acide, et un ticket que tu auras envie de mériter.',
+    title: 'Paie le péage. Récupère ton pass.',
+    lede: 'Cinq exercices te rendent ton téléphone. Voici le rituel en entier.',
     passAlt:
-      'Écran d’accueil LangPass : un pass expiré avec le tarif — 5 exercices pour 30 minutes de téléphone',
+      'Écran d’accueil LangToll : un pass expiré avec le tarif — 5 exercices pour 30 minutes de téléphone',
     passCaption: 'Le pass — expiré, composté, en attente.',
     practiceAlt:
-      'Session d’entraînement LangPass : un exercice de vocabulaire allemand avec lecture audio',
+      'Session d’entraînement LangToll : un exercice de vocabulaire allemand avec lecture audio',
     practiceCaption: 'L’entraînement — avec une voix qui parle ta langue.',
+    walletAlt: 'Portefeuille LangToll : chaque mot rencontré en talon de ticket — les mots maîtrisés tamponnés et collectionnés',
+    walletCaption: 'Le portefeuille — chaque mot un ticket. Collectionne-les tous.',
+  },
+  tolly: {
+    eyebrow: 'Le contrôleur',
+    title: 'Voici Tolly.',
+    lede: 'Le petit contrôleur de ton portique. Il tamponne ton pass, garde tes apps — et prend ton scroll très personnellement.',
+    captions: [
+      'Péage réglé. Pass tamponné et délivré.',
+      'Pas de pass ? Le portique reste fermé.',
+      'Expiré. Pas fâché — juste déçu.',
+      'Heures creuses. Tu as mérité le calme.',
+      'Cinq sur cinq — chapeau bas.',
+      'Toujours de garde — même quand tu es dans d’autres apps.',
+    ],
   },
   features: {
     eyebrow: 'Ce qu’il y a dedans',
@@ -842,7 +992,7 @@ const fr: LandingCopy = {
           'Blocage par Temps d’écran d’Apple. Tes apps restent verrouillées tant que le tarif n’est pas payé — pas de report, pas de balayage.',
       },
       {
-        tag: 'A1 → B1',
+        tag: 'A1 → B2',
         title: 'Des niveaux qui grandissent avec toi',
         body:
           'Des packs choisis, des premiers mots aux vraies conversations, langue par langue. L’onboarding lit ta difficulté et te place au bon niveau.',
@@ -851,7 +1001,7 @@ const fr: LandingCopy = {
         tag: '7 types d’exercices',
         title: 'Pas juste des mots à relier',
         body:
-          'QCM, articles à genrer, réponses écrites avec correction tolérante aux accents, textes à trous, phrases à reconstruire, écoute.',
+          'QCM, réponses écrites avec correction tolérante aux accents, textes à trous, phrases à reconstruire, écoute — et des articles à genrer quand ta langue en a.',
       },
       {
         tag: 'Voix',
@@ -862,7 +1012,7 @@ const fr: LandingCopy = {
       {
         tag: 'Hors ligne',
         title: 'Marche sans réseau',
-        body: 'Tout le programme est embarqué dans l’app. Ton déverrouillage de 7 h se moque de ta couverture.',
+        body: 'Tout jusqu’au B1 est embarqué dans l’app ; le B2 se synchronise une fois et reste. Ton déverrouillage de 7 h se moque de ta couverture.',
       },
       {
         tag: 'Plus',
@@ -876,7 +1026,7 @@ const fr: LandingCopy = {
     eyebrow: 'Pourquoi ça marche',
     title: 'Toutes les autres apps te supplient de les ouvrir.',
     lede:
-      'LangPass tient la porte des apps que tu allais ouvrir de toute façon. La motivation est optionnelle, par construction.',
+      'LangToll tient la porte des apps que tu allais ouvrir de toute façon. La motivation est optionnelle, par construction.',
     themTitle: 'Le modèle série-et-culpabilité',
     themPoints: [
       'Il faut d’abord que tu te souviennes qu’elle existe',
@@ -893,10 +1043,12 @@ const fr: LandingCopy = {
   pricing: {
     eyebrow: 'Grille tarifaire',
     title: 'La première semaine, c’est l’expérience complète. Gratuite.',
-    planName: 'LangPass Plus',
+    planName: 'LangToll Plus',
     planBlurb:
       'Tarifs sur mesure, mode strict, tout le programme, les packs thématiques IA et chaque langue qu’on ajoute. Le verrou, lui, reste gratuit pour toujours.',
+    fromPrefix: 'à partir de',
     perYear: ' / an',
+    localNote: 'Prix US. Ton prix local est affiché dans l’App Store.',
     monthlyNote: 'ou {price}/mois',
     saveNote: ' — {pct} % d’économie sur l’année',
     trialNote: '. 7 jours d’essai gratuit, sans carte pour démarrer.',
@@ -906,8 +1058,8 @@ const fr: LandingCopy = {
   languages: {
     eyebrow: 'Six langues',
     title: 'Choisis celle que tes soirées vont payer.',
-    lede: 'Chaque langue va de A1 à B1 — un vrai programme, pas un guide de conversation.',
-    levels: 'A1 – B1',
+    lede: 'Chaque langue va de A1 à B2 — un vrai programme, pas un guide de conversation.',
+    levels: 'A1 – B2',
     items: [
       { flag: '🇩🇪', name: 'Allemand' },
       { flag: '🇪🇸', name: 'Espagnol' },
@@ -919,10 +1071,10 @@ const fr: LandingCopy = {
   },
   footer: {
     tagline:
-      'Apprends d’abord, scrolle après. · Six langues, de A1 à B1 — de nouveaux niveaux chaque mois',
+      'Apprends d’abord, scrolle après. · Six langues, de A1 à B2 — de nouveaux niveaux chaque mois',
     privacy: 'Confidentialité',
     terms: 'Conditions',
-    copyright: '© 2026 LangPass',
+    copyright: '© 2026 LangToll',
   },
   switcher: {
     ariaLabel: 'Langue',
@@ -932,17 +1084,17 @@ const fr: LandingCopy = {
 // Italian — translated. Voice: tu, transit metaphor per lib/i18n/it.ts.
 const it: LandingCopy = {
   seo: {
-    title: 'LangPass — Blocca le app. Impara la lingua.',
+    title: 'LangToll — Blocca le app. Impara la lingua.',
     description:
-      'LangPass blocca le app che ti mangiano le serate finché non ti sei allenato. Cinque esercizi valgono 30 minuti di telefono, poi il muro torna su.',
-    ogImageAlt: 'LangPass — blocca le app, impara la lingua.',
+      'LangToll blocca le app che ti mangiano le serate finché non ti sei allenato. Cinque esercizi valgono 30 minuti di telefono, poi il muro torna su.',
+    ogImageAlt: 'LangToll — blocca le app, impara la lingua.',
   },
   jsonLd: {
     description:
-      'LangPass blocca le app che ti mangiano le serate finché non ti sei allenato nella lingua che studi. Cinque esercizi veloci valgono 30 minuti di telefono, poi il muro torna su — un tornello vero, con Tempo di utilizzo, sul tuo vizio peggiore. Tedesco, spagnolo, portoghese e altre.',
+      'LangToll blocca le app che ti mangiano le serate finché non ti sei allenato nella lingua che studi. Cinque esercizi veloci valgono 30 minuti di telefono, poi il muro torna su — un tornello vero, con Tempo di utilizzo, sul tuo vizio peggiore. Tedesco, spagnolo, portoghese e altre.',
     offerFree: 'Gratis (il blocco, per sempre)',
-    offerMonthly: 'LangPass Plus (mensile)',
-    offerYearly: 'LangPass Plus (annuale)',
+    offerMonthly: 'LangToll Plus (mensile)',
+    offerYearly: 'LangToll Plus (annuale)',
   },
   nav: {
     cta: 'Accesso anticipato',
@@ -957,7 +1109,7 @@ const it: LandingCopy = {
       { headline: 'Prima l’italiano, poi Reddit.', lang: 'italiano', code: 'it' },
       { headline: 'English first, TikTok after.', lang: 'inglese', code: 'en' },
     ],
-    subBefore: 'LangPass blocca le app che ti mangiano le serate — finché non ti sei allenato in ',
+    subBefore: 'LangToll blocca le app che ti mangiano le serate — finché non ti sei allenato in ',
     subAfter: '. ',
     subStrong: 'Cinque esercizi veloci valgono 30 minuti di telefono.',
     subTail: ' Poi il muro torna su. Imparerai — perché non puoi farne a meno.',
@@ -965,7 +1117,7 @@ const it: LandingCopy = {
     ctaSecondary: 'Guarda il patto',
   },
   pass: {
-    brandLabel: 'LangPass',
+    brandLabel: 'LangToll',
     stateActive: 'VALIDO',
     stateExpired: 'SCADUTO',
     noteActive: 'di telefono rimasti',
@@ -976,6 +1128,19 @@ const it: LandingCopy = {
     stamp: 'SCADUTO',
     ariaActive: 'Pass valido — passa sopra per vederlo scadere',
     ariaExpired: 'Pass scaduto',
+    card: {
+      classLine: 'Pay as you go',
+      subLine: 'Non-transferable',
+      from: 'Travelling from',
+      tear: 'Tear here',
+      passNo: 'Pass no.',
+      issued: 'Issued',
+      validThru: 'Valid thru',
+      validThruValue: 'Rolling',
+      holder: 'Holder',
+      holderValue: 'You',
+      valid: 'Valid',
+    },
   },
   how: {
     eyebrow: 'Il patto',
@@ -999,19 +1164,34 @@ const it: LandingCopy = {
         label: 'Tornello · 3',
         title: 'Il pass scade',
         body:
-          'Dopo 30 minuti il muro è di nuovo su — anche se LangPass non lo riapri più. Scrolla abbastanza e diventerai fluente per ripicca.',
+          'Dopo 30 minuti il muro è di nuovo su — anche se LangToll non lo riapri più. Scrolla abbastanza e diventerai fluente per ripicca.',
       },
     ],
   },
   shots: {
     eyebrow: 'L’app',
-    title: 'Fatta come un club privato, non come un’aula.',
-    lede: 'Vetro grafite, un solo accento acido e un biglietto che ti verrà voglia di guadagnarti.',
+    title: 'Paga il pedaggio. Ritira il tuo pass.',
+    lede: 'Cinque esercizi ti restituiscono il telefono. Ecco l’intero rituale.',
     passAlt:
-      'Schermata principale di LangPass: un pass scaduto con la tariffa — 5 esercizi per 30 minuti di telefono',
+      'Schermata principale di LangToll: un pass scaduto con la tariffa — 5 esercizi per 30 minuti di telefono',
     passCaption: 'Il pass — scaduto, timbrato, in attesa.',
-    practiceAlt: 'Sessione di allenamento LangPass: un esercizio di vocaboli tedeschi con riproduzione vocale',
+    practiceAlt: 'Sessione di allenamento LangToll: un esercizio di vocaboli tedeschi con riproduzione vocale',
     practiceCaption: 'Allenamento — con una voce che parla la tua lingua.',
+    walletAlt: 'Portafoglio LangToll: ogni parola incontrata come matrice di biglietto — quelle padroneggiate timbrate e collezionate',
+    walletCaption: 'Il portafoglio — ogni parola un biglietto. Collezionali tutti.',
+  },
+  tolly: {
+    eyebrow: 'Il bigliettaio',
+    title: 'Lui è Tolly.',
+    lede: 'Il piccolo bigliettaio del tuo varco. Timbra il tuo pass, sorveglia le tue app — e il tuo scroll se lo prende sul personale.',
+    captions: [
+      'Pedaggio pagato. Pass timbrato ed emesso.',
+      'Niente pass? Il varco resta chiuso.',
+      'Scaduto. Non è arrabbiato — solo deluso.',
+      'Ora di quiete. Te la sei guadagnata.',
+      'Cinque su cinque — giù il cappello.',
+      'Sempre di guardia — anche mentre sei in altre app.',
+    ],
   },
   features: {
     eyebrow: 'Cosa c’è dentro',
@@ -1024,7 +1204,7 @@ const it: LandingCopy = {
           'Blocco con Tempo di utilizzo di Apple. Le tue app restano chiuse finché non paghi la tariffa — niente rinvii, niente scorciatoie.',
       },
       {
-        tag: 'A1 → B1',
+        tag: 'A1 → B2',
         title: 'Livelli che crescono con te',
         body:
           'Pacchetti curati, dalle prime parole alle conversazioni vere, per ogni lingua. L’onboarding legge la tua difficoltà e ti mette al livello giusto.',
@@ -1033,7 +1213,7 @@ const it: LandingCopy = {
         tag: '7 tipi di esercizio',
         title: 'Non solo abbinare parole',
         body:
-          'Scelta multipla, articoli e generi, risposte scritte con correzione che perdona gli accenti, completamento, costruzione di frasi, ascolto.',
+          'Scelta multipla, risposte scritte con correzione che perdona gli accenti, completamento, costruzione di frasi, ascolto — e articoli e generi dove la tua lingua li ha.',
       },
       {
         tag: 'Voce',
@@ -1044,7 +1224,7 @@ const it: LandingCopy = {
       {
         tag: 'Offline',
         title: 'Funziona senza campo',
-        body: 'Tutto il programma è dentro l’app. Al tuo sblocco delle 7 di mattina non importa nulla della tua linea.',
+        body: 'Tutto fino al B1 è dentro l’app; il B2 si sincronizza una volta e resta. Al tuo sblocco delle 7 di mattina non importa nulla della tua linea.',
       },
       {
         tag: 'Plus',
@@ -1058,7 +1238,7 @@ const it: LandingCopy = {
     eyebrow: 'Perché funziona',
     title: 'Tutte le altre app ti supplicano di aprirle.',
     lede:
-      'LangPass comanda la porta delle app che aprivi comunque. La motivazione è opzionale, di proposito.',
+      'LangToll comanda la porta delle app che aprivi comunque. La motivazione è opzionale, di proposito.',
     themTitle: 'Il modello streak e sensi di colpa',
     themPoints: [
       'Devi ricordarti che esiste',
@@ -1075,10 +1255,12 @@ const it: LandingCopy = {
   pricing: {
     eyebrow: 'Tariffario',
     title: 'La prima settimana è tutto quanto. Gratis.',
-    planName: 'LangPass Plus',
+    planName: 'LangToll Plus',
     planBlurb:
       'Tariffe su misura, modalità severa, il programma completo, i pacchetti AI a tema e ogni lingua che aggiungiamo. Il blocco, di suo, resta gratis per sempre.',
+    fromPrefix: 'da',
     perYear: ' / anno',
+    localNote: 'Prezzo USA. Il tuo prezzo locale è indicato nell’App Store.',
     monthlyNote: 'oppure {price}/mese',
     saveNote: ' — risparmi il {pct}% sull’anno',
     trialNote: '. 7 giorni di prova gratis, senza carta.',
@@ -1088,8 +1270,8 @@ const it: LandingCopy = {
   languages: {
     eyebrow: 'Sei lingue',
     title: 'Scegli quella che pagheranno le tue serate.',
-    lede: 'Ogni lingua va da A1 a B1 — un programma vero, non un frasario.',
-    levels: 'A1 – B1',
+    lede: 'Ogni lingua va da A1 a B2 — un programma vero, non un frasario.',
+    levels: 'A1 – B2',
     items: [
       { flag: '🇩🇪', name: 'Tedesco' },
       { flag: '🇪🇸', name: 'Spagnolo' },
@@ -1100,30 +1282,30 @@ const it: LandingCopy = {
     ],
   },
   footer: {
-    tagline: 'Prima impari, poi scrolli. · Sei lingue, da A1 a B1 — nuovi livelli ogni mese',
+    tagline: 'Prima impari, poi scrolli. · Sei lingue, da A1 a B2 — nuovi livelli ogni mese',
     privacy: 'Privacy',
     terms: 'Termini',
-    copyright: '© 2026 LangPass',
+    copyright: '© 2026 LangToll',
   },
   switcher: {
     ariaLabel: 'Lingua',
   },
 };
 
-// Brazilian Portuguese — translated. Voice: você, transit metaphor per ../langpass-mobile/lib/i18n/pt.ts.
+// Brazilian Portuguese — translated. Voice: você, transit metaphor per ../langtoll-mobile/lib/i18n/pt.ts.
 const pt: LandingCopy = {
   seo: {
-    title: 'LangPass — Tranque os apps. Aprenda o idioma.',
+    title: 'LangToll — Tranque os apps. Aprenda o idioma.',
     description:
-      'O LangPass tranca os apps que comem suas noites até você treinar o idioma. Cinco exercícios compram 30 minutos de celular. Depois a catraca volta.',
-    ogImageAlt: 'LangPass — tranque os apps, aprenda o idioma.',
+      'O LangToll tranca os apps que comem suas noites até você treinar o idioma. Cinco exercícios compram 30 minutos de celular. Depois a catraca volta.',
+    ogImageAlt: 'LangToll — tranque os apps, aprenda o idioma.',
   },
   jsonLd: {
     description:
-      'O LangPass tranca os apps que comem suas noites até você treinar o idioma. Cinco exercícios rápidos compram 30 minutos de celular, depois a catraca volta — uma catraca de verdade, no Tempo de Uso, em cima do seu pior vício. Alemão, espanhol, português e mais.',
+      'O LangToll tranca os apps que comem suas noites até você treinar o idioma. Cinco exercícios rápidos compram 30 minutos de celular, depois a catraca volta — uma catraca de verdade, no Tempo de Uso, em cima do seu pior vício. Alemão, espanhol, português e mais.',
     offerFree: 'Grátis (a tranca, pra sempre)',
-    offerMonthly: 'LangPass Plus (mensal)',
-    offerYearly: 'LangPass Plus (anual)',
+    offerMonthly: 'LangToll Plus (mensal)',
+    offerYearly: 'LangToll Plus (anual)',
   },
   nav: {
     cta: 'Quero acesso antecipado',
@@ -1138,7 +1320,7 @@ const pt: LandingCopy = {
       { headline: 'Prima l’italiano, poi Reddit.', lang: 'italiano', code: 'it' },
       { headline: 'English first, TikTok after.', lang: 'inglês', code: 'en' },
     ],
-    subBefore: 'O LangPass tranca os apps que comem suas noites — até você treinar seu ',
+    subBefore: 'O LangToll tranca os apps que comem suas noites — até você treinar seu ',
     subAfter: '. ',
     subStrong: 'Cinco exercícios rápidos compram 30 minutos de celular.',
     subTail: ' Depois a catraca volta. Você vai aprender, porque não tem como escapar.',
@@ -1146,7 +1328,7 @@ const pt: LandingCopy = {
     ctaSecondary: 'Ver o trato',
   },
   pass: {
-    brandLabel: 'LangPass',
+    brandLabel: 'LangToll',
     stateActive: 'ATIVO',
     stateExpired: 'VENCIDO',
     noteActive: 'de celular restantes',
@@ -1157,6 +1339,19 @@ const pt: LandingCopy = {
     stamp: 'VENCIDO',
     ariaActive: 'Passe ativo — aponte o cursor para ver ele vencer',
     ariaExpired: 'Passe vencido',
+    card: {
+      classLine: 'Pay as you go',
+      subLine: 'Non-transferable',
+      from: 'Travelling from',
+      tear: 'Tear here',
+      passNo: 'Pass no.',
+      issued: 'Issued',
+      validThru: 'Valid thru',
+      validThruValue: 'Rolling',
+      holder: 'Holder',
+      holderValue: 'You',
+      valid: 'Valid',
+    },
   },
   how: {
     eyebrow: 'O trato',
@@ -1180,19 +1375,34 @@ const pt: LandingCopy = {
         label: 'Catraca · 3',
         title: 'O passe vence',
         body:
-          '30 minutos depois o muro está de volta — mesmo que você nunca mais abra o LangPass. Role o suficiente e você fica fluente de raiva.',
+          '30 minutos depois o muro está de volta — mesmo que você nunca mais abra o LangToll. Role o suficiente e você fica fluente de raiva.',
       },
     ],
   },
   shots: {
     eyebrow: 'O app',
-    title: 'Feito como clube fechado, não como sala de aula.',
-    lede: 'Vidro grafite, um único tom ácido e um bilhete que você vai querer conquistar.',
+    title: 'Pague o pedágio. Retire seu passe.',
+    lede: 'Cinco exercícios devolvem seu celular. Veja o ritual completo.',
     passAlt:
-      'Tela inicial do LangPass: um passe vencido com a tarifa — 5 exercícios por 30 minutos de celular',
+      'Tela inicial do LangToll: um passe vencido com a tarifa — 5 exercícios por 30 minutos de celular',
     passCaption: 'O passe — vencido, carimbado, esperando.',
-    practiceAlt: 'Sessão de treino do LangPass: exercício de vocabulário em alemão com áudio',
+    practiceAlt: 'Sessão de treino do LangToll: exercício de vocabulário em alemão com áudio',
     practiceCaption: 'Treino — com uma voz que fala o idioma de verdade.',
+    walletAlt: 'Carteira LangToll: cada palavra aprendida vira um canhoto de bilhete — as dominadas, carimbadas e colecionadas',
+    walletCaption: 'A carteira — cada palavra um bilhete. Colecione todos.',
+  },
+  tolly: {
+    eyebrow: 'O cobrador',
+    title: 'Este é o Tolly.',
+    lede: 'O pequeno cobrador da sua catraca. Ele carimba seu passe, vigia seus apps — e leva seu scroll para o lado pessoal.',
+    captions: [
+      'Tarifa paga. Passe carimbado e emitido.',
+      'Sem passe? A catraca não abre.',
+      'Expirado. Ele não está bravo — só decepcionado.',
+      'Fora de pico. Você mereceu o sossego.',
+      'Cinco de cinco — tira o quepe.',
+      'Sempre de guarda — mesmo enquanto você está em outros apps.',
+    ],
   },
   features: {
     eyebrow: 'O que tem dentro',
@@ -1205,7 +1415,7 @@ const pt: LandingCopy = {
           'Bloqueio do Tempo de Uso da Apple. Seus apps ficam trancados até a tarifa ser paga — sem soneca, sem deslizar pro lado.',
       },
       {
-        tag: 'A1 → B1',
+        tag: 'A1 → B2',
         title: 'Níveis que crescem com você',
         body:
           'Pacotes selecionados, das primeiras palavras a conversas de verdade, em cada idioma. O onboarding lê sua dificuldade e te coloca no nível certo.',
@@ -1214,7 +1424,7 @@ const pt: LandingCopy = {
         tag: '7 tipos de exercício',
         title: 'Não é só ligar palavrinha com palavrinha',
         body:
-          'Múltipla escolha, artigo e gênero, resposta escrita com correção que perdoa acento, lacuna, montar frase, escuta.',
+          'Múltipla escolha, resposta escrita com correção que perdoa acento, lacuna, montar frase, escuta — e artigo e gênero onde o idioma tem.',
       },
       {
         tag: 'Voz',
@@ -1225,7 +1435,7 @@ const pt: LandingCopy = {
       {
         tag: 'Offline',
         title: 'Funciona sem sinal',
-        body: 'O currículo inteiro vem dentro do app. Sua liberação das 7 da manhã não liga pra sua operadora.',
+        body: 'Tudo até o B1 vem dentro do app; o B2 sincroniza uma vez e fica. Sua liberação das 7 da manhã não liga pra sua operadora.',
       },
       {
         tag: 'Plus',
@@ -1239,7 +1449,7 @@ const pt: LandingCopy = {
     eyebrow: 'Por que funciona',
     title: 'Todo outro app implora pra você abrir.',
     lede:
-      'O LangPass é dono da porta dos apps que você ia abrir de qualquer jeito. Motivação aqui é opcional, de propósito.',
+      'O LangToll é dono da porta dos apps que você ia abrir de qualquer jeito. Motivação aqui é opcional, de propósito.',
     themTitle: 'O modelo da ofensiva e da culpa',
     themPoints: [
       'Depende de você lembrar que ele existe',
@@ -1256,10 +1466,12 @@ const pt: LandingCopy = {
   pricing: {
     eyebrow: 'Tabela de tarifas',
     title: 'A primeira semana é a experiência completa. De graça.',
-    planName: 'LangPass Plus',
+    planName: 'LangToll Plus',
     planBlurb:
       'Tarifa sob medida, modo linha-dura, o currículo completo, pacotes de temas com IA e todo idioma que a gente lançar. A tranca em si é grátis pra sempre.',
+    fromPrefix: 'a partir de',
     perYear: ' / ano',
+    localNote: 'Preço dos EUA. Seu preço local aparece na App Store.',
     monthlyNote: 'ou {price}/mês',
     saveNote: ' — economize {pct}% no ano',
     trialNote: '. 7 dias grátis, sem cartão pra começar.',
@@ -1269,8 +1481,8 @@ const pt: LandingCopy = {
   languages: {
     eyebrow: 'Seis idiomas',
     title: 'Escolha o que suas noites vão pagar.',
-    lede: 'Todo idioma vai de A1 a B1 — currículo de verdade, não um guia de frases.',
-    levels: 'A1 – B1',
+    lede: 'Todo idioma vai de A1 a B2 — currículo de verdade, não um guia de frases.',
+    levels: 'A1 – B2',
     items: [
       { flag: '🇩🇪', name: 'Alemão' },
       { flag: '🇪🇸', name: 'Espanhol' },
@@ -1281,10 +1493,10 @@ const pt: LandingCopy = {
     ],
   },
   footer: {
-    tagline: 'Aprenda primeiro, depois scroll. · Seis idiomas, de A1 a B1 — níveis novos todo mês',
+    tagline: 'Aprenda primeiro, depois scroll. · Seis idiomas, de A1 a B2 — níveis novos todo mês',
     privacy: 'Privacidade',
     terms: 'Termos',
-    copyright: '© 2026 LangPass',
+    copyright: '© 2026 LangToll',
   },
   switcher: {
     ariaLabel: 'Idioma',

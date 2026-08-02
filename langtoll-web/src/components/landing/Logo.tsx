@@ -1,62 +1,42 @@
-// The LangPass logo — ONE image, not a mark with text set beside it.
+// The LangToll logo — Tolly's face locked up with a two-tone grotesque wordmark.
 //
-// Mark and logotype live in a single <svg> with a shared coordinate system, so
-// they scale, space and align as one locked-up graphic. Passing a height is the
-// only knob; everything inside keeps its proportions.
+// The mark is the mascot (matching the app icon and app header); the transit
+// roundel now lives on his cap. The wordmark is set in the page's signage
+// grotesque (var(--sans)), "Lang" in ink and "Toll" in the rail accent, so the word
+// itself carries the two-tone transit identity rather than reading as plain text.
 //
-// The mark: a speech bubble with a keyhole punched through it — speech bubble =
-// the language, keyhole = the lock. It deliberately contains NO letter: the
-// earlier mark centred an italic Fraunces "l", which at nav size loses every
-// distinguishing feature and reads as a "1".
-//
-// The keyhole is punched with a MASK rather than filled with the page colour, so
-// the logo sits correctly on dark sections, lime blocks and light cards alike.
-//
-// `id` must be unique per instance — SVG ids are document-global, and a repeated
-// mask id silently breaks whichever copy paints second.
+// One knob: `height` scales the whole lockup proportionally (roundel, gap, and word).
+// Colours come from CSS custom properties, so it sits correctly on the light "day
+// service" paper and the dark "night service" navy alike, in both nav and footer.
+// (`id` is accepted for call-site compatibility but no longer needed — the old mark
+// used a per-instance SVG mask id; this one has no mask.)
 
-export function Logo({ height = 34, id = 'lp' }: { height?: number; id?: string }) {
-  const maskId = `${id}-keyhole`;
-  // 168x32 user units: 32 for the mark, a 12-unit gap, ~124 for the logotype.
-  const width = Math.round((height * 168) / 32);
-
+export function Logo({ height = 34 }: { height?: number; id?: string }) {
+  // The official mark is the fare-paid pose (Ralph's call): full-body Tolly with
+  // the stamped ticket — 620x640, near square.
+  const tollyW = Math.round(height * (620 / 640));
   return (
-    <svg
+    <span
       className="logo"
-      width={width}
-      height={height}
-      viewBox="0 0 168 32"
       role="img"
-      aria-label="LangPass"
+      aria-label="LangToll"
+      style={{ display: 'inline-flex', alignItems: 'flex-end', gap: Math.round(height * 0.26) }}
     >
-      <defs>
-        <mask id={maskId}>
-          {/* white keeps, black punches through */}
-          <rect width="32" height="32" fill="#fff" />
-          <circle cx="16" cy="12" r="2.6" fill="#000" />
-          <path d="M14.7 13.6h2.6l.9 4.6h-4.4z" fill="#000" />
-        </mask>
-      </defs>
-
-      <path
-        d="M4 9a5 5 0 015-5h14a5 5 0 015 5v9a5 5 0 01-5 5h-7l-6 5v-5H9a5 5 0 01-5-5z"
-        className="logo-mark"
-        mask={`url(#${maskId})`}
+      {/* Tolly is the mark now (matches the app header + icon); the roundel lives on his cap. */}
+      <img
+        src="/tolly/tolly-happy.png"
+        alt=""
+        aria-hidden="true"
+        width={tollyW}
+        height={height}
+        style={{ flex: 'none', objectFit: 'contain' }}
       />
-
-      {/* Logotype, baseline-aligned to the mark's optical centre. Two-tone so the
-          word carries the transit metaphor instead of reading as plain text. */}
-      <text
-        x="44"
-        y="24"
-        fontFamily="var(--font-fraunces), Georgia, serif"
-        fontStyle="italic"
-        fontSize="30"
-        letterSpacing="-0.6"
+      <span
+        className="logo-word"
+        style={{ fontSize: Math.round(height * 0.62), lineHeight: 1, paddingBottom: Math.round(height * 0.05) }}
       >
-        <tspan className="logo-lang">lang</tspan>
-        <tspan className="logo-pass">pass</tspan>
-      </text>
-    </svg>
+        Lang<b>Toll</b>
+      </span>
+    </span>
   );
 }

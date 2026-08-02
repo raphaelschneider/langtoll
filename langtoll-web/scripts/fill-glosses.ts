@@ -19,7 +19,7 @@ import { UI_LOCALES, LANGS, LEVELS } from '../src/lib/ai/generate';
 import { logUsage } from '../src/lib/usage';
 import { query } from '../src/lib/db';
 
-const MODEL = process.env.LANGPASS_GLOSS_MODEL || 'gpt-4o-mini';
+const MODEL = process.env.LANGTOLL_GLOSS_MODEL || 'gpt-4o-mini';
 const DEFAULT_CONCURRENCY = 8;
 
 interface Pack {

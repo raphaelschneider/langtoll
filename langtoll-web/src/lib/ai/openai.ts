@@ -22,5 +22,5 @@ export function getOpenAI(): OpenAI {
 //
 // Generation is one-time and cached forever, so the model cost is paid once per
 // pack and amortised across every user who ever drills it. Override with
-// LANGPASS_TOPIC_MODEL.
-export const TOPIC_MODEL = process.env.LANGPASS_TOPIC_MODEL || 'gpt-4o';
+// LANGTOLL_TOPIC_MODEL.
+export const TOPIC_MODEL = process.env.LANGTOLL_TOPIC_MODEL || 'gpt-4o';
