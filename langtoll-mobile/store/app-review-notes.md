@@ -1,6 +1,6 @@
 # App Review notes — paste into App Store Connect "Notes for Review"
 
-Draft for the LangPass 1.0 submission. Family Controls apps draw extra scrutiny,
+Draft for the LangToll 1.0 submission. Family Controls apps draw extra scrutiny,
 and the two questions reviewers reliably ask are *why do you need this
 entitlement* and *how do I reproduce the behaviour*. Both are answered up front.
 
@@ -8,13 +8,13 @@ entitlement* and *how do I reproduce the behaviour*. Both are answered up front.
 
 ## Notes for Review (paste below this line)
 
-**No account or login is required.** LangPass has no sign-in of any kind — there
+**No account or login is required.** LangToll has no sign-in of any kind — there
 is no username, email, or password to provide. The app works immediately on
 launch. Users are identified only by an anonymous per-device identifier.
 
 **Why this app uses Family Controls (Screen Time)**
 
-LangPass is a self-control tool. Its single purpose is to let a user put their
+LangToll is a self-control tool. Its single purpose is to let a user put their
 own distracting apps behind a language-learning exercise: to reopen the app they
 chose to block, they must first complete a short practice session. The Screen
 Time shield is the core mechanism of the product, not an ancillary feature.
@@ -45,7 +45,7 @@ Specifically:
 5. On completion the pass is issued and the selected apps unlock for 30 minutes.
    Opening a locked app before this point shows the Screen Time shield.
 6. After 30 minutes the apps re-lock automatically, without the user needing to
-   reopen LangPass.
+   reopen LangToll.
 
 **Please note:** the Screen Time shield cannot function in the iOS Simulator —
 Family Controls is only active on physical hardware. Reviewing this flow requires
@@ -53,7 +53,7 @@ a physical device.
 
 **In-app purchases**
 
-LangPass Plus is an auto-renewing subscription, offered weekly, monthly or
+LangToll Plus is an auto-renewing subscription, offered weekly, monthly or
 yearly. The monthly and yearly plans include a 7-day free trial; the weekly plan
 does not. The free tier is fully functional: the lock, the practice sessions,
 and all six language courses are available without paying. Plus adds the ability
