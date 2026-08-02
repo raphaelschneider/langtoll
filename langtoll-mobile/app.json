@@ -16,7 +16,8 @@
       "bundleIdentifier": "com.langtoll.app",
       "appleTeamId": "QSAPKESRUG",
       "infoPlist": {
-        "NSSupportsLiveActivities": true
+        "NSSupportsLiveActivities": true,
+        "ITSAppUsesNonExemptEncryption": false
       },
       "buildNumber": "1"
     },
