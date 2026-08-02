@@ -17,10 +17,28 @@
 // The unlock contract either way: completing a session calls the store's
 // completeSession() (drives the countdown) AND grantUnlock(minutes) here
 // (lifts the real shield + schedules the DeviceActivity re-lock so apps
-// re-shield even if LangPass never reopens). maybeRelock() re-shields on
+// re-shield even if LangToll never reopens). maybeRelock() re-shields on
 // foreground when the grant has expired.
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { endPassActivity } from '@/modules/langtoll-activity/src';
+import { schedulePassExpiryNotice, cancelPassExpiryNotice } from '@/lib/notify';
+
+/**
+ * Minutes between the pass expiring and the shield actually landing. The pass
+ * itself is honest (countdown, island and home flip at the true expiry) — this
+ * only softens the re-lock so it never cuts someone off mid-video. Strict Mode
+ * (Plus) will set this to zero; that IS the "no mercy" it advertises.
+ */
+const RELOCK_GRACE_MINUTES = 2;
+
+/**
+ * How long the shield's "2 more minutes" hatch lasts. Tapping it whitelists
+ * exactly the app being interrupted (the shield-action extension is the one
+ * place iOS hands us the current app's token); this cap re-blocks it via the
+ * last-call monitor armed at grant time.
+ */
+const LASTCALL_MINUTES = 2;
 
 export type BlockingMode = 'native' | 'stub';
 
@@ -37,8 +55,14 @@ export function relockStatus(): { at: string; ok: boolean; detail: string } | nu
 }
 
 /** The stable id the user's "distracting apps" selection is persisted under. */
-const SELECTION_ID = 'langpass-blocked';
-const ACTIVITY_NAME = 'langpass-relock';
+const SELECTION_ID = 'langtoll-blocked';
+// Prefix, not a fixed name: every grant gets a UNIQUE activity. Reusing one name
+// let a stale intervalDidEnd from the PREVIOUS pass re-block a freshly paid one —
+// the grace window invites paying during the old interval, so the race went from
+// theoretical to Ralph's phone within a day. With unique names the old monitor's
+// actions are explicitly emptied on re-grant; even if stopMonitoring can't cancel
+// a mid-flight interval, its callback fires into a no-op.
+const ACTIVITY_PREFIX = 'langtoll-relock';
 
 // Lazy so the app never crashes when the native module isn't in the binary
 // (Expo Go, or before the dev build exists).
@@ -146,7 +170,7 @@ export function clearSelection(): void {
   const m = native();
   if (!m || !Device.isDevice) return;
   try {
-    m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langpass:clearSelection');
+    m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langtoll:clearSelection');
     m.setFamilyActivitySelectionId({ id: SELECTION_ID, familyActivitySelection: null });
   } catch (e) {
     console.warn('[blocking] clearSelection failed', e);
@@ -168,10 +192,14 @@ export function isShieldActive(): boolean {
 
 /** Shield the selected apps now. No-op without a native selection. */
 export function lockNow(): void {
+  // Locked ⇒ no countdown: the island activity ends with the grant, native or not.
+  endPassActivity();
+  // A manual/early lock supersedes the pending "gate closes in N minutes" notice.
+  cancelPassExpiryNotice();
   const m = native();
   if (!isNativeAvailable() || !hasSelection()) return;
   try {
-    m.blockSelection({ activitySelectionId: SELECTION_ID }, 'langpass:lockNow');
+    m.blockSelection({ activitySelectionId: SELECTION_ID }, 'langtoll:lockNow');
   } catch (e) {
     console.warn('[blocking] blockSelection failed', e);
   }
@@ -180,22 +208,36 @@ export function lockNow(): void {
 /**
  * Lift the shield for `minutes` after a completed session. In native mode also
  * schedules the re-lock via a DeviceActivity interval + a shield action, so the
- * shield returns even if the user never reopens LangPass.
+ * shield returns even if the user never reopens LangToll.
  */
 export function grantUnlock(minutes: number): void {
   const m = native();
   if (!isNativeAvailable() || !hasSelection()) return;
   try {
-    m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langpass:grantUnlock');
+    m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langtoll:grantUnlock');
+    // A fresh pass voids any "2 more minutes" hatch from the previous cycle.
+    // Safe here: the blocklist was just emptied, so updating the block is a no-op.
+    try {
+      m.clearWhitelistAndUpdateBlock?.('langtoll:grantUnlock');
+    } catch {
+      // hatch cleanup is best-effort
+    }
 
     const now = new Date();
     const end = new Date(now.getTime() + minutes * 60_000);
+    // The shield does NOT slam mid-flow: the pass expires on time (UI, island and
+    // countdown all use the store's timestamp), but the re-lock lands GRACE
+    // minutes later, so whatever the user is in the middle of gets an off-ramp.
+    // A notification at true expiry makes the window legible. When Strict Mode
+    // ships (Plus), strict sets the grace to zero — that IS the feature.
+    const relockAt = new Date(end.getTime() + RELOCK_GRACE_MINUTES * 60_000);
+    schedulePassExpiryNotice(end.getTime(), RELOCK_GRACE_MINUTES);
 
     // FULL date components, not just hour/minute. With time-of-day only,
     // DeviceActivity reads the schedule as a daily wall-clock pattern — so an
     // unlock crossing midnight (23:50 + 30min → end "00:20") is inverted and the
     // re-lock never fires. This was the background-relock bug: apps stayed open
-    // until LangPass was next foregrounded and maybeRelock ran.
+    // until LangToll was next foregrounded and maybeRelock ran.
     const dc = (d: Date) => ({
       year: d.getFullYear(),
       month: d.getMonth() + 1,
@@ -209,24 +251,58 @@ export function grantUnlock(minutes: number): void {
     // customise the unlock length, so clamp the MONITOR (not the store's
     // countdown): a 10-minute pass still re-locks, at most 15 minutes in — and
     // maybeRelock on foreground stays the earlier bound.
-    const monitorEnd = minutes < 15 ? new Date(now.getTime() + 15 * 60_000) : end;
+    const monitorEnd =
+      relockAt.getTime() - now.getTime() < 15 * 60_000
+        ? new Date(now.getTime() + 15 * 60_000)
+        : relockAt;
 
-    // Fresh interval each grant; stop any prior one first.
+    // Neutralize EVERY prior relock monitor: empty its actions first (so a
+    // mid-flight interval that can't be stopped fires into a no-op), then stop it.
+    const stamp = Date.now();
+    const activityName = `${ACTIVITY_PREFIX}.main.${stamp}`;
+    const lastCallName = `${ACTIVITY_PREFIX}.lastcall.${stamp}`;
     try {
-      m.stopMonitoring([ACTIVITY_NAME]);
+      const prior: string[] = (m.getActivities?.() ?? []).filter((n: string) =>
+        n.startsWith(ACTIVITY_PREFIX)
+      );
+      for (const name of prior) {
+        try {
+          m.configureActions({ activityName: name, callbackName: 'intervalDidEnd', actions: [] });
+        } catch {
+          // best-effort — stopMonitoring below is the second line of defense
+        }
+      }
+      if (prior.length) m.stopMonitoring(prior);
     } catch {
       // no prior monitor — fine
     }
+    // The "2 more minutes" hatch is time-boxed by its own monitor: whenever the
+    // shield's secondary button whitelists the app being interrupted, this interval
+    // re-blocks it LASTCALL_MINUTES after the main re-lock. Armed in advance —
+    // an extension cannot start monitors — and harmless if the hatch is never used
+    // (clearing an empty whitelist is a no-op). Apple's 15-minute floor applies.
+    const lastCallEnd =
+      new Date(
+        Math.max(
+          relockAt.getTime() + LASTCALL_MINUTES * 60_000,
+          now.getTime() + 15 * 60_000
+        )
+      );
     void (async () => {
       try {
         await m.startMonitoring(
-          ACTIVITY_NAME,
+          activityName,
           { intervalStart: dc(now), intervalEnd: dc(monitorEnd), repeats: false },
+          []
+        );
+        await m.startMonitoring(
+          lastCallName,
+          { intervalStart: dc(now), intervalEnd: dc(lastCallEnd), repeats: false },
           []
         );
         // Trust nothing: read back whether iOS actually registered the monitor.
         const active: string[] = m.getActivities?.() ?? [];
-        const ok = active.includes(ACTIVITY_NAME);
+        const ok = active.includes(activityName);
         lastRelock = {
           at: new Date().toLocaleTimeString(),
           ok,
@@ -252,9 +328,15 @@ export function grantUnlock(minutes: number): void {
     // days while the extension found no selection id in the dict and did
     // nothing. This was the background-relock bug.
     m.configureActions({
-      activityName: ACTIVITY_NAME,
+      activityName,
       callbackName: 'intervalDidEnd',
       actions: [{ type: 'blockSelection', familyActivitySelectionId: SELECTION_ID }],
+    });
+    // Last call: whatever the hatch whitelisted goes back behind the gate.
+    m.configureActions({
+      activityName: lastCallName,
+      callbackName: 'intervalDidEnd',
+      actions: [{ type: 'clearWhitelistAndUpdateBlock' }],
     });
   } catch (e) {
     console.warn('[blocking] unblock/schedule failed', e);
@@ -267,31 +349,80 @@ export function grantUnlock(minutes: number): void {
  */
 export function maybeRelock(isUnlocked: boolean): void {
   if (!isNativeAvailable() || !hasSelection()) return;
+  // Expired pass ⇒ any lingering "2 more minutes" hatch is over (covers taps that
+  // happened after the last-call monitor already fired).
+  if (!isUnlocked) {
+    try {
+      native()?.clearWhitelistAndUpdateBlock?.('langtoll:maybeRelock');
+    } catch {
+      // best-effort
+    }
+  }
   if (!isUnlocked && !isShieldActive()) lockNow();
+  // Self-heal the opposite direction too: a valid pass with the shield still up
+  // means a stale monitor callback slammed it (the pay-during-grace race) — any
+  // time the app comes to the foreground, an honest pass lifts the gate.
+  if (isUnlocked && isShieldActive()) {
+    const m = native();
+    try {
+      m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langtoll:selfHeal');
+    } catch (e) {
+      console.warn('[blocking] self-heal unblock failed', e);
+    }
+  }
 }
 
 // ── shield appearance ───────────────────────────────────────────────────────
 
-/** Brand the shield — LangPass, on theme. Native only; call once on launch. */
-export function configureShieldAppearance(): void {
+const TOLLY_SHIELD_FILE = 'tolly-stern.png';
+
+/**
+ * Stage Tolly's stern portrait in the app group container so the shield
+ * EXTENSION (a separate process that cannot read our bundle) can render him.
+ * Best-effort: if the copy fails the shield falls back to the SF Symbol below.
+ */
+async function stageShieldIcon(m: any): Promise<boolean> {
+  try {
+    const { Asset } = require('expo-asset');
+    const asset = Asset.fromModule(require('../assets/tolly/tolly-stern.png'));
+    await asset.downloadAsync();
+    if (!asset.localUri) return false;
+    const dir: string = m.getAppGroupFileDirectory();
+    if (!dir) return false;
+    // dir is a file:// URL string; trailing slash is not guaranteed across versions.
+    m.copyFile(asset.localUri, `${dir}${dir.endsWith('/') ? '' : '/'}${TOLLY_SHIELD_FILE}`, true);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Brand the shield — LangToll, on theme. Native only; call once on launch. */
+export async function configureShieldAppearance(): Promise<void> {
   const m = native();
   if (!isNativeAvailable()) return;
   try {
+    const hasTolly = await stageShieldIcon(m);
     m.updateShield(
       {
         // Language-neutral: this text is shown to every learner, and the shield is
         // configured once at launch rather than per-pack, so naming a language
         // here showed "Erst Deutsch" to someone studying Spanish.
         title: 'Locked until you practise.',
-        subtitle: 'Finish a quick session in LangPass to earn your pass.',
+        subtitle: 'Finish a quick session in LangToll to earn your pass.',
         primaryButtonLabel: 'Practice now',
-        secondaryButtonLabel: 'Not now',
-        iconSystemName: 'lock.fill',
-        backgroundColor: { red: 10, green: 10, blue: 12, alpha: 1 },
-        titleColor: { red: 242, green: 242, blue: 244, alpha: 1 },
-        subtitleColor: { red: 166, green: 166, blue: 176, alpha: 1 },
-        primaryButtonBackgroundColor: { red: 200, green: 255, blue: 77, alpha: 1 },
-        primaryButtonLabelColor: { red: 16, green: 20, blue: 3, alpha: 1 },
+        secondaryButtonLabel: '2 more minutes',
+        // Tolly, stern, collecting the fare — the operator IS the shield. SF-Symbol
+        // fallback only if staging the image into the app group failed.
+        ...(hasTolly
+          ? { iconAppGroupRelativePath: TOLLY_SHIELD_FILE }
+          : { iconSystemName: 'lock.fill' }),
+        // Night-service theme (rail navy + teal), not the pre-rebrand lime.
+        backgroundColor: { red: 15, green: 22, blue: 27, alpha: 1 },
+        titleColor: { red: 236, green: 231, blue: 216, alpha: 1 },
+        subtitleColor: { red: 162, green: 178, blue: 182, alpha: 1 },
+        primaryButtonBackgroundColor: { red: 92, green: 189, blue: 205, alpha: 1 },
+        primaryButtonLabelColor: { red: 11, green: 20, blue: 23, alpha: 1 },
       },
       {
         // A shield extension CANNOT open its containing app. That is Apple's
@@ -318,12 +449,19 @@ export function configureShieldAppearance(): void {
             body: 'Tap to practise and unlock your apps.',
             sound: 'default',
             interruptionLevel: 'timeSensitive',
-            userInfo: { url: 'langpass://session' },
+            userInfo: { url: 'langtoll://session' },
           },
         },
-        secondary: { behavior: 'defer' },
+        // The escape hatch: the ONE moment iOS reveals the current app is this
+        // button press (the shield-action extension holds its token). Tapping
+        // whitelists exactly the interrupted app — everything else stays locked —
+        // and the last-call monitor re-blocks it a couple of minutes later.
+        secondary: {
+          behavior: 'close',
+          actions: [{ type: 'addCurrentToWhitelist' }],
+        },
       },
-      'langpass:configureShield'
+      'langtoll:configureShield'
     );
   } catch (e) {
     console.warn('[blocking] shield config failed', e);
