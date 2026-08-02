@@ -31,19 +31,31 @@ variable "ssh_key_name" {
 }
 
 variable "dns_zone" {
-  # No default: the LangPass domain hasn't been picked/bought yet. Pass it once it exists,
-  # e.g. -var dns_zone=langpass.app (or set it in a *.auto.tfvars).
+  # No default: the LangToll domain hasn't been picked/bought yet. Pass it once it exists,
+  # e.g. -var dns_zone=langtoll.app (or set it in a *.auto.tfvars).
   description = "Apex domain serving the app infra (the zone must exist on Cloudflare)."
   type        = string
 }
 
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token scoped to Zone → DNS → Edit on the dns_zone."
+# NOTE ON NAMING: these carry a langtoll_ prefix on purpose. Terraform reads
+# TF_VAR_<name> from the environment, and the sibling relift infra declares a
+# variable called `cloudflare_api_token` too — a shared shell would silently feed
+# one project's token to the other's zone. Prefixed names keep both exported at
+# once, and keep the blast radius of a leaked token to a single project.
+variable "langtoll_cloudflare_api_token" {
+  description = "Cloudflare API token scoped to Zone -> DNS -> Edit on dns_zone. Export as TF_VAR_langtoll_cloudflare_api_token."
   type        = string
   sensitive   = true
 }
 
-variable "cloudflare_zone_id" {
+variable "langtoll_do_token" {
+  description = "DigitalOcean API token (TF_VAR_langtoll_do_token). Leave empty to fall back to the shared DIGITALOCEAN_TOKEN env var."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "langtoll_cloudflare_zone_id" {
   description = "Cloudflare Zone ID for dns_zone (dashboard → the zone → Overview → API → Zone ID)."
   type        = string
 }
@@ -72,7 +84,13 @@ variable "environment" {
 }
 
 variable "apple_team_id" {
-  description = "Apple Team ID (App Attest verification — must match langpass-mobile's appleTeamId)"
+  description = "Apple Team ID (App Attest verification — must match langtoll-mobile's appleTeamId)"
   type        = string
   default     = "QSAPKESRUG"
+}
+
+variable "cloudflare_proxied" {
+  description = "Put the DNS records behind Cloudflare's proxy (orange cloud) and restrict the droplet's 80/443 to Cloudflare's ranges. Set false for a fresh droplet until Caddy has issued its ACME certificate."
+  type        = bool
+  default     = true
 }

@@ -1,7 +1,7 @@
 #cloud-config
-# Provisions the LangPass single-droplet stack: MySQL, the Next.js service on :3000, and
+# Provisions the LangToll single-droplet stack: MySQL, the Next.js service on :3000, and
 # Caddy serving HTTPS (auto Let's Encrypt) for ${api_domain}. No inline schema here -
-# langpass-web self-heals its tables on first DB use (src/lib/schema.ts); cloud-init only
+# langtoll-web self-heals its tables on first DB use (src/lib/schema.ts); cloud-init only
 # creates the database + user. Secrets note: the DB password rendered here is visible in
 # DO droplet metadata - acceptable for test stage.
 package_update: true
@@ -14,20 +14,20 @@ packages:
 
 write_files:
   # systemd unit for the Next.js service (code arrives via deploy.sh)
-  - path: /etc/systemd/system/langpass-web.service
+  - path: /etc/systemd/system/langtoll-web.service
     content: |
       [Unit]
-      Description=LangPass service (Next.js)
+      Description=LangToll service (Next.js)
       After=network.target mysql.service
 
       [Service]
-      WorkingDirectory=/opt/langpass/web
-      EnvironmentFile=/etc/langpass/env
+      WorkingDirectory=/opt/langtoll/web
+      EnvironmentFile=/etc/langtoll/env
       ExecStart=/usr/bin/npm run start
       Restart=always
       RestartSec=3
-      User=langpass
-      Group=langpass
+      User=langtoll
+      Group=langtoll
 
       [Install]
       WantedBy=multi-user.target
@@ -77,42 +77,42 @@ write_files:
 
   # app environment (deploy.sh appends OPENAI_API_KEY / REVENUECAT_SECRET_KEY so they
   # never touch DO metadata)
-  - path: /etc/langpass/env
+  - path: /etc/langtoll/env
     permissions: "0600"
     content: |
       NODE_ENV=production
       PORT=3000
       DB_HOST=127.0.0.1
-      DB_USER=langpass
+      DB_USER=langtoll
       DB_PASSWORD=${db_password}
-      DB_NAME=langpass
+      DB_NAME=langtoll
       LANDING_URL=https://${web_domain}
       # App Attest (API gate). Leave ATTEST_ENFORCE off until the native client ships, then set
       # ATTEST_ENFORCE=1. APPLE_TEAM_ID + a long random ATTEST_HMAC_SECRET are required to enforce.
       # ATTEST_ALLOW_DEV=1 accepts development-environment attestations (dev builds); 0 for prod.
-      APP_BUNDLE_ID=com.langpass.app
+      APP_BUNDLE_ID=com.langtoll.app
       APPLE_TEAM_ID=${apple_team_id}
       ATTEST_HMAC_SECRET=${attest_hmac_secret}
       ATTEST_ALLOW_DEV=${is_prod ? 0 : 1}
       ATTEST_ENFORCE=0
-      # Admin dashboard (/langpass-adm) is HTTP Basic-auth gated, fail-closed while these are
-      # unset. Set both (ssh, edit this file, systemctl restart langpass-web) before using it.
+      # Admin dashboard (/langtoll-adm) is HTTP Basic-auth gated, fail-closed while these are
+      # unset. Set both (ssh, edit this file, systemctl restart langtoll-web) before using it.
       # ADMIN_USER=
       # ADMIN_PASSWORD=
 
   # Nightly MySQL dump (03:12, 7-day retention). On-box only - the prod droplet's weekly DO
   # snapshot carries it off-box; the honeymoon/attest ledger is what makes this worth having.
-  - path: /etc/cron.d/langpass-db-backup
+  - path: /etc/cron.d/langtoll-db-backup
     content: |
-      12 3 * * * root /usr/local/bin/langpass-db-backup >/dev/null 2>&1
-  - path: /usr/local/bin/langpass-db-backup
+      12 3 * * * root /usr/local/bin/langtoll-db-backup >/dev/null 2>&1
+  - path: /usr/local/bin/langtoll-db-backup
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
       set -euo pipefail
       mkdir -p /var/backups/mysql
-      mysqldump --single-transaction langpass | gzip > "/var/backups/mysql/langpass-$(date +%F).sql.gz"
-      find /var/backups/mysql -name 'langpass-*.sql.gz' -mtime +7 -delete
+      mysqldump --single-transaction langtoll | gzip > "/var/backups/mysql/langtoll-$(date +%F).sql.gz"
+      find /var/backups/mysql -name 'langtoll-*.sql.gz' -mtime +7 -delete
 
 runcmd:
   # 2G swap so `next build` never OOMs next to MySQL
@@ -124,14 +124,14 @@ runcmd:
   - apt-get install -y nodejs
 
   # app user + dirs
-  - useradd --system --create-home --shell /usr/sbin/nologin langpass || true
-  - mkdir -p /opt/langpass/web
-  - chown -R langpass:langpass /opt/langpass /etc/langpass
+  - useradd --system --create-home --shell /usr/sbin/nologin langtoll || true
+  - mkdir -p /opt/langtoll/web
+  - chown -R langtoll:langtoll /opt/langtoll /etc/langtoll
 
   # MySQL: database + app user (localhost only). Tables self-heal from the app on first use.
   - systemctl enable --now mysql
-  - mysql -e "CREATE DATABASE IF NOT EXISTS langpass;"
-  - mysql -e "CREATE USER IF NOT EXISTS 'langpass'@'localhost' IDENTIFIED BY '${db_password}'; GRANT ALL PRIVILEGES ON langpass.* TO 'langpass'@'localhost'; FLUSH PRIVILEGES;"
+  - mysql -e "CREATE DATABASE IF NOT EXISTS langtoll;"
+  - mysql -e "CREATE USER IF NOT EXISTS 'langtoll'@'localhost' IDENTIFIED BY '${db_password}'; GRANT ALL PRIVILEGES ON langtoll.* TO 'langtoll'@'localhost'; FLUSH PRIVILEGES;"
 
   # Caddy (automatic HTTPS). It obtains a cert once api_domain resolves to this droplet.
   # NOTE: our Caddyfile is written above (write_files), which means the caddy package's
@@ -154,4 +154,4 @@ runcmd:
 
   # service registered; starts after the first deploy ships code
   - systemctl daemon-reload
-  - systemctl enable langpass-web
+  - systemctl enable langtoll-web

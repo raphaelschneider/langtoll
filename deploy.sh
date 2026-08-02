@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Ships langpass-web to the droplet created by infra/: rsync → npm ci → next build →
+# Ships langtoll-web to the droplet created by infra/: rsync → npm ci → next build →
 # restart. Run from the repo root after `terraform apply`. Requires OPENAI_API_KEY in
-# langpass-web/.env.local (OPENAI_API_KEY_DEV=...) or the shell on the first deploy.
+# langtoll-web/.env.local (OPENAI_API_KEY_DEV=...) or the shell on the first deploy.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -16,10 +16,10 @@ echo "→ deploying [$ENVIRONMENT] to $IP  (api: $API_HOST · landing: $LANDING_
 # 1) sync the web app (sources only; node_modules/.next built remotely)
 rsync -az --delete \
   --exclude node_modules --exclude .next --exclude media-cache --exclude .env.local \
-  langpass-web/ "$HOST:/opt/langpass/web/"
+  langtoll-web/ "$HOST:/opt/langtoll/web/"
 
 # 2) secrets: install API keys into the droplet env (kept out of terraform/DO metadata).
-#    Source of truth is langpass-web/.env.local — the file is gitignored + rsync-excluded above,
+#    Source of truth is langtoll-web/.env.local — the file is gitignored + rsync-excluded above,
 #    so only its VALUES ship, never the file. .env.local WINS over any shell var: your
 #    interactive profile's key is for local dev and must not leak to the droplet. A shell var
 #    is used only when .env.local has no key (e.g. CI doing an explicit rotation).
@@ -27,19 +27,19 @@ env_local_value() { # $1 = KEY name in .env.local; empty output when absent (nev
   # Strip a matching pair of surrounding double OR single quotes (dotenv convention) so quoting
   # in .env.local is syntax, not part of the value — otherwise e.g. ADMIN_PASSWORD='p@ss' would
   # ship the literal quotes as part of the password and break login.
-  [ -f langpass-web/.env.local ] || return 0
-  { grep -E "^$1=" langpass-web/.env.local || true; } | head -1 | cut -d= -f2- | tr -d '\r' \
+  [ -f langtoll-web/.env.local ] || return 0
+  { grep -E "^$1=" langtoll-web/.env.local || true; } | head -1 | cut -d= -f2- | tr -d '\r' \
     | sed -E "s/^\"(.*)\"$/\1/; s/^'(.*)'$/\1/"
 }
 install_secret() { # $1 = env name on droplet, $2 = value
-  # /etc/langpass/env is parsed by systemd (EnvironmentFile), which strips backslash escapes and
+  # /etc/langtoll/env is parsed by systemd (EnvironmentFile), which strips backslash escapes and
   # quotes — so the line must be written systemd-QUOTED: KEY="value" with \ and " escaped. Build
   # that exact line locally, then ship it base64 so no shell layer can reinterpret the bytes.
   local esc line
   esc=${2//\\/\\\\}
   esc=${esc//\"/\\\"}
   line=$(printf '%s="%s"' "$1" "$esc" | base64 | tr -d '\n')
-  ssh "$HOST" "touch /etc/langpass/env && sed -i '/^$1=/d' /etc/langpass/env && printf %s $line | base64 -d >> /etc/langpass/env && echo >> /etc/langpass/env"
+  ssh "$HOST" "touch /etc/langtoll/env && sed -i '/^$1=/d' /etc/langtoll/env && printf %s $line | base64 -d >> /etc/langtoll/env && echo >> /etc/langtoll/env"
 }
 
 # OpenAI key, per environment: OPENAI_API_KEY_PROD / OPENAI_API_KEY_DEV in .env.local,
@@ -52,7 +52,7 @@ if [ -n "$DEPLOY_OPENAI_KEY" ]; then
   echo "→ updating OPENAI_API_KEY on droplet (…${DEPLOY_OPENAI_KEY: -6})"
   install_secret OPENAI_API_KEY "$DEPLOY_OPENAI_KEY"
 else
-  echo "⚠ no OPENAI_API_KEY in langpass-web/.env.local or env — droplet key left unchanged"
+  echo "⚠ no OPENAI_API_KEY in langtoll-web/.env.local or env — droplet key left unchanged"
 fi
 
 DEPLOY_RC_KEY="$(env_local_value REVENUECAT_SECRET_KEY)"
@@ -62,7 +62,7 @@ if [ -n "$DEPLOY_RC_KEY" ]; then
   install_secret REVENUECAT_SECRET_KEY "$DEPLOY_RC_KEY"
 fi
 
-# Admin dashboard (/langpass-adm) Basic-auth credentials. Fail-closed while unset, so
+# Admin dashboard (/langtoll-adm) Basic-auth credentials. Fail-closed while unset, so
 # shipping without them is safe — the dashboard is just unreachable until both are present.
 DEPLOY_ADMIN_USER="$(env_local_value ADMIN_USER)"
 DEPLOY_ADMIN_PASSWORD="$(env_local_value ADMIN_PASSWORD)"
@@ -124,16 +124,16 @@ ssh "$HOST" "caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile &&
 # 4) build + restart
 ssh "$HOST" bash -s <<'REMOTE'
 set -euo pipefail
-cd /opt/langpass/web
+cd /opt/langtoll/web
 # Build with the same env the service runs with (DB creds, OPENAI_API_KEY) so any
 # build-time access uses the real credentials, not the local-dev defaults.
-set -a; [ -f /etc/langpass/env ] && . /etc/langpass/env; set +a
+set -a; [ -f /etc/langtoll/env ] && . /etc/langtoll/env; set +a
 npm ci --no-audit --no-fund
 npm run build
-chown -R langpass:langpass /opt/langpass/web
-systemctl restart langpass-web
+chown -R langtoll:langtoll /opt/langtoll/web
+systemctl restart langtoll-web
 sleep 3
-systemctl is-active langpass-web
+systemctl is-active langtoll-web
 REMOTE
 
 # 5) verify TLS + health over HTTPS. Caddy issues the Let's Encrypt cert proactively when it
