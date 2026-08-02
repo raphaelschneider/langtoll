@@ -1,17 +1,22 @@
 // Home — the pass screen. One glance: is my pass active? One tap: pay the fare.
 // (The lock itself lives in lib/blocking: real Screen Time shielding on a
 // physical device, simulated via the store's timestamp in the simulator.)
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Redirect } from 'expo-router';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { PassCard } from '@/components/pass/PassCard';
 import { Entrance } from '@/components/ui/Entrance';
+import { Tolly } from '@/components/ui/Tolly';
+import { endPassActivity } from '@/modules/langtoll-activity/src';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { PressableScale } from '@/components/ui/PressableScale';
+import { Logo } from '@/components/ui/Logo';
+import { FareGate, type FareGateTrigger } from '@/components/pass/FareGate';
+import { JourneyLine } from '@/components/home/JourneyLine';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { activePack } from '@/lib/pack';
 import { useT, type StringKey } from '@/lib/i18n';
@@ -55,6 +60,18 @@ export default function Home() {
     return () => clearInterval(id);
   }, [unlocked]);
 
+  // Fare-gate cinematic: fire on the void<->active transition (fare paid → validate; locked → void).
+  const [gate, setGate] = useState<FareGateTrigger>(null);
+  const prevUnlocked = useRef(unlocked);
+  useEffect(() => {
+    if (prevUnlocked.current !== unlocked) {
+      setGate(unlocked ? 'validate' : 'void');
+      // Pass just expired while the app is open — take the island countdown down with it.
+      if (!unlocked) endPassActivity();
+      prevUnlocked.current = unlocked;
+    }
+  }, [unlocked]);
+
   if (!state.onboarded) return <Redirect href="/onboarding" />;
 
   return (
@@ -65,9 +82,7 @@ export default function Home() {
           {/* brand row */}
           <Entrance>
             <View style={styles.brandRow}>
-              <Text style={{ fontFamily: font.serifItalic, fontSize: 20, color: theme.ink }}>
-                langpass
-              </Text>
+              <Logo height={22} />
               <View style={styles.brandRight}>
                 <View style={[styles.packChip, { borderColor: theme.line }]}>
                   <Text variant="overline" color="inkSoft">
@@ -95,6 +110,14 @@ export default function Home() {
           {/* the pass */}
           <Entrance delay={140}>
             <View style={{ marginTop: space.xl }}>
+              {/* Tolly at the booth, always — the original brief: happy when the toll is
+                  paid, sad when it isn't. Paws on the card's top edge, in the clear right
+                  third above it (the headline never reaches there). */}
+              <Tolly
+                mood={unlocked ? 'peek' : 'peekSad'}
+                size={64}
+                style={{ position: 'absolute', top: -41, right: space.lg, zIndex: 1, height: 44 }}
+              />
               <PassCard
                 state={unlocked ? 'active' : 'void'}
                 remainingMs={unlockRemainingMs(state, now)}
@@ -119,13 +142,20 @@ export default function Home() {
             />
           </Entrance>
 
-          {/* stats */}
+          {/* stats — tap to open the word wallet (the actual words behind these counts) */}
           <Entrance delay={300}>
-            <View style={styles.statsRow}>
-              <Stat value={wordsSeen(state)} label={t('home.statWords')} />
-              <Stat value={wordsMastered(state)} label={t('home.statMastered')} />
-              <Stat value={state.streak} label={t('home.statStreak')} />
-            </View>
+            <PressableScale onPress={() => router.push('/wallet')} haptic={null}>
+              <View style={styles.statsRow}>
+                <Stat value={wordsSeen(state)} label={t('home.statWords')} />
+                <Stat value={wordsMastered(state)} label={t('home.statMastered')} />
+                <Stat value={state.streak} label={t('home.statStreak')} />
+              </View>
+            </PressableScale>
+          </Entrance>
+
+          {/* your journey — the CEFR route line (A1 → B2) */}
+          <Entrance delay={360}>
+            <JourneyLine level={pack.level} />
           </Entrance>
         </View>
 
@@ -135,6 +165,7 @@ export default function Home() {
           </View>
         )}
       </SafeAreaView>
+      <FareGate trigger={gate} onDone={() => setGate(null)} />
     </View>
   );
 }

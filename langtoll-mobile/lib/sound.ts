@@ -1,16 +1,37 @@
-// A soft chime for when a Sage message arrives — the "real chat app" touch. Fire-and-forget, and
-// it respects the iOS silent switch by default (the haptic buzz covers the silent case), so we
-// never blast sound at someone who muted their phone.
+// The transit sound palette — short, quiet cues that pair with the haptics. All fire-and-forget
+// and all respect the iOS silent switch by default (the haptic covers the muted case), so we
+// never blast audio at someone who silenced their phone. WAVs are synthesized by
+// scripts/gen-sounds.js; message.mp3 is the authored chat chime.
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 
-let player: AudioPlayer | null = null;
+const players: Record<string, AudioPlayer> = {};
 
-export function playMessageChime(): void {
+function play(key: string, mod: number): void {
   try {
-    if (!player) player = createAudioPlayer(require('../assets/sounds/message.mp3'));
-    player.seekTo(0);
-    player.play();
+    if (!players[key]) players[key] = createAudioPlayer(mod);
+    players[key].seekTo(0);
+    players[key].play();
   } catch {
     // audio unavailable (web / asset / not-yet-linked) — silently skip; the haptic still fires
   }
+}
+
+/** Soft chime when a Sage message arrives — the "real chat app" touch. */
+export function playMessageChime(): void {
+  play('chime', require('../assets/sounds/message.mp3'));
+}
+
+/** Fare-gate accept: a rising two-note beep as the pass validates. */
+export function playGate(): void {
+  play('gate', require('../assets/sounds/gate.wav'));
+}
+
+/** The validation stamp landing — a short impact thunk. */
+export function playStamp(): void {
+  play('stamp', require('../assets/sounds/stamp.wav'));
+}
+
+/** Pass voided / locked — a descending "doors closing" two-note. */
+export function playVoid(): void {
+  play('void', require('../assets/sounds/void.wav'));
 }

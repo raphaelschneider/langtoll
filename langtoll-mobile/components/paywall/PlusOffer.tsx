@@ -3,13 +3,15 @@
 // pricing and purchase logic live in exactly one place. Purchases route through
 // lib/purchases (real RevenueCat on the dev build, mock in Expo Go/simulator).
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius } from '@/design/theme';
+import { withAlpha } from '@/lib/color';
 import { PLUS_FEATURES, type Period } from '@/lib/plans';
 import {
   getPackages,
@@ -19,6 +21,7 @@ import {
   savingsVsMonthly,
   type PlusPackage,
 } from '@/lib/purchases';
+import { track } from '@/lib/telemetry';
 import { useT } from '@/lib/i18n';
 
 function HowRow({ icon, title, detail }: { icon: any; title: string; detail: string }) {
@@ -26,7 +29,7 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
   return (
     <View style={styles.featureRow}>
       <View
-        style={[styles.featureIcon, { backgroundColor: 'rgba(200,255,77,0.10)', borderColor: 'rgba(200,255,77,0.3)' }]}
+        style={[styles.featureIcon, { backgroundColor: withAlpha(theme.accent, 0.10), borderColor: withAlpha(theme.accent, 0.3) }]}
       >
         <Ionicons name={icon} size={19} color={theme.accent} />
       </View>
@@ -48,6 +51,7 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    track('paywall_viewed');
     getPackages().then((pkgs) => {
       setPackages(pkgs);
       if (pkgs.length && !pkgs.some((p) => p.period === 'yearly')) setSelected(pkgs[0].period);
@@ -76,16 +80,28 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
     if (ok) onDone();
   }
 
+  // Purchase controls live in a pinned bottom block — the buy button can never
+  // fall below the fold behind feature rows (relift's paywall lesson). Features
+  // and the restore link scroll; cards + CTA + the price/trial legal line don't.
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ gap: space.sm }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ gap: space.sm, paddingBottom: space.md }}
+      >
         {PLUS_FEATURES.slice(0, 3).map((f) => (
           <HowRow key={f.title} icon={f.icon} title={f.title} detail={f.detail} />
         ))}
-      </View>
+        <PressableScale onPress={onRestore} haptic={null} style={styles.link}>
+          <Text variant="callout" color="inkSoft" center>
+            {t('plus.restore')}
+          </Text>
+        </PressableScale>
+      </ScrollView>
 
       {/* package cards */}
-      <View style={{ marginTop: space.lg, gap: space.sm }}>
+      <View style={{ marginTop: space.sm, gap: space.md }}>
         {packages.length === 0 ? (
           <ActivityIndicator color={theme.accent} />
         ) : (
@@ -106,11 +122,34 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
                 style={[
                   styles.pkg,
                   {
-                    backgroundColor: on ? 'rgba(200,255,77,0.10)' : theme.fill,
+                    backgroundColor: on ? withAlpha(theme.accent, 0.10) : theme.fill,
                     borderColor: on ? theme.accent : theme.line,
                   },
                 ]}
               >
+                {/* Trial flag on the card's top edge. The GOOD news pops when you
+                    pick a plan; the "no free trial" warning is ALWAYS on, because a
+                    disclosure the buyer has to tap to discover isn't a disclosure.
+                    Text comes from the package's own offer, so granting weekly a
+                    trial in App Store Connect flips this with no code change. */}
+                {(on || !p.hasTrial) && (
+                  <Animated.View
+                    entering={FadeIn.duration(160)}
+                    style={[
+                      styles.trialFlag,
+                      {
+                        backgroundColor: theme.paper,
+                        borderColor: p.hasTrial ? theme.accent : theme.line,
+                      },
+                    ]}
+                  >
+                    <Text variant="caption" color={p.hasTrial ? 'accent' : 'inkSoft'}>
+                      {p.hasTrial
+                        ? t('plus.cardTrial', { days: p.trialDays })
+                        : t('plus.cardNoTrial')}
+                    </Text>
+                  </Animated.View>
+                )}
                 <View style={[styles.radio, { borderColor: on ? theme.accent : theme.inkFaint }]}>
                   {on && <View style={[styles.radioDot, { backgroundColor: theme.accent }]} />}
                 </View>
@@ -160,19 +199,9 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
           ? t('plus.trialLegal', { price: current?.priceString ?? '', days: current!.trialDays })
           : t('plus.legal')}
       </Text>
-
-      <View style={styles.linksRow}>
-        <PressableScale onPress={onRestore} haptic={null} style={styles.link}>
-          <Text variant="callout" color="inkSoft">
-            {t('plus.restore')}
-          </Text>
-        </PressableScale>
-        <PressableScale onPress={onDone} haptic={null} style={styles.link}>
-          <Text variant="callout" color="inkFaint">
-            {t('plus.later')}
-          </Text>
-        </PressableScale>
-      </View>
+      {/* No "Maybe later" here: the surface's own exit (the X on /paywall, the header
+          skip in onboarding) already grants the way out without advertising it under
+          the CTA — relift dropped theirs for exactly this reason. */}
     </View>
   );
 }
@@ -206,8 +235,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioDot: { width: 11, height: 11, borderRadius: 6 },
+  // Sits ON the top border (paper fill punches the line through), right-aligned
+  // clear of the price column.
+  trialFlag: {
+    position: 'absolute',
+    top: -11,
+    right: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    zIndex: 2,
+  },
   pkgTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  linksRow: { flexDirection: 'row', justifyContent: 'center', gap: space.xl, marginTop: space.sm },
-  link: { paddingVertical: 6, paddingHorizontal: space.md },
+  link: { paddingVertical: 6, paddingHorizontal: space.md, alignSelf: 'center' },
 });

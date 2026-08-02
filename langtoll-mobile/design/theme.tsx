@@ -1,4 +1,4 @@
-// Theme context. LangPass defaults to its nocturnal look, but the appearance is
+// Theme context. LangToll defaults to its nocturnal look, but the appearance is
 // user-controllable (Settings → Appearance): 'dark' | 'light' | 'system'.
 // The choice lives in the store (persisted); this provider resolves it — with
 // the device color scheme — into the active Theme.

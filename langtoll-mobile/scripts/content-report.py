@@ -27,7 +27,7 @@ def pack_size() -> int:
     server raised them, understating the pool by half. The generator is the
     source of truth; parse it.
     """
-    src = REPO / "langpass-web/src/lib/ai/generate.ts"
+    src = REPO / "langtoll-web/src/lib/ai/generate.ts"
     if not src.is_file():
         return 0
     text = src.read_text(encoding="utf-8")
@@ -49,7 +49,7 @@ def count_worktree(rel: str) -> int:
 def count_baseline(ref: str, rel: str) -> int:
     try:
         out = subprocess.run(
-            ["git", "show", f"{ref}:langpass-mobile/{rel}"],
+            ["git", "show", f"{ref}:langtoll-mobile/{rel}"],
             cwd=REPO, capture_output=True, text=True, check=False,
         )
         return count_text(out.stdout) if out.returncode == 0 else 0
@@ -88,7 +88,7 @@ def main() -> None:
 
     print(w.format("ALL", "BUNDLED", tot_b, tot_a, mult(tot_b, tot_a)))
 
-    cat = REPO / "langpass-web/src/lib/ai/catalogue.ts"
+    cat = REPO / "langtoll-web/src/lib/ai/catalogue.ts"
     if cat.is_file():
         topics = sum(1 for line in cat.read_text(encoding="utf-8").splitlines()
                      if line.strip().startswith("'") and line.rstrip().endswith("',"))

@@ -87,6 +87,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 18,
     paddingVertical: 10,
-    backgroundColor: 'rgba(200,255,77,0.08)',
+    backgroundColor: 'rgba(92,189,205,0.10)',
   },
 });

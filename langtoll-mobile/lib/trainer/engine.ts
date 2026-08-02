@@ -346,7 +346,11 @@ export function buildSession(
   });
 
   sentences.forEach((s, i) => {
-    const useOrder = difficulty >= 5 && rand() < 0.45 && s.de.split(/\s+/).length <= 9;
+    // Arranging given word-tiles is foundational and fully scaffolded (every word is handed
+    // to you), so make it available from the very start — it used to be gated to
+    // difficulty >= 5, which meant beginners never got the one drill that teaches word order,
+    // the whole battle in German. Cap at 9 words so the tile bank stays tappable.
+    const useOrder = s.de.split(/\s+/).length <= 9 && rand() < 0.5;
     exercises.push(useOrder ? orderExercise(s, rand, `${s.id}-${i}`) : clozeExercise(s, rand, `${s.id}-${i}`));
   });
 

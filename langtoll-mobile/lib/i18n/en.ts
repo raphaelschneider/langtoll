@@ -34,6 +34,12 @@ export const en = {
   'home.topUp': 'Top up · +{min} min',
   'home.lockDev': 'Lock now (dev)',
 
+  // wallet — collected (mastered) words as tickets
+  'wallet.title': 'Wallet',
+  'wallet.empty': 'Master words to collect their tickets.',
+  'wallet.collected': 'Collected',
+  'wallet.bonus': '+{min} min',
+
   // session
   'session.cloze': 'Complete the sentence',
   'session.whatMean': 'What does it mean?',
@@ -52,7 +58,7 @@ export const en = {
 
   // onboarding
   'ob.hookTitle': 'Your doomscroll is about to teach you {lang}.',
-  'ob.hookSub': "LangPass locks your apps until you've done your reps. You'll learn — because you can't not.",
+  'ob.hookSub': "LangToll locks your apps until you've done your reps. You'll learn — because you can't not.",
   'ob.hookCta': "I'm in",
   'ob.howTitle': 'The deal is simple.',
   'ob.how1': 'Your feeds get a lock',
@@ -88,6 +94,15 @@ export const en = {
   'ob.goalLove': 'Someone I love speaks it',
   'ob.goalWork': 'Work & study',
   'ob.goalBrain': 'I just want my brain back',
+  'ob.whenTitle': 'When do you lose the most time?',
+  'ob.whenMorning': 'Morning — before the day even starts',
+  'ob.whenMidday': 'Midday — the lunch scroll',
+  'ob.whenEvening': 'Evening — the couch black hole',
+  'ob.payDream': 'You said it yourself: “{goal}”',
+  'expiry.title': 'Your pass just expired.',
+  'expiry.body': 'The gate closes in {mins} minutes — finish up, or top up with a quick session.',
+  'nudge.title': 'This is usually your scroll hour.',
+  'nudge.body': 'Five quick exercises buy your phone time back.',
   'ob.printOver': 'One moment',
   'ob.printTitle': 'Building your plan…',
   'ob.printTitleNamed': 'Building your plan, {name}…',
@@ -103,7 +118,7 @@ export const en = {
   'ob.sumFromZero': '{lang} from zero, offline, no streak guilt',
   'ob.sumFromBasics': '{lang} from your basics, offline, no streak guilt',
   'ob.sumCta': 'Issue my first pass',
-  'ob.payOver': 'LangPass Plus',
+  'ob.payOver': 'LangToll Plus',
   'ob.payTitle': 'Make your bad habit speak {lang}.',
   'ob.payTitleNamed': '{name}, make your bad habit speak {lang}.',
   'ob.pay1': 'Your lock, your rules',
@@ -117,13 +132,13 @@ export const en = {
   'ob.payGhost': 'Continue with the basic fare',
   'ob.lockOver': 'Arm the lock',
   'ob.lockTitle': 'Lock the apps that steal your time.',
-  'ob.lockSub': 'LangPass shields these until you finish a session. This is the whole point.',
+  'ob.lockSub': 'LangToll shields these until you finish a session. This is the whole point.',
   'ob.lockCta': 'Lock these apps',
   'ob.lockCtaWait': 'Choose apps first',
 
   // lock setup
   'lock.enable': 'Enable Screen Time',
-  'lock.authBody': 'Allow Screen Time so LangPass can shield your apps, and notifications so the lock screen can bring you back. Apple asks once.',
+  'lock.authBody': 'Allow Screen Time so LangToll can shield your apps, and notifications so the lock screen can bring you back. Apple asks once.',
   'lock.choose': 'Choose apps to lock',
   'lock.selected': 'Apps selected — you’re set',
   'lock.simNote': 'On your iPhone, you’ll pick these in Apple’s Screen Time picker (it opens automatically here).',
@@ -163,7 +178,11 @@ export const en = {
   'settings.plan': 'Plan',
   'settings.upgrade': 'Upgrade to Plus',
   'settings.planFree': 'Free',
-  'settings.planPlus': 'LangPass Plus · active',
+  'settings.planPlus': 'LangToll Plus · active',
+  'settings.support': 'Support',
+  'settings.supportCode': 'Support code',
+  'settings.supportHint':
+    'Identifies this app installation only — no name, no email, nothing personal. Include it when you write to support so we can actually help.',
 
   // plus / paywall
   'plus.title': 'Unlock everything.',
@@ -175,14 +194,16 @@ export const en = {
   'plus.perYear': 'per year',
   'plus.save': 'Save {percent}%',
   'plus.monthlyEquiv': '≈ {price}/mo',
+  'plus.cardTrial': '{days}-day free trial',
+  'plus.cardNoTrial': 'No free trial — billed today',
   'plus.startTrial': 'Start my {days}-day free trial',
-  'plus.subscribe': 'Get LangPass Plus',
+  'plus.subscribe': 'Get LangToll Plus',
   'plus.restore': 'Restore',
   'plus.later': 'Maybe later',
   'plus.legal': 'Cancel anytime. Renews automatically.',
   'plus.trialLegal': '{days} days free, then {price}. Cancel anytime.',
   'plus.locked': 'Plus feature',
-  'plus.lockedCta': 'This is part of LangPass Plus.',
+  'plus.lockedCta': 'This is part of LangToll Plus.',
 } as const;
 
 export type StringKey = keyof typeof en;

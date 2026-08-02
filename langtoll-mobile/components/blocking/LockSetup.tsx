@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme, space, radius } from '@/design/theme';
+import { withAlpha } from '@/lib/color';
 import {
   isNativeAvailable,
   isAuthorized,
@@ -67,7 +68,7 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
       <View>
         <View style={styles.previewWrap}>
           {(apps.length ? apps : ['Your apps']).map((a) => (
-            <View key={a} style={[styles.chip, { backgroundColor: 'rgba(200,255,77,0.10)', borderColor: theme.accent }]}>
+            <View key={a} style={[styles.chip, { backgroundColor: withAlpha(theme.accent, 0.10), borderColor: theme.accent }]}>
               <Ionicons name="lock-closed" size={14} color={theme.accent} />
               <Text variant="callout" style={{ color: theme.accent }}>
                 {a}
@@ -111,7 +112,7 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
         style={[
           styles.selectRow,
           {
-            backgroundColor: configured ? 'rgba(200,255,77,0.10)' : theme.fill,
+            backgroundColor: configured ? withAlpha(theme.accent, 0.10) : theme.fill,
             borderColor: configured ? theme.accent : theme.line,
           },
         ]}

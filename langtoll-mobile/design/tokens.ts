@@ -1,41 +1,38 @@
-// Design tokens — LangPass's visual language: "the members-club pass".
-// Dark, luminous, glass all over. Obsidian-violet base, a living aurora glow,
-// and acid lime as the single signature accent — the color of an earned pass.
-// Editorial contrast: Fraunces serif display over Inter UI.
+// Design tokens — LangToll's visual language: "the transit travelcard".
+// A printed-ticket identity, matched to the landing page: mineral ticket-stock paper (day
+// service) and deep rail-navy (night service), a deep rail-teal accent, a validation-green
+// "correct/valid", and a stamp-vermilion "wrong/expired". Type is a heavy grotesque (Archivo)
+// for signage headlines and a monospace (JetBrains Mono) for ticket data, labels and metrics.
 
 export const palette = {
-  // dark (primary scheme — the app lives at night)
-  // Lifted graphite: a slate charcoal clearly off pure black, so surfaces read
-  // as material rather than void. The lime accent stays the only real hue;
-  // aurora glows in desaturated slate for depth, not color.
-  inkD: '#F4F4F7', // near-white, neutral
-  inkSoftD: '#AEAEBA',
-  inkFaintD: '#70707C',
-  inkWarmD: '#E2E2E8',
-  paperD: '#17171C', // slate charcoal
-  surfaceD: '#222229',
-  surfaceAltD: '#2B2B34',
-  lineD: 'rgba(255,255,255,0.11)',
+  // dark — "night service": deep rail-navy ground, paper-coloured ink.
+  inkD: '#ECE7D8',
+  inkSoftD: '#A2B2B6',
+  inkFaintD: '#647579',
+  inkWarmD: '#ECE7D8',
+  paperD: '#0F161B', // rail navy
+  surfaceD: '#17222B',
+  surfaceAltD: '#1C2A34',
+  lineD: 'rgba(236,231,216,0.16)',
 
-  // signature
-  lime: '#C8FF4D', // acid lime — the pass, the CTA, "correct"
-  limeSoft: '#E5FFA3',
-  mint: '#5FE8B0', // unlocked / calm success
-  coral: '#FF5C7A', // wrong answer / danger
-  amber: '#FFC24D', // "almost" / warnings
-  onLime: '#101403', // text on lime surfaces
+  // signature (key names kept for compatibility; values are the travelcard identity).
+  lime: '#5CBDCD',    // rail teal (bright, for dark) — accent / active pass / CTA
+  limeSoft: '#A9DCE5',
+  mint: '#4FC07C',    // validation green — "correct" / unlocked
+  coral: '#F0684E',   // stamp vermilion — wrong / expired / danger
+  amber: '#D9A44E',
+  onLime: '#0B1417',  // ink on bright-teal surfaces
   white: '#FFFFFF',
 
-  // light — daylight version of the same graphite/lime system: warm-neutral
-  // paper, near-black ink, no violet cast.
-  ink: '#17181C',
-  inkSoft: '#565863',
-  inkFaint: '#8A8C97',
-  inkWarm: '#2E3038',
-  paper: '#F1F1EE', // warm off-white
-  surface: '#FFFFFF',
-  surfaceAlt: '#F8F8F5',
-  line: '#E3E3DE',
+  // light — "day service": mineral ticket-stock paper, warm printing ink.
+  ink: '#191A17',
+  inkSoft: '#565A54',
+  inkFaint: '#8C8D81',
+  inkWarm: '#2E302A',
+  paper: '#E7E0CF', // buff ticket stock
+  surface: '#F1ECDE',
+  surfaceAlt: '#EDE6D6',
+  line: 'rgba(25,26,23,0.14)',
 } as const;
 
 export type ColorScheme = 'light' | 'dark';
@@ -50,22 +47,22 @@ export interface Theme {
   surface: string;
   surfaceAlt: string;
   line: string;
-  /** Subtle raised fill over the ground (adapts: white-alpha dark, ink-alpha light). */
+  /** Subtle raised fill over the ground (adapts: paper-alpha dark, ink-alpha light). */
   fill: string;
   /** Stronger fill for tracks, inactive segments, hairline chips. */
   fillStrong: string;
-  /** Signature accent (acid lime): CTAs, the active pass, correct answers. */
+  /** Signature accent (rail teal): CTAs, the active pass, correct answers. */
   accent: string;
   accentSoft: string;
   /** Ink to use on top of accent-filled surfaces. */
   onAccent: string;
-  /** Calm success / unlocked state. */
+  /** Calm success / unlocked / valid state (validation green). */
   pine: string;
   pineSoft: string;
   amber: string;
-  /** Wrong answers, destructive. */
+  /** Wrong answers, expired, destructive (stamp vermilion). */
   danger: string;
-  /** Aurora background gradient stops (deep base → violet glow). */
+  /** Background gradient stops (ground → slightly lifted). */
   aurora: [string, string, string, string];
   /** Glass tint for blurred surfaces. */
   glassTint: string;
@@ -82,18 +79,18 @@ export const darkTheme: Theme = {
   surface: palette.surfaceD,
   surfaceAlt: palette.surfaceAltD,
   line: palette.lineD,
-  fill: 'rgba(255,255,255,0.05)',
-  fillStrong: 'rgba(255,255,255,0.11)',
+  fill: 'rgba(236,231,216,0.05)',
+  fillStrong: 'rgba(236,231,216,0.12)',
   accent: palette.lime,
   accentSoft: palette.limeSoft,
   onAccent: palette.onLime,
   pine: palette.mint,
-  pineSoft: '#2E7A5C',
+  pineSoft: '#2E7A55',
   amber: palette.amber,
   danger: palette.coral,
-  aurora: ['#141419', '#20202A', '#32323F', '#4C4C60'],
-  glassTint: 'rgba(34,34,41,0.42)',
-  glassBorder: 'rgba(255,255,255,0.12)',
+  aurora: ['#0C1216', '#0F161B', '#16212A', '#22323C'],
+  glassTint: 'rgba(23,34,43,0.45)',
+  glassBorder: 'rgba(236,231,216,0.12)',
 };
 
 export const lightTheme: Theme = {
@@ -106,18 +103,18 @@ export const lightTheme: Theme = {
   surface: palette.surface,
   surfaceAlt: palette.surfaceAlt,
   line: palette.line,
-  fill: 'rgba(20,22,28,0.045)',
-  fillStrong: 'rgba(20,22,28,0.08)',
-  accent: '#8FD400', // lime, deepened so it holds against white but stays punchy
-  accentSoft: '#EAFFB8',
-  onAccent: '#141A00',
-  pine: '#178A5E',
-  pineSoft: '#7FD6B0',
-  amber: '#D99A4E',
-  danger: '#E04463',
-  aurora: ['#F1F1EE', '#EAEAE4', '#DEDED6', '#C8CBBA'],
-  glassTint: 'rgba(255,255,255,0.55)',
-  glassBorder: 'rgba(255,255,255,0.7)',
+  fill: 'rgba(25,26,23,0.045)',
+  fillStrong: 'rgba(25,26,23,0.09)',
+  accent: '#1C5A66', // rail teal, deep enough to hold on paper
+  accentSoft: '#CDE9EE',
+  onAccent: '#F1ECDE',
+  pine: '#2F9E5B',
+  pineSoft: '#7FD1A0',
+  amber: '#B5852A',
+  danger: '#C63A24',
+  aurora: ['#E7E0CF', '#E2DBC8', '#D8D0BB', '#C7BFA6'],
+  glassTint: 'rgba(241,236,222,0.55)',
+  glassBorder: 'rgba(255,255,255,0.6)',
 };
 
 // Spacing — 4pt base grid.
@@ -140,37 +137,41 @@ export const radius = {
   pill: 999,
 } as const;
 
-// Typography. Display = Fraunces (serif), UI/body = Inter.
+// Typography. Display/signage = Archivo (grotesque); ticket data/labels/metrics = JetBrains
+// Mono; body/UI = Archivo regular. (Fraunces + Inter are retired.)
 export const font = {
-  display: 'Fraunces_600SemiBold',
-  displayLight: 'Fraunces_400Regular',
-  serifItalic: 'Fraunces_500Medium_Italic',
-  body: 'Inter_400Regular',
-  medium: 'Inter_500Medium',
-  semibold: 'Inter_600SemiBold',
+  display: 'Archivo_800ExtraBold',
+  displayLight: 'Archivo_600SemiBold',
+  serifItalic: 'Archivo_500Medium', // legacy key — now the grotesque medium
+  body: 'Archivo_400Regular',
+  medium: 'Archivo_500Medium',
+  semibold: 'Archivo_600SemiBold',
+  mono: 'JetBrainsMono_500Medium',
+  monoBold: 'JetBrainsMono_700Bold',
 } as const;
 
 export const type = {
-  hero: { fontFamily: font.display, fontSize: 42, lineHeight: 46, letterSpacing: -0.8 },
-  title: { fontFamily: font.display, fontSize: 28, lineHeight: 33, letterSpacing: -0.4 },
-  headline: { fontFamily: font.display, fontSize: 22, lineHeight: 27, letterSpacing: -0.2 },
-  serif: { fontFamily: font.displayLight, fontSize: 18, lineHeight: 27 },
+  hero: { fontFamily: font.display, fontSize: 42, lineHeight: 46, letterSpacing: -1.2 },
+  title: { fontFamily: font.display, fontSize: 28, lineHeight: 33, letterSpacing: -0.8 },
+  headline: { fontFamily: font.display, fontSize: 22, lineHeight: 27, letterSpacing: -0.4 },
+  serif: { fontFamily: font.body, fontSize: 18, lineHeight: 27 },
   body: { fontFamily: font.body, fontSize: 16, lineHeight: 24 },
   bodyMedium: { fontFamily: font.medium, fontSize: 16, lineHeight: 24 },
   callout: { fontFamily: font.body, fontSize: 15, lineHeight: 22 },
-  label: { fontFamily: font.semibold, fontSize: 13, lineHeight: 16, letterSpacing: 0.2 },
-  caption: { fontFamily: font.medium, fontSize: 12, lineHeight: 16, letterSpacing: 0.3 },
+  // ticket data / labels — monospace, the way a printed ticket sets them.
+  label: { fontFamily: font.mono, fontSize: 13, lineHeight: 16, letterSpacing: 0.4 },
+  caption: { fontFamily: font.mono, fontSize: 12, lineHeight: 16, letterSpacing: 0.4 },
   overline: {
-    fontFamily: font.semibold,
+    fontFamily: font.mono,
     fontSize: 11,
     lineHeight: 14,
-    letterSpacing: 1.6,
+    letterSpacing: 1.8,
     textTransform: 'uppercase' as const,
   },
-  metric: { fontFamily: font.display, fontSize: 40, lineHeight: 44, letterSpacing: -0.5 },
+  metric: { fontFamily: font.mono, fontSize: 40, lineHeight: 44, letterSpacing: -1 },
 } as const;
 
-// Shadows. On the dark scheme depth comes from glow, not drop shadows.
+// Shadows. Depth from real drop shadows on both schemes (the ticket is a printed object).
 export const shadow = {
   card: {
     shadowColor: '#000000',
@@ -186,10 +187,10 @@ export const shadow = {
     shadowOffset: { width: 0, height: 8 },
     elevation: 4,
   },
-  /** Lime halo for the primary CTA / active pass. */
+  /** Rail-teal halo for the primary CTA / active pass. */
   glow: {
     shadowColor: palette.lime,
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.4,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,

@@ -12,6 +12,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font } from '@/design/theme';
+import { withAlpha } from '@/lib/color';
 import {
   useAppState,
   updateProfile,
@@ -22,12 +23,13 @@ import {
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus } from '@/lib/blocking';
+import { supportCode } from '@/lib/device';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
 import { canUseAudio } from '@/lib/plans';
 import { primeVoices, voicesForActivePack, speakWith, setSpeechShaping, speechIsNative } from '@/lib/tts';
-import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langpass-speech/src';
+import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speech/src';
 import { activePack } from '@/lib/pack';
 import type { Level } from '@/content/german';
 
@@ -65,7 +67,7 @@ function Chip({
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? 'rgba(200,255,77,0.12)' : theme.fill,
+          backgroundColor: selected ? withAlpha(theme.accent, 0.12) : theme.fill,
           borderColor: selected ? theme.accent : theme.line,
         },
       ]}
@@ -189,7 +191,7 @@ function VoiceLab() {
               borderRadius: radius.sm,
               borderWidth: 1,
               borderColor: voice === v.identifier ? theme.accent : theme.line,
-              backgroundColor: voice === v.identifier ? 'rgba(200,255,77,0.10)' : theme.fill,
+              backgroundColor: voice === v.identifier ? withAlpha(theme.accent, 0.10) : theme.fill,
             }}
           >
             <Text variant="bodyMedium" style={{ color: voice === v.identifier ? theme.accent : theme.ink }}>
@@ -432,7 +434,7 @@ export default function Settings() {
                     styles.diffDot,
                     {
                       backgroundColor:
-                        d <= state.difficulty ? 'rgba(200,255,77,0.16)' : theme.fill,
+                        d <= state.difficulty ? withAlpha(theme.accent, 0.16) : theme.fill,
                       borderColor: d <= state.difficulty ? theme.accent : theme.line,
                     },
                   ]}
@@ -632,6 +634,23 @@ export default function Settings() {
                 />
               </View>
             )}
+          </Section>
+
+          {/* Support code: the short, human-readable form of the anonymous device id. Sharing it
+              is the USER'S choice — it's meaningless to anyone but us, and it's the only way
+              support can see this install's state server-side (admin → Support lookup). */}
+          <Section title={t('settings.support')}>
+            <View style={[styles.topicRow, { borderColor: theme.line }]}>
+              <View style={{ flex: 1 }}>
+                <Text variant="bodyMedium">{t('settings.supportCode')}</Text>
+                <Text variant="caption" color="inkFaint">
+                  {t('settings.supportHint')}
+                </Text>
+              </View>
+              <Text selectable variant="bodyMedium" color="accent" style={{ fontFamily: font.mono }}>
+                {supportCode()}
+              </Text>
+            </View>
           </Section>
 
           {/* dev */}

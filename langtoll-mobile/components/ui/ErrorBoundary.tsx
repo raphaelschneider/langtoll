@@ -17,15 +17,17 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
   render() {
     const { error } = this.state;
     if (!error) return this.props.children;
+    // Hardcoded on purpose — a crash screen can't lean on the theme system.
+    // Values mirror design/tokens: rail navy / teal / paper ink.
     return (
-      <ScrollView style={{ flex: 1, backgroundColor: '#17171C' }} contentContainerStyle={{ padding: 24, paddingTop: 80 }}>
-        <Text style={{ color: '#C8FF4D', fontSize: 20, fontWeight: '700', marginBottom: 12 }}>
-          LangPass hit an error
+      <ScrollView style={{ flex: 1, backgroundColor: '#0F161B' }} contentContainerStyle={{ padding: 24, paddingTop: 80 }}>
+        <Text style={{ color: '#5CBDCD', fontSize: 20, fontWeight: '700', marginBottom: 12 }}>
+          LangToll hit an error
         </Text>
-        <Text selectable style={{ color: '#F4F4F7', fontSize: 15, marginBottom: 16 }}>
+        <Text selectable style={{ color: '#ECE7D8', fontSize: 15, marginBottom: 16 }}>
           {error.message}
         </Text>
-        <Text selectable style={{ color: '#8A8C97', fontSize: 12, fontFamily: 'Courier' }}>
+        <Text selectable style={{ color: '#647579', fontSize: 12, fontFamily: 'Courier' }}>
           {error.stack}
         </Text>
       </ScrollView>

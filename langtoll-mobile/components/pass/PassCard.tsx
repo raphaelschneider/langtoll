@@ -1,4 +1,4 @@
-// The pass — LangPass's hero object. A glass ticket that is VOID while your apps
+// The pass — LangToll's hero object. A glass ticket that is VOID while your apps
 // are locked and comes alive (lime edge, glow, shimmer sweep, draining time bar)
 // when a session has been paid. Everything on it is ticket language: fare,
 // perforation, barcode, serial number.
@@ -17,6 +17,7 @@ import Animated, {
 import { Text } from '@/components/ui/Text';
 import { useTheme, radius, space, shadow, font } from '@/design/theme';
 import { t } from '@/lib/i18n';
+import { withAlpha } from '@/lib/color';
 
 // Deterministic pseudo-barcode: widths cycle through a fixed pattern.
 const BARCODE = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 1, 2, 2, 1, 4, 1, 3, 1, 2, 1, 1, 3];
@@ -74,16 +75,23 @@ export function PassCard({
 }: Props) {
   const theme = useTheme();
   const active = state === 'active';
+  // "Through the fare gate" = green. Teal stays the brand/neutral colour (logo, locked state);
+  // the live pass and its top-up CTA share the validation green so they read as one state, not
+  // two competing accents.
+  const activeColor = theme.pine;
   const progress = active ? Math.min(1, remainingMs / (unlockMinutes * 60_000)) : 0;
 
   const barcode = useMemo(() => BARCODE, []);
 
+  // (The gyroscope tilt that used to live here is gone — Tolly perches on the
+  // card from outside, so a card that leaned while he stayed put read as broken.)
+
   return (
-    <View
+    <Animated.View
       style={[
         styles.wrap,
         shadow.card,
-        active && shadow.glow,
+        active && [shadow.glow, { shadowColor: theme.pine }],
         { borderRadius: radius.xxl },
       ]}
     >
@@ -92,7 +100,7 @@ export function PassCard({
           styles.clip,
           {
             borderRadius: radius.xxl,
-            borderColor: active ? 'rgba(200,255,77,0.45)' : theme.glassBorder,
+            borderColor: active ? withAlpha(activeColor, 0.5) : theme.glassBorder,
           },
         ]}
       >
@@ -110,12 +118,38 @@ export function PassCard({
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
+        {/* ghost toll stamp — the roundel pressed into the ticket stock itself,
+            like the faint validation mark on a real transit pass. Ink turns to
+            the validation green while the pass is active. */}
+        <View
+          pointerEvents="none"
+          style={[styles.stampMark, { transform: [{ rotate: '-14deg' }] }]}
+        >
+          <View
+            style={{
+              width: 190,
+              height: 190,
+              borderRadius: 95,
+              borderWidth: 26,
+              borderColor: withAlpha(active ? activeColor : theme.ink, 0.055),
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              width: 190,
+              height: 30,
+              borderRadius: 15,
+              backgroundColor: withAlpha(active ? activeColor : theme.ink, 0.055),
+            }}
+          />
+        </View>
         {active && <Shimmer />}
         {!active && (
-          <View pointerEvents="none" style={styles.stamp}>
+          <View pointerEvents="none" style={[styles.stamp, { borderColor: withAlpha(theme.danger, 0.4) }]}>
             <Text
               variant="overline"
-              style={{ color: 'rgba(255,92,122,0.55)', fontSize: 15, letterSpacing: 3 }}
+              style={{ color: withAlpha(theme.danger, 0.55), fontSize: 15, letterSpacing: 3 }}
             >
               {t('pass.expired')}
             </Text>
@@ -126,26 +160,26 @@ export function PassCard({
           {/* header row */}
           <View style={styles.rowBetween}>
             <Text variant="overline" color="inkSoft">
-              LangPass
+              LangToll
             </Text>
             <View
               style={[
                 styles.chip,
                 {
-                  backgroundColor: active ? 'rgba(200,255,77,0.14)' : 'rgba(255,92,122,0.10)',
-                  borderColor: active ? 'rgba(200,255,77,0.4)' : 'rgba(255,92,122,0.35)',
+                  backgroundColor: active ? withAlpha(activeColor, 0.14) : withAlpha(theme.danger, 0.1),
+                  borderColor: active ? withAlpha(activeColor, 0.4) : withAlpha(theme.danger, 0.35),
                 },
               ]}
             >
               <View
                 style={[
                   styles.dot,
-                  { backgroundColor: active ? theme.accent : theme.danger },
+                  { backgroundColor: active ? activeColor : theme.danger },
                 ]}
               />
               <Text
                 variant="caption"
-                style={{ color: active ? theme.accent : theme.danger, letterSpacing: 1 }}
+                style={{ color: active ? activeColor : theme.danger, letterSpacing: 1 }}
               >
                 {active ? t('pass.active') : t('pass.expired')}
               </Text>
@@ -155,7 +189,7 @@ export function PassCard({
           {/* body */}
           {active ? (
             <View style={{ marginTop: space.lg }}>
-              <Text variant="metric" style={{ fontSize: 52, lineHeight: 56, color: theme.accent }}>
+              <Text variant="metric" style={{ fontSize: 52, lineHeight: 56, color: activeColor }}>
                 {formatMs(remainingMs)}
               </Text>
               <Text variant="callout" color="inkSoft" style={{ marginTop: 2 }}>
@@ -166,14 +200,14 @@ export function PassCard({
                 <View
                   style={[
                     styles.fill,
-                    { width: `${progress * 100}%`, backgroundColor: theme.accent },
+                    { width: `${progress * 100}%`, backgroundColor: activeColor },
                   ]}
                 />
               </View>
             </View>
           ) : (
             <View style={{ marginTop: space.lg }}>
-              <Text variant="metric" style={{ fontSize: 34, lineHeight: 40 }}>
+              <Text variant="metric" style={{ fontFamily: font.display, fontSize: 34, lineHeight: 38, letterSpacing: -0.6 }}>
                 {t('pass.locked')}
               </Text>
               <Text variant="callout" color="inkSoft" style={{ marginTop: space.xs }}>
@@ -227,7 +261,7 @@ export function PassCard({
           </View>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -282,5 +316,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     transform: [{ rotate: '-12deg' }],
     zIndex: 10,
+  },
+  stampMark: {
+    position: 'absolute',
+    right: -34,
+    top: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

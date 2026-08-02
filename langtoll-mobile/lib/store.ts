@@ -9,7 +9,7 @@ import type { Level, Language, VocabItem, SentenceItem } from '@/content/german/
 import type { LocaleCode } from '@/lib/locales';
 import { todayISO, addDays } from '@/lib/date';
 
-const STORAGE_KEY = 'langpass:v1';
+const STORAGE_KEY = 'langtoll:v1';
 
 /** An AI-generated (or bundled demo) topic pack, merged into training when enabled. */
 export interface CustomTopic {
@@ -47,6 +47,18 @@ export interface AppState {
   /** Labels of the apps the user says steal their time (real picker comes with the dev build). */
   blockedApps: string[];
   goal: string | null;
+  /**
+   * When we spent this install's one App Store review prompt (ISO), or null if
+   * we never have. Deliberately not reset by resetProfile — a dev reset must not
+   * let us pester a real user twice.
+   */
+  reviewPromptedAt: string | null;
+  /**
+   * Hour (0-23) the user said they lose the most time — the daily nudge fires
+   * then (relift's v22 idea: remind at the moment the USER named, not at a
+   * default 9:00). Null = never asked / skipped → no daily nudge scheduled.
+   */
+  nudgeHour: number | null;
   /** UI locale override; 'system' follows the device language. */
   locale: 'system' | LocaleCode;
   /** Appearance override; 'system' follows the device color scheme. */
@@ -99,6 +111,8 @@ const initialState: AppState = {
   lastPassDate: null,
   blockedApps: [],
   goal: null,
+  reviewPromptedAt: null,
+  nudgeHour: null,
   locale: 'system',
   appearance: 'dark',
   customTopic: null,
@@ -215,7 +229,7 @@ export function recordAnswer(itemId: string, correct: boolean): void {
 }
 
 /** Completing a session grants phone time and advances the day streak. */
-export function completeSession(): void {
+export function completeSession(bonusMinutes = 0): void {
   const today = todayISO();
   let { streak } = state;
   if (state.lastPassDate !== today) {
@@ -224,7 +238,8 @@ export function completeSession(): void {
   }
   setState({
     sessionsCompleted: state.sessionsCompleted + 1,
-    unlockExpiresAt: Date.now() + state.unlockMinutes * 60_000,
+    // base pass time + bonus earned by mastering words this session (+5 min each)
+    unlockExpiresAt: Date.now() + (state.unlockMinutes + bonusMinutes) * 60_000,
     streak,
     lastPassDate: today,
   });
@@ -254,6 +269,8 @@ export function updateProfile(
       | 'soundEnabled'
       | 'blockedApps'
       | 'goal'
+      | 'nudgeHour'
+      | 'reviewPromptedAt'
       | 'exercisesPerUnlock'
       | 'unlockMinutes'
       | 'onboarded'
@@ -304,7 +321,15 @@ export function applyEntitlement(active: boolean): void {
 
 /** Dev helper: wipe the profile and return to onboarding. */
 export function resetProfile(): void {
-  state = { ...initialState };
+  // The review prompt survives a reset: Apple gives ~3 asks per user per YEAR,
+  // and a dev/user reset must never buy us a second bite at the same person.
+  const { reviewPromptedAt, firstLaunchAt } = state;
+  state = { ...initialState, reviewPromptedAt, firstLaunchAt };
   persist();
   emit();
+}
+
+/** Spend this install's single review ask. */
+export function markReviewPrompted(): void {
+  setState({ reviewPromptedAt: new Date().toISOString() });
 }

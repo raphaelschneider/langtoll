@@ -10,12 +10,11 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   AccessibilityInfo,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
@@ -27,11 +26,15 @@ import { Button } from '@/components/ui/Button';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
+import { scheduleDailyNudge } from '@/lib/notify';
+import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space, radius, font } from '@/design/theme';
+import { withAlpha } from '@/lib/color';
 import { levelForDifficulty } from '@/lib/pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
+import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 
 const STEPS = [
@@ -42,6 +45,7 @@ const STEPS = [
   'difficulty',
   'apps',
   'mirror',
+  'when',
   'fare',
   'goal',
   'printing',
@@ -97,6 +101,15 @@ function roundToQuarterHour(minutes: number): number {
   return Math.round(minutes / 15) * 15;
 }
 const GOAL_KEYS = ['ob.goalTravel', 'ob.goalLove', 'ob.goalWork', 'ob.goalBrain'] as const;
+
+// Daypart → the hour the daily nudge fires (relift's v22 mapping: remind at the
+// moment the USER named, never a default morning slot).
+type Daypart = 'morning' | 'midday' | 'evening';
+const DAYPARTS: { key: Daypart; label: `ob.when${'Morning' | 'Midday' | 'Evening'}`; hour: number }[] = [
+  { key: 'morning', label: 'ob.whenMorning', hour: 9 },
+  { key: 'midday', label: 'ob.whenMidday', hour: 12 },
+  { key: 'evening', label: 'ob.whenEvening', hour: 18 },
+];
 
 // A full cycle should finish inside the time someone spends reading the hook.
 // At six packs, 1500ms lands the whole set in ~9s. The fade tightens with it so
@@ -214,7 +227,7 @@ function OptionRow({
       style={[
         styles.option,
         {
-          backgroundColor: selected ? 'rgba(200,255,77,0.10)' : theme.fill,
+          backgroundColor: selected ? withAlpha(theme.accent, 0.10) : theme.fill,
           borderColor: selected ? theme.accent : theme.line,
           opacity: disabled ? 0.45 : 1,
         },
@@ -250,7 +263,7 @@ function Chip({
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? 'rgba(200,255,77,0.12)' : theme.fill,
+          backgroundColor: selected ? withAlpha(theme.accent, 0.12) : theme.fill,
           borderColor: selected ? theme.accent : theme.line,
         },
       ]}
@@ -269,7 +282,7 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
       <View
         style={[
           styles.howIcon,
-          { backgroundColor: 'rgba(200,255,77,0.10)', borderColor: 'rgba(200,255,77,0.3)' },
+          { backgroundColor: withAlpha(theme.accent, 0.10), borderColor: withAlpha(theme.accent, 0.3) },
         ]}
       >
         <Ionicons name={icon} size={20} color={theme.accent} />
@@ -290,7 +303,16 @@ export default function Onboarding() {
   const theme = useTheme();
   const t = useT();
 
-  const [stepIdx, setStepIdx] = useState(0);
+  // DEV ?step= jumps straight to any step (QA / store shoots — relift's rig):
+  // langtoll:///onboarding?step=paywall. Ignored entirely in production builds.
+  const jump = useLocalSearchParams<{ step?: string }>().step;
+  const [stepIdx, setStepIdx] = useState(() => {
+    if (process.env.EXPO_PUBLIC_DEV_TOOLS === '1' && jump) {
+      const i = STEPS.indexOf(jump as Step);
+      if (i >= 0) return i;
+    }
+    return 0;
+  });
   const step: Step = STEPS[stepIdx];
 
   // answers
@@ -304,6 +326,7 @@ export default function Onboarding() {
   const [difficulty, setDifficulty] = useState(3);
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
+  const [daypart, setDaypart] = useState<Daypart | null>(null);
   const [fareEx, setFareEx] = useState(5);
   const [fareMin, setFareMin] = useState(30);
   const [lockReady, setLockReady] = useState(false);
@@ -332,7 +355,10 @@ export default function Onboarding() {
   const dailyM = dailyMinutes % 60;
   const daysPerYear = Math.round((dailyMinutes * 365) / 1440);
 
-  const skippable: Step[] = ['name', 'apps', 'goal'];
+  // 'paywall' skips via the header — a quiet exit in the corner instead of a
+  // "Maybe later" advertised under the CTA (relift dropped theirs for the same
+  // reason: the exit must exist, not be promoted).
+  const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'paywall'];
   const showSkip = skippable.includes(step);
   const progress = stepIdx / (STEPS.length - 1);
 
@@ -349,6 +375,7 @@ export default function Onboarding() {
   const lang = t(`lang.${language}` as StringKey);
 
   function finish() {
+    const nudgeHour = DAYPARTS.find((d) => d.key === daypart)?.hour ?? null;
     updateProfile({
       onboarded: true,
       name: firstName,
@@ -357,10 +384,15 @@ export default function Onboarding() {
       level: derivedLevel,
       blockedApps: apps,
       goal,
+      nudgeHour,
       exercisesPerUnlock: fareEx,
       unlockMinutes: fareMin,
     });
+    // At the hour THEY named — permission was just granted (or denied) during
+    // lock setup, and the scheduler quietly no-ops without it.
+    void scheduleDailyNudge(nudgeHour);
     lockNow(); // shield the chosen apps immediately so home lands in the "locked" state
+    track('onboarded', { language, level: derivedLevel, difficulty });
     router.replace('/');
   }
 
@@ -399,12 +431,15 @@ export default function Onboarding() {
             {step === 'hook' && (
               <Entrance key="hook">
                 <Text variant="overline" color="accent">
-                  LangPass
+                  LangToll
                 </Text>
                 <RotatingHook />
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
                   {t('ob.hookSub')}
                 </Text>
+                {/* Tolly greets under the copy, matching the mirror step's composition —
+                    a still portrait (relift's lesson: motion on the hook reads as gimmick). */}
+                <Tolly mood="happy" size={132} style={{ alignSelf: 'center', marginTop: space.xxl }} />
               </Entrance>
             )}
 
@@ -490,7 +525,7 @@ export default function Onboarding() {
                         styles.diffDot,
                         {
                           backgroundColor:
-                            d <= difficulty ? 'rgba(200,255,77,0.16)' : theme.fill,
+                            d <= difficulty ? withAlpha(theme.accent, 0.16) : theme.fill,
                           borderColor: d <= difficulty ? theme.accent : theme.line,
                         },
                       ]}
@@ -509,7 +544,7 @@ export default function Onboarding() {
                     {t('ob.diffHarder')}
                   </Text>
                 </View>
-                <View style={[styles.levelBadge, { borderColor: 'rgba(200,255,77,0.4)', backgroundColor: 'rgba(200,255,77,0.08)' }]}>
+                <View style={[styles.levelBadge, { borderColor: withAlpha(theme.accent, 0.4), backgroundColor: withAlpha(theme.accent, 0.08) }]}>
                   <Text variant="label" style={{ color: theme.accent }}>
                     {t('ob.diffLevel', { level: derivedLevel })}
                   </Text>
@@ -561,6 +596,24 @@ export default function Onboarding() {
                 <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
                   {t('ob.mirrorNote')}
                 </Text>
+                {/* The operator takes the damage personally. */}
+                <Tolly mood="sad" size={104} style={{ alignSelf: 'center', marginTop: space.xl }} />
+              </Entrance>
+            )}
+
+            {step === 'when' && (
+              <Entrance key="when">
+                <Text variant="title">{t('ob.whenTitle')}</Text>
+                <View style={{ marginTop: space.xl, gap: space.sm }}>
+                  {DAYPARTS.map((d) => (
+                    <OptionRow
+                      key={d.key}
+                      label={t(d.label)}
+                      selected={daypart === d.key}
+                      onPress={() => setDaypart(d.key)}
+                    />
+                  ))}
+                </View>
               </Entrance>
             )}
 
@@ -676,7 +729,7 @@ export default function Onboarding() {
             )}
 
             {step === 'paywall' && (
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: space.xl }}>
+              <View style={{ flex: 1 }}>
                 <Text variant="overline" color="accent">
                   {t('ob.payOver')}
                 </Text>
@@ -685,10 +738,16 @@ export default function Onboarding() {
                     ? t('ob.payTitleNamed', { name: firstName, lang })
                     : t('ob.payTitle', { lang })}
                 </Text>
-                <View style={{ marginTop: space.lg }}>
+                {/* Quote the dream back (relift's move): their own answer, at the moment of the ask. */}
+                {goal && (
+                  <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
+                    {t('ob.payDream', { goal: t(goal as StringKey) })}
+                  </Text>
+                )}
+                <View style={{ marginTop: space.lg, flex: 1 }}>
                   <PlusOffer onDone={next} />
                 </View>
-              </ScrollView>
+              </View>
             )}
 
             {step === 'lock' && (

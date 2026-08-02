@@ -111,7 +111,7 @@ export function AppPicker() {
     return (
       <View>
         <Text variant="callout" color="inkSoft">
-          LangPass needs Screen Time access to lock your apps.
+          LangToll needs Screen Time access to lock your apps.
         </Text>
         <Button
           label="Enable Screen Time"

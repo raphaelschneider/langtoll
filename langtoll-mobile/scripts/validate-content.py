@@ -2,7 +2,7 @@
 """Structural validation for every authored content pack.
 
 These rules were previously enforced only on the SERVER, for AI-generated packs
-(see langpass-web .../topics/generate/route.ts). Authored content was never
+(see langtoll-web .../topics/generate/route.ts). Authored content was never
 checked, so the same defects the rules exist to prevent shipped in the bundle:
 sentences whose blank falls on the final word (trailing punctuation gives the
 answer away) or on an article (blanking "der" tests nothing).

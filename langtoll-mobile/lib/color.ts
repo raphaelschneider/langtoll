@@ -9,6 +9,13 @@ export function hexToRgb01(hex: string): [number, number, number] {
   return [r, g, b];
 }
 
+/** "#RRGGBB" + alpha (0..1) -> "rgba(r, g, b, a)". Lets components tint theme
+ *  colors (accent, danger…) without hardcoding a specific hue's rgba. */
+export function withAlpha(hex: string, a: number): string {
+  const [r, g, b] = hexToRgb01(hex);
+  return `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
+}
+
 /** Mix between two "#RRGGBB" colors by t in 0..1. */
 export function mixHex(a: string, b: string, t: number): string {
   const [ar, ag, ab] = hexToRgb01(a);

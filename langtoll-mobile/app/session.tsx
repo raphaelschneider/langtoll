@@ -10,11 +10,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { PassIssue } from '@/components/pass/PassIssue';
+import { CollectBadge } from '@/components/pass/CollectBadge';
 import { Entrance } from '@/components/ui/Entrance';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font, shadow } from '@/design/theme';
+import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { buildSession, gradeTyped, gradeOrder, type Exercise, type Grade } from '@/lib/trainer';
 import {
@@ -30,9 +32,15 @@ import { playMessageChime } from '@/lib/sound';
 import { speakGerman, stopSpeaking } from '@/lib/tts';
 import { canUseAudio } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
+import { track } from '@/lib/telemetry';
+import { Tolly } from '@/components/ui/Tolly';
+import { syncPassActivity } from '@/lib/pass-activity';
+import { maybeAskForReview } from '@/lib/review';
+import { clearDeliveredNotifications } from '@/lib/notify';
 
 // Same signal as the rest of the dev tooling; a production build cannot set it.
 const DEV_TOOLS = process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
+const COLLECT_BONUS_MIN = 5; // extra phone-time minutes earned per word mastered in a session
 import { useT, type StringKey } from '@/lib/i18n';
 
 type Phase = 'answer' | 'feedback' | 'done';
@@ -55,6 +63,11 @@ export default function Session() {
       }),
     [pack, seed]
   );
+
+  // One per fare attempt; the completed/abandoned pair closes it out.
+  useEffect(() => {
+    track('session_started', { language: pack.language, level: pack.level });
+  }, [pack]);
   const total = plan.exercises.length;
 
   const [idx, setIdx] = useState(0);
@@ -64,6 +77,13 @@ export default function Session() {
   const [orderPicked, setOrderPicked] = useState<number[]>([]);
   const [grade, setGrade] = useState<Grade>('wrong');
   const [correctCount, setCorrectCount] = useState(0);
+  const [collected, setCollected] = useState<string | null>(null); // word just mastered → collect badge
+  const collectedCount = useRef(0); // words mastered this session → +5 min each at completion
+  // Pending review ask; cancelled if the user leaves before it fires.
+  const reviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (reviewTimer.current) clearTimeout(reviewTimer.current);
+  }, []);
 
   const ex: Exercise = plan.exercises[idx];
   const audioAllowed = canUseAudio();
@@ -106,7 +126,17 @@ export default function Session() {
     Haptics.notificationAsync(
       ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error
     );
+    // Detect the moment a word crosses into mastery (streak 2 → 3): that "collects" it.
+    const before = getState().progress[ex.itemId]?.streak ?? 0;
     recordAnswer(ex.itemId, ok);
+    const after = getState().progress[ex.itemId]?.streak ?? 0;
+    if (ok && before < 3 && after >= 3) {
+      const w = pack.vocab.find((v) => v.id === ex.itemId);
+      if (w) {
+        collectedCount.current += 1;
+        setCollected(w.de);
+      }
+    }
     if (ok) setCorrectCount((c) => c + 1);
     setPicked(given);
     setGrade(g);
@@ -128,8 +158,18 @@ export default function Session() {
 
   function next() {
     if (idx + 1 >= total) {
-      completeSession();
-      grantUnlock(getState().unlockMinutes); // lift the real shield + schedule re-lock (native only)
+      const bonus = collectedCount.current * COLLECT_BONUS_MIN; // +5 min per word mastered this session
+      completeSession(bonus);
+      // Coarse dims only (language + CEFR level) — the words themselves never leave the phone.
+      const st = getState();
+      track('session_completed', { language: st.learningLanguage, level: st.level });
+      track('unlocked', { minutes: st.unlockMinutes + bonus });
+      grantUnlock(getState().unlockMinutes + bonus); // lift the real shield + schedule re-lock (native only)
+      // The pass, live: countdown in the Dynamic Island / lock screen until the
+      // grant expires. Store timestamp is the source of truth (works sans native).
+      syncPassActivity();
+      // Fare paid — last run's "pass expired" banner is now a lie; sweep it.
+      clearDeliveredNotifications();
       playMessageChime();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPhase('done');
@@ -144,11 +184,18 @@ export default function Session() {
 
   if (phase === 'done') {
     const s = getState();
+    // The ask rides the celebration, not the work: fired once the PAID stamp has
+    // landed (the Entrance below uses the same 1.4s beat), and only if the run
+    // was a win. lib/review owns every other guardrail.
+    reviewTimer.current ??= setTimeout(() => maybeAskForReview(correctCount, total), 1800);
     return (
       <View style={[styles.root, { backgroundColor: theme.paper }]}>
         <AuroraBackground mood={0.8} />
         <SafeAreaView style={[styles.safe, styles.doneWrap]}>
           <Entrance>
+            {/* Tolly celebrates the issue — arrives with the headline, before the
+                stamp slam below takes over. */}
+            <Tolly mood="celebrate" size={104} style={{ alignSelf: 'center', marginBottom: space.md }} />
             <Text variant="overline" color="accent" center>
               {t('session.passIssued')}
             </Text>
@@ -185,35 +232,57 @@ export default function Session() {
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={0.3} />
+      <CollectBadge word={collected} bonusMin={COLLECT_BONUS_MIN} onDone={() => setCollected(null)} />
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* header: close + segmented progress + voice toggle */}
+          {/* header: close + route-line progress (each exercise is a stop) + voice toggle */}
           <View style={styles.header}>
-            <PressableScale onPress={() => router.back()} style={styles.close} haptic={null}>
+            <PressableScale
+              onPress={() => {
+                track('session_abandoned', { at: idx, of: total });
+                router.back();
+              }}
+              style={styles.close}
+              haptic={null}
+            >
               <Ionicons name="close" size={22} color={theme.inkSoft} />
             </PressableScale>
-            <View style={styles.segments}>
-              {plan.exercises.map((e, i) => {
-                const done = i < idx || (i === idx && phase === 'feedback');
-                return (
-                  <View
-                    key={e.key}
-                    style={[
-                      styles.segment,
-                      {
-                        backgroundColor: done
-                          ? theme.accent
-                          : i === idx
-                            ? theme.inkFaint
-                            : theme.fillStrong,
-                      },
-                    ]}
-                  />
-                );
-              })}
+            <View style={styles.route}>
+              <View style={[styles.track, { backgroundColor: theme.fillStrong }]} />
+              <View
+                style={[
+                  styles.trackFill,
+                  {
+                    backgroundColor: theme.accent,
+                    width: `${(idx / Math.max(1, plan.exercises.length - 1)) * 100}%`,
+                  },
+                ]}
+              />
+              <View style={styles.stations}>
+                {plan.exercises.map((e, i) => {
+                  const done = i < idx || (i === idx && phase === 'feedback');
+                  const current = i === idx;
+                  const lit = done || current;
+                  return (
+                    <View
+                      key={e.key}
+                      style={[
+                        styles.station,
+                        {
+                          backgroundColor: lit ? theme.accent : theme.paper,
+                          borderColor: lit ? theme.accent : theme.line,
+                          width: current ? 12 : 8,
+                          height: current ? 12 : 8,
+                          borderRadius: current ? 6 : 4,
+                        },
+                      ]}
+                    />
+                  );
+                })}
+              </View>
             </View>
             <PressableScale
               onPress={() =>
@@ -248,7 +317,7 @@ export default function Session() {
                       paddingHorizontal: 6,
                       paddingVertical: 1,
                       borderRadius: 4,
-                      backgroundColor: ex.source === 'ai' ? 'rgba(200,255,77,0.18)' : 'rgba(255,255,255,0.08)',
+                      backgroundColor: ex.source === 'ai' ? withAlpha(theme.accent, 0.18) : 'rgba(255,255,255,0.08)',
                     }}
                   >
                     <Text variant="caption" color={ex.source === 'ai' ? 'ink' : 'inkFaint'}>
@@ -318,7 +387,7 @@ export default function Session() {
                           phase === 'answer' &&
                           setOrderPicked((cur) => cur.filter((_, j) => j !== i))
                         }
-                        style={[styles.orderChip, { backgroundColor: 'rgba(200,255,77,0.12)', borderColor: 'rgba(200,255,77,0.4)' }]}
+                        style={[styles.orderChip, { backgroundColor: withAlpha(theme.accent, 0.12), borderColor: withAlpha(theme.accent, 0.4) }]}
                       >
                         <Text variant="bodyMedium" style={{ color: theme.accent }}>
                           {ex.options![optIdx]}
@@ -495,8 +564,11 @@ const styles = StyleSheet.create({
     paddingTop: space.sm,
   },
   close: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  segments: { flex: 1, flexDirection: 'row', gap: 5, paddingHorizontal: space.sm },
-  segment: { flex: 1, height: 3, borderRadius: 1.5 },
+  route: { flex: 1, height: 40, justifyContent: 'center', marginHorizontal: space.sm },
+  track: { position: 'absolute', left: 4, right: 4, height: 2, borderRadius: 1, top: 19 },
+  trackFill: { position: 'absolute', left: 4, height: 2, borderRadius: 1, top: 19 },
+  stations: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  station: { borderWidth: 1.5 },
   body: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
   promptRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   speakerSmall: { paddingTop: space.lg },

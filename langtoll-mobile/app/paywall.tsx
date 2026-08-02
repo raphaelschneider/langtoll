@@ -1,7 +1,7 @@
 // Standalone paywall — reached from Settings ("Upgrade to Plus") and from any
 // gated feature. Same PlusOffer as onboarding; closes on purchase or dismiss.
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -30,7 +30,9 @@ export default function Paywall() {
             <Ionicons name="close" size={24} color={theme.inkSoft} />
           </PressableScale>
         </View>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* PlusOffer scrolls its own feature list and pins the purchase controls to
+            the bottom — an outer ScrollView would put the CTA below the fold again. */}
+        <View style={styles.content}>
           <Text variant="overline" color="accent">
             {t('ob.payOver')}
           </Text>
@@ -40,7 +42,7 @@ export default function Paywall() {
           <View style={{ marginTop: space.xl, flex: 1 }}>
             <PlusOffer onDone={close} />
           </View>
-        </ScrollView>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -51,5 +53,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: space.lg, paddingTop: space.sm },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  content: { paddingHorizontal: space.xl, paddingBottom: space.xxl },
+  content: { flex: 1, paddingHorizontal: space.xl, paddingBottom: space.xl },
 });

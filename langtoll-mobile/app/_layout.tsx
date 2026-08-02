@@ -8,14 +8,18 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
-  Fraunces_400Regular,
-  Fraunces_500Medium_Italic,
-  Fraunces_600SemiBold,
-} from '@expo-google-fonts/fraunces';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
+  Archivo_400Regular,
+  Archivo_500Medium,
+  Archivo_600SemiBold,
+  Archivo_800ExtraBold,
+} from '@expo-google-fonts/archivo';
+import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono';
 import { ThemeProvider, useTheme } from '@/design/theme';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { hydrate, getState, isUnlocked } from '@/lib/store';
+import { initDeviceId } from '@/lib/device';
+import { syncPassActivity } from '@/lib/pass-activity';
+import { track } from '@/lib/telemetry';
 import { configureShieldAppearance, maybeRelock } from '@/lib/blocking';
 import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
@@ -32,12 +36,12 @@ setTimeout(() => {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Fraunces_400Regular,
-    Fraunces_500Medium_Italic,
-    Fraunces_600SemiBold,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
+    Archivo_400Regular,
+    Archivo_500Medium,
+    Archivo_600SemiBold,
+    Archivo_800ExtraBold,
+    JetBrainsMono_500Medium,
+    JetBrainsMono_700Bold,
   });
   const [storeReady, setStoreReady] = useState(false);
   // Hard timeout so a slow/failed font or a hung native storage call can never
@@ -53,6 +57,9 @@ export default function RootLayout() {
   useEffect(() => {
     // Never block forever — proceed after 4s no matter what resolved.
     const id = setTimeout(() => setTimedOut(true), 4000);
+    // Identity before events: telemetry drops anything fired pre-init, so resolve
+    // the install id first, then report the open. Not awaited by the UI.
+    void initDeviceId().then(() => track('app_open'));
     // Shaping must be re-applied AFTER hydrate — it is read from the store.
     hydrate().finally(() => {
       setStoreReady(true);
@@ -63,6 +70,9 @@ export default function RootLayout() {
       // level. Deliberately not awaited: the lock never waits on a network call.
       const s = getState();
       void initPool(s.learningLanguage, s.level);
+      // Re-adopt the island countdown if a pass is still running — iOS ends Live
+      // Activities on every app update/reboot, and the pass must survive both.
+      syncPassActivity();
     });
     configurePurchases(); // no-op in mock; mirrors the live entitlement when keyed
     primeVoices(); // load the device voice list so the first speak() isn't a race
@@ -74,7 +84,7 @@ export default function RootLayout() {
   // and the last grant has expired. Both no-op unless native shielding is live.
   useEffect(() => {
     if (!ready) return;
-    configureShieldAppearance();
+    void configureShieldAppearance(); // async now: stages Tolly into the app group first
     maybeRelock(isUnlocked(getState()));
     // The shield's button posts a notification instead of opening the app —
     // iOS gives an extension no way to do the latter. This routes the tap.
