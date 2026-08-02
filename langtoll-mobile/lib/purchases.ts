@@ -251,12 +251,28 @@ function mockPackages(): PlusPackage[] {
 
 export type PurchaseResult = 'purchased' | 'cancelled' | 'error';
 
+/**
+ * Why the last purchase failed, in the store's own words. The paywall shows a
+ * human sentence; this is appended so a failure is DIAGNOSABLE from a TestFlight
+ * screenshot instead of requiring a debugger. StoreKit's reasons are things like
+ * "product not available", "not allowed to make payments", "agreement missing" —
+ * each pointing somewhere completely different.
+ */
+let lastError: string | null = null;
+export function lastPurchaseError(): string | null {
+  return lastError;
+}
+
 /** Buy a package. In mock mode, immediately grants Plus so the flow is testable. */
 export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
   track('purchase_tapped', { period: pkg.period });
+  lastError = null;
   if (!purchasesEnabled() || !pkg.raw) {
     // Never hand out Plus in a build that isn't dev tooling — see MOCK_ALLOWED.
     if (!MOCK_ALLOWED) {
+      lastError = !purchasesEnabled()
+        ? 'RevenueCat not configured in this build'
+        : 'store returned no purchasable product';
       track('purchase_unavailable');
       return 'error';
     }
@@ -277,7 +293,13 @@ export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
       track('purchase_cancelled', { period: pkg.period });
       return 'cancelled';
     }
-    track('purchase_failed', { period: pkg.period });
+    // RevenueCat wraps StoreKit: userInfo.readableErrorCode is the useful one.
+    lastError =
+      e?.userInfo?.readableErrorCode ??
+      e?.code ??
+      e?.message ??
+      'unknown store error';
+    track('purchase_failed', { period: pkg.period, reason: String(lastError).slice(0, 60) });
     return 'error';
   }
 }

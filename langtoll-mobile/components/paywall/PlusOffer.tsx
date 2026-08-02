@@ -19,6 +19,7 @@ import {
   restore,
   perMonthEquivalent,
   savingsVsMonthly,
+  lastPurchaseError,
   type PlusPackage,
 } from '@/lib/purchases';
 import { track } from '@/lib/telemetry';
@@ -211,9 +212,18 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
           : t('plus.legal')}
       </Text>
       {failed && (
-        <Text variant="caption" color="danger" center style={{ marginTop: space.sm }}>
-          {t('plus.purchaseFailed')}
-        </Text>
+        <>
+          <Text variant="caption" color="danger" center style={{ marginTop: space.sm }}>
+            {t('plus.purchaseFailed')}
+          </Text>
+          {/* The store's own reason. Ugly, and worth it: without it a failed
+              purchase is indistinguishable from a broken button. */}
+          {!!lastPurchaseError() && (
+            <Text variant="caption" color="inkFaint" center style={{ marginTop: 2 }}>
+              {lastPurchaseError()}
+            </Text>
+          )}
+        </>
       )}
       {/* No "Maybe later" here: the surface's own exit (the X on /paywall, the header
           skip in onboarding) already grants the way out without advertising it under
