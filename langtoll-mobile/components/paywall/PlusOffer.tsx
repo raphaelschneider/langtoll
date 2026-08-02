@@ -80,28 +80,27 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
     if (ok) onDone();
   }
 
-  // Purchase controls live in a pinned bottom block — the buy button can never
-  // fall below the fold behind feature rows (relift's paywall lesson). Features
-  // and the restore link scroll; cards + CTA + the price/trial legal line don't.
+  // ONE scroll container holds everything. An earlier version pinned the cards
+  // and CTA in a sibling View after a flex:1 ScrollView — which laid them out
+  // past the parent's bottom edge, where iOS still DRAWS them but excludes them
+  // from hit testing. The paywall looked perfect and was completely dead: no card
+  // could be selected and the buy button did nothing. If the CTA ever needs to be
+  // pinned again, the safe shape is a footer OUTSIDE this component, never a
+  // sibling of a flexing scroll view.
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ gap: space.sm, paddingBottom: space.md }}
-      >
+    <ScrollView
+      style={{ flex: 1 }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: space.lg }}
+    >
+      <View style={{ gap: space.sm }}>
         {PLUS_FEATURES.slice(0, 3).map((f) => (
           <HowRow key={f.title} icon={f.icon} title={f.title} detail={f.detail} />
         ))}
-        <PressableScale onPress={onRestore} haptic={null} style={styles.link}>
-          <Text variant="callout" color="inkSoft" center>
-            {t('plus.restore')}
-          </Text>
-        </PressableScale>
-      </ScrollView>
+      </View>
 
       {/* package cards */}
-      <View style={{ marginTop: space.sm, gap: space.md }}>
+      <View style={{ marginTop: space.lg, gap: space.md }}>
         {packages.length === 0 ? (
           <ActivityIndicator color={theme.accent} />
         ) : (
@@ -202,7 +201,12 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
       {/* No "Maybe later" here: the surface's own exit (the X on /paywall, the header
           skip in onboarding) already grants the way out without advertising it under
           the CTA — relift dropped theirs for exactly this reason. */}
-    </View>
+      <PressableScale onPress={onRestore} haptic={null} style={styles.link}>
+        <Text variant="callout" color="inkSoft" center>
+          {t('plus.restore')}
+        </Text>
+      </PressableScale>
+    </ScrollView>
   );
 }
 
