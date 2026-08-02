@@ -187,17 +187,46 @@ export async function syncEntitlement(): Promise<void> {
   }
 }
 
+/**
+ * Why the live offerings could not be used, in one short phrase.
+ *
+ * This used to be a bare `catch {}` that fell through to the mock, which made
+ * every distinct failure look identical on screen: real prices and mock prices
+ * are the same numbers (FALLBACK_PRICES mirrors the US anchors), so a paywall
+ * running entirely on mock data is INDISTINGUISHABLE from a working one until
+ * you press buy. Two TestFlight builds were spent guessing at this. The four
+ * causes below need four different fixes, so they get four different messages.
+ */
+let offeringsDiag: string | null = null;
+export function offeringsDiagnostic(): string | null {
+  return offeringsDiag;
+}
+
 /** The purchasable packages for the paywall — live from the store, or the mock. */
 export async function getPackages(): Promise<PlusPackage[]> {
   if (purchasesEnabled()) {
+    const unmatched: string[] = [];
     try {
       const offerings = await rc().getOfferings();
       const pkgs: any[] = offerings?.current?.availablePackages ?? [];
+      if (!offerings?.current) {
+        // No offering is marked Current in the RevenueCat dashboard, or the SDK
+        // key points at a project/app that has none.
+        offeringsDiag = 'no current offering';
+      } else if (!pkgs.length) {
+        // The offering exists but StoreKit returned no product for any of its
+        // packages — products not attached in RevenueCat, or the App Store has
+        // nothing purchasable for this bundle id on this storefront.
+        offeringsDiag = `offering "${offerings.current.identifier}" has 0 products`;
+      }
       const mapped = pkgs
         .map((p) => {
           const id = p?.product?.identifier ?? '';
           const period = PERIOD_BY_PRODUCT[id];
-          if (!period) return null;
+          if (!period) {
+            unmatched.push(id || '(no id)');
+            return null;
+          }
           const product = p?.product ?? {};
           const fallback = FALLBACK_PRICES[period];
           const amount = typeof product.price === 'number' ? product.price : fallback.amount;
@@ -214,9 +243,19 @@ export async function getPackages(): Promise<PlusPackage[]> {
           } as PlusPackage;
         })
         .filter(Boolean) as PlusPackage[];
-      if (mapped.length) return sortPackages(mapped);
-    } catch {
-      // fall through to mock
+      if (mapped.length) {
+        offeringsDiag = null; // live products in hand — nothing to report
+        return sortPackages(mapped);
+      }
+      if (unmatched.length) {
+        // Products came back, but under identifiers this build doesn't know.
+        // Printing them is the whole point: the fix is to make PRODUCT_IDS match.
+        offeringsDiag = `unknown product ids: ${unmatched.join(', ')}`;
+      }
+    } catch (e: any) {
+      // Most commonly an invalid/revoked SDK key, which RevenueCat only rejects
+      // here — configure() accepts any string and fails silently.
+      offeringsDiag = `offerings failed: ${e?.userInfo?.readableErrorCode ?? e?.code ?? e?.message ?? 'unknown'}`;
     }
   }
   return mockPackages();
@@ -272,7 +311,7 @@ export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
     if (!MOCK_ALLOWED) {
       lastError = !purchasesEnabled()
         ? 'RevenueCat not configured in this build'
-        : 'store returned no purchasable product';
+        : offeringsDiag ?? 'store returned no purchasable product';
       track('purchase_unavailable');
       return 'error';
     }
