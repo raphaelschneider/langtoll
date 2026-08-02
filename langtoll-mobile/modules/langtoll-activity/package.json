@@ -1,0 +1,7 @@
+{
+  "name": "langtoll-activity",
+  "version": "1.0.0",
+  "description": "ActivityKit bridge: start/stop the pass-countdown Live Activity",
+  "main": "src/index.ts",
+  "private": true
+}
