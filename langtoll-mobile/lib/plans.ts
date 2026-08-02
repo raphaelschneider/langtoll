@@ -19,9 +19,9 @@ export const PLUS_ENTITLEMENT = process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT ?
 // cannot be renamed after creation, so this constant follows the store, not the
 // other way round.
 export const PRODUCT_IDS = {
-  weekly: 'weekly',
-  monthly: 'monthly',
-  yearly: 'yearly',
+  weekly: 'langtoll_plus_weekly',
+  monthly: 'langtoll_plus_monthly',
+  yearly: 'langtoll_plus_yearly',
 } as const;
 
 export const PLUS_FEATURES = [

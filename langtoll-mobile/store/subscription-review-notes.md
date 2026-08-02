@@ -27,9 +27,9 @@ it already appears above the product in the purchase sheet.
 
 | Product | Display Name (≤35) | Description (≤55) |
 |---|---|---|
-| `yearly` | `Plus Yearly — All Languages` (27) | `All languages, unlimited locks, strict mode.` (44) |
-| `monthly` | `Plus Monthly — All Languages` (28) | `All languages, unlimited locks, strict mode.` (44) |
-| `weekly` | `Plus Weekly — All Languages` (27) | `All languages, unlimited locks, strict mode.` (44) |
+| `langtoll_plus_yearly` | `Plus Yearly — All Languages` (27) | `All languages, unlimited locks, strict mode.` (44) |
+| `langtoll_plus_monthly` | `Plus Monthly — All Languages` (28) | `All languages, unlimited locks, strict mode.` (44) |
+| `langtoll_plus_weekly` | `Plus Weekly — All Languages` (27) | `All languages, unlimited locks, strict mode.` (44) |
 
 ---
 
@@ -66,9 +66,9 @@ on the same screen. Prices shown in the screenshot are US storefront values.
 
 | Product | Line to append |
 |---|---|
-| yearly | `THIS PRODUCT: the yearly option, $39.99/year, with a 7-day free trial. It is the default selection on the screen.` |
-| monthly | `THIS PRODUCT: the monthly option, $7.99/month, with a 7-day free trial.` |
-| weekly | `THIS PRODUCT: the weekly option, $3.99/week. It carries NO free trial — the card states "No free trial - billed today" permanently, so a buyer sees this before selecting it.` |
+| langtoll_plus_yearly | `THIS PRODUCT: the yearly option, $39.99/year, with a 7-day free trial. It is the default selection on the screen.` |
+| langtoll_plus_monthly | `THIS PRODUCT: the monthly option, $7.99/month, with a 7-day free trial.` |
+| langtoll_plus_weekly | `THIS PRODUCT: the weekly option, $3.99/week. It carries NO free trial — the card states "No free trial - billed today" permanently, so a buyer sees this before selecting it.` |
 
 ---
 

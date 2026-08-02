@@ -138,10 +138,19 @@ function isPlusActive(info: any): boolean {
   return !!info?.entitlements?.active?.[PLUS_ENTITLEMENT];
 }
 
+// Keyed on the STORE product identifier. The App Store ids are the langtoll_plus_*
+// ones; RevenueCat's Test Store products for the same packages are named plainly
+// (monthly/yearly/weekly), and a package can carry both. Accept either, because an
+// unmatched identifier is dropped silently and the paywall then shows mock prices
+// that look real while every purchase fails — which is exactly what shipped in
+// TestFlight build 2 after these ids were "corrected" to the Test Store names.
 const PERIOD_BY_PRODUCT: Record<string, Period> = {
   [PRODUCT_IDS.weekly]: 'weekly',
   [PRODUCT_IDS.monthly]: 'monthly',
   [PRODUCT_IDS.yearly]: 'yearly',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  yearly: 'yearly',
 };
 
 let configured = false;

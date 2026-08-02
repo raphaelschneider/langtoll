@@ -155,9 +155,9 @@ internals:
 
 | Product | Display name |
 |---|---|
-| yearly | `Plus Yearly — All Languages` (27/35) |
-| monthly | `Plus Monthly — All Languages` (28/35) |
-| weekly | `Plus Weekly — All Languages` (27/35) |
+| langtoll_plus_yearly | `Plus Yearly — All Languages` (27/35) |
+| langtoll_plus_monthly | `Plus Monthly — All Languages` (28/35) |
+| langtoll_plus_weekly | `Plus Weekly — All Languages` (27/35) |
 
 **Category**: Education (primary), Productivity (secondary). Education carries the
 language-learning intent; Productivity catches the screen-time/blocker crowd.
