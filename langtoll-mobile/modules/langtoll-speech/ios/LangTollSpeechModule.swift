@@ -1,4 +1,4 @@
-// Native speech path for LangPass.
+// Native speech path for LangToll.
 //
 // expo-speech sends an utterance straight to the speaker: you get language,
 // voice, rate, pitch, volume and nothing else. That is not enough for a
@@ -70,7 +70,7 @@ private struct Biquad {
   }
 }
 
-public final class LangPassSpeechModule: Module {
+public final class LangTollSpeechModule: Module {
   private let synthesizer = AVSpeechSynthesizer()
   private let engine = AVAudioEngine()
   private let player = AVAudioPlayerNode()
@@ -84,7 +84,7 @@ public final class LangPassSpeechModule: Module {
   private var lastDeEssPeakCutDb: Float = 0
 
   public func definition() -> ModuleDefinition {
-    Name("LangPassSpeech")
+    Name("LangTollSpeech")
 
     // Session mode iOS reserves for speech content. expo-audio can set the
     // category but not the MODE, which is the half that matters here.
@@ -187,7 +187,7 @@ public final class LangPassSpeechModule: Module {
         if collected == nil {
           collected = pcm
         } else {
-          collected = LangPassSpeechModule.append(collected!, pcm)
+          collected = LangTollSpeechModule.append(collected!, pcm)
         }
       }
     }

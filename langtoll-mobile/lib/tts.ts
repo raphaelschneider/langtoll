@@ -25,7 +25,7 @@ import {
   configureSession as nativeConfigureSession,
   setShaping as nativeSetShaping,
   type Shaping,
-} from '@/modules/langpass-speech/src';
+} from '@/modules/langtoll-speech/src';
 
 /**
  * Speaking rate; 1.0 is iOS's conversational speed. Learners at A1–B1 need the
@@ -225,7 +225,7 @@ export function speakGerman(text: string, opts?: { force?: boolean; rate?: numbe
     const pitch = s.voicePitch ?? 1.0;
 
     // Native path renders to a buffer and pushes it through our EQ/de-ess chain
-    // (modules/langpass-speech). expo-speech is the fallback for a stale binary
+    // (modules/langtoll-speech). expo-speech is the fallback for a stale binary
     // that predates the module — same voice, just unprocessed.
     if (isNativeSpeechAvailable()) {
       void nativeStop();

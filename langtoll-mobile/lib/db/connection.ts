@@ -1,6 +1,6 @@
 // Opens the on-device SQLite database and applies user-data migrations.
 //
-// Unlike relift there is no bundled knowledge DB: langpass's content (language packs)
+// Unlike relift there is no bundled knowledge DB: langtoll's content (language packs)
 // ships as TypeScript modules in content/, so the database holds ONLY user data —
 // profile, practice sessions, per-item progress, unlock grants, badges.
 //

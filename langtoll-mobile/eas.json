@@ -10,7 +10,7 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.langpass.app",
+        "EXPO_PUBLIC_API_URL": "https://api.langtoll.app",
         "EXPO_PUBLIC_DEV_TOOLS": "1"
       }
     },
@@ -18,14 +18,14 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-dev.langpass.app",
+        "EXPO_PUBLIC_API_URL": "https://api-dev.langtoll.app",
         "EXPO_PUBLIC_DEV_TOOLS": "1"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.langpass.app"
+        "EXPO_PUBLIC_API_URL": "https://api.langtoll.app"
       }
     }
   },

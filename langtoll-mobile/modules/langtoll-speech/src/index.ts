@@ -57,7 +57,7 @@ interface NativeSpeech {
 
 // Optional: the module only exists in a dev/native build. On a stale binary or
 // in Expo Go this is null, and callers fall back to expo-speech.
-const native = requireOptionalNativeModule<NativeSpeech>('LangPassSpeech');
+const native = requireOptionalNativeModule<NativeSpeech>('LangTollSpeech');
 
 export const isNativeSpeechAvailable = (): boolean => native != null;
 

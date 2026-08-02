@@ -33,7 +33,7 @@ interface CachedPool {
   catalogue: number;
 }
 
-const key = (language: Language, level: Level) => `langpass:pool:${language}:${level}`;
+const key = (language: Language, level: Level) => `langtoll:pool:${language}:${level}`;
 
 // In-memory mirror so activePack() — called on every session build — never awaits
 // storage. Populated by loadPool(); a miss just means the bundled packs are used.

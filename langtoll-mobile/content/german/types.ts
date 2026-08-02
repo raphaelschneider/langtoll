@@ -1,4 +1,4 @@
-// Content types for LangPass language packs.
+// Content types for LangToll language packs.
 // A "pack" is a bundled, versioned set of vocab + sentence items for one
 // language/level. Packs ship in the app bundle (no network needed to unlock
 // your phone — the whole point is it works at 7am on the subway).

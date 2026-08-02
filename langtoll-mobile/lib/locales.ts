@@ -1,4 +1,4 @@
-// The UI locales LangPass speaks. Kept in its own module (rather than in
+// The UI locales LangToll speaks. Kept in its own module (rather than in
 // lib/i18n) so the content layer can reference locale codes for glosses without
 // importing the i18n runtime, which pulls in the store.
 //
