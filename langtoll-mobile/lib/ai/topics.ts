@@ -1,6 +1,6 @@
 // AI topic packs — the LingoLock-style "generate your own content" feature,
 // behind a clean seam. generateTopicPack() asks OUR backend proxy
-// (langpass-web /api/topics/generate) for level-appropriate vocab + cloze
+// (langtoll-web /api/topics/generate) for level-appropriate vocab + cloze
 // sentences on a user topic and returns a validated CustomTopic ready for
 // lib/pack to merge into training.
 //
@@ -9,12 +9,12 @@
 // everyone, and enforces the paid-feature gates (App Attest + entitlement).
 //
 // Config:
-//   EXPO_PUBLIC_API_URL   base URL of the backend, e.g. https://api.langpass.app
+//   EXPO_PUBLIC_API_URL   base URL of the backend, e.g. https://api.langtoll.app
 //                         Without it the seam falls back to a bundled demo pack
 //                         so the flow is still demonstrable fully offline.
 import type { Level, VocabItem, SentenceItem, PartOfSpeech, Language } from '@/content/german/types';
 import type { CustomTopic } from '@/lib/store';
-import { getDeviceId } from '@/lib/db/queries';
+import { getDeviceId } from '@/lib/device';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 

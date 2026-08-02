@@ -18,7 +18,6 @@
     "lib/db/queries.ts",
     "lib/db/schema.ts",
     "lib/db/index.ts",
-    "lib/telemetry.ts",
     "components/ui/Celebration.tsx"
   ]
 }

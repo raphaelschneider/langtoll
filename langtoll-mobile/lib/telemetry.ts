@@ -4,7 +4,7 @@
 // anonymous install id + coarse events leave the device.
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { getDeviceId } from './db/queries';
+import { getDeviceId } from './device';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 
@@ -47,6 +47,9 @@ export function track(event: TelemetryEvent, data?: Record<string, unknown>): vo
   if (!API_BASE || !REPORTING_ENABLED) return;
   try {
     const deviceId = getDeviceId();
+    // Pre-init window (initDeviceId not resolved yet): drop the event rather than
+    // attribute it to a shared 'unknown' identity.
+    if (deviceId === 'unknown') return;
     fetch(`${API_BASE}/api/telemetry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

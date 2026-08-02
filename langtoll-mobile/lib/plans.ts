@@ -12,10 +12,16 @@ export type Period = 'weekly' | 'monthly' | 'yearly';
 export const PLUS_ENTITLEMENT = process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT ?? 'plus';
 
 // Product identifiers configured in App Store Connect + RevenueCat.
+// These MUST equal the Product IDs in App Store Connect verbatim — lib/purchases
+// maps a RevenueCat package to a Period via product.identifier, and an unknown id
+// is dropped silently: the paywall then falls back to mock prices that look
+// identical to the real ones while every purchase returns an error. Product IDs
+// cannot be renamed after creation, so this constant follows the store, not the
+// other way round.
 export const PRODUCT_IDS = {
-  weekly: 'langpass_plus_weekly',
-  monthly: 'langpass_plus_monthly',
-  yearly: 'langpass_plus_yearly',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  yearly: 'yearly',
 } as const;
 
 export const PLUS_FEATURES = [

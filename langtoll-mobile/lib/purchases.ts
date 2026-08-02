@@ -10,6 +10,7 @@
 // flow through automatically.
 import { Platform } from 'react-native';
 import { applyEntitlement } from './store';
+import { track } from './telemetry';
 import { PLUS_ENTITLEMENT, PRODUCT_IDS, FALLBACK_PRICES, TRIAL_DAYS, type Period } from './plans';
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
@@ -243,18 +244,31 @@ export type PurchaseResult = 'purchased' | 'cancelled' | 'error';
 
 /** Buy a package. In mock mode, immediately grants Plus so the flow is testable. */
 export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
+  track('purchase_tapped', { period: pkg.period });
   if (!purchasesEnabled() || !pkg.raw) {
     // Never hand out Plus in a build that isn't dev tooling — see MOCK_ALLOWED.
-    if (!MOCK_ALLOWED) return 'error';
+    if (!MOCK_ALLOWED) {
+      track('purchase_unavailable');
+      return 'error';
+    }
     applyEntitlement(true); // mock: grant Plus locally
     return 'purchased';
   }
   try {
     const { customerInfo } = await rc().purchasePackage(pkg.raw);
     applyEntitlement(isPlusActive(customerInfo));
-    return isPlusActive(customerInfo) ? 'purchased' : 'error';
+    if (isPlusActive(customerInfo)) {
+      track('subscribed', { period: pkg.period });
+      return 'purchased';
+    }
+    track('purchase_failed', { period: pkg.period });
+    return 'error';
   } catch (e: any) {
-    if (e?.userCancelled) return 'cancelled';
+    if (e?.userCancelled) {
+      track('purchase_cancelled', { period: pkg.period });
+      return 'cancelled';
+    }
+    track('purchase_failed', { period: pkg.period });
     return 'error';
   }
 }
@@ -266,6 +280,7 @@ export async function restore(): Promise<boolean> {
     const info = await rc().restorePurchases();
     const active = isPlusActive(info);
     applyEntitlement(active);
+    if (active) track('restored');
     return active;
   } catch {
     return false;
