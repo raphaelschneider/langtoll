@@ -180,6 +180,7 @@ export const fr: Partial<Record<StringKey, string>> = {
   'plus.monthlyEquiv': '≈ {price}/mois',
   'plus.cardTrial': '{days} jours d’essai gratuit',
   'plus.cardNoTrial': 'Pas d’essai gratuit — facturé aujourd’hui',
+  'plus.purchaseFailed': 'L’App Store n’a pas pu finaliser. Réessaie dans un instant.',
   'plus.startTrial': 'Démarrer mes {days} jours gratuits',
   'plus.subscribe': 'Prendre LangToll Plus',
   'plus.restore': 'Restaurer',

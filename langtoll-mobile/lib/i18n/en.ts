@@ -196,6 +196,7 @@ export const en = {
   'plus.monthlyEquiv': '≈ {price}/mo',
   'plus.cardTrial': '{days}-day free trial',
   'plus.cardNoTrial': 'No free trial — billed today',
+  'plus.purchaseFailed': 'The App Store could not complete that. Try again in a moment.',
   'plus.startTrial': 'Start my {days}-day free trial',
   'plus.subscribe': 'Get LangToll Plus',
   'plus.restore': 'Restore',

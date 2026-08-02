@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "LangToll",
-    "slug": "langtoll",
+    "slug": "langpass",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -52,6 +52,53 @@
     "extra": {
       "router": {},
       "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "bundleIdentifier": "com.langtoll.app.ShieldConfiguration",
+                  "targetName": "ShieldConfiguration",
+                  "entitlements": {
+                    "com.apple.developer.family-controls": true,
+                    "com.apple.security.application-groups": [
+                      "group.com.langtoll.app"
+                    ]
+                  }
+                },
+                {
+                  "bundleIdentifier": "com.langtoll.app.ShieldAction",
+                  "targetName": "ShieldAction",
+                  "entitlements": {
+                    "com.apple.developer.family-controls": true,
+                    "com.apple.security.application-groups": [
+                      "group.com.langtoll.app"
+                    ]
+                  }
+                },
+                {
+                  "bundleIdentifier": "com.langtoll.app.PassActivity",
+                  "targetName": "PassActivity",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.langtoll.app"
+                    ]
+                  }
+                },
+                {
+                  "bundleIdentifier": "com.langtoll.app.ActivityMonitorExtension",
+                  "targetName": "ActivityMonitorExtension",
+                  "entitlements": {
+                    "com.apple.developer.family-controls": true,
+                    "com.apple.security.application-groups": [
+                      "group.com.langtoll.app"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
         "projectId": "cbceb583-0c38-48e8-a27f-89748f7bdec8"
       }
     },

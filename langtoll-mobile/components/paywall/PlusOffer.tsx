@@ -49,6 +49,9 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
   const [packages, setPackages] = useState<PlusPackage[]>([]);
   const [selected, setSelected] = useState<Period>('yearly');
   const [busy, setBusy] = useState(false);
+  // A failed purchase used to do NOTHING visible: the button pressed, the promise
+  // resolved 'error', and the screen sat there. Every failure now says something.
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     track('paywall_viewed');
@@ -65,11 +68,20 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
     if (!current || busy) return;
     setBusy(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setFailed(false);
     const res = await purchase(current);
     setBusy(false);
     if (res === 'purchased') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onDone();
+      return;
+    }
+    // 'cancelled' is the user's own choice — silence is right there. 'error' means
+    // the store had nothing to sell (products not live, no network, StoreKit
+    // refused), and the user deserves to know why the tap did nothing.
+    if (res === 'error') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setFailed(true);
     }
   }
 
@@ -198,6 +210,11 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
           ? t('plus.trialLegal', { price: current?.priceString ?? '', days: current!.trialDays })
           : t('plus.legal')}
       </Text>
+      {failed && (
+        <Text variant="caption" color="danger" center style={{ marginTop: space.sm }}>
+          {t('plus.purchaseFailed')}
+        </Text>
+      )}
       {/* No "Maybe later" here: the surface's own exit (the X on /paywall, the header
           skip in onboarding) already grants the way out without advertising it under
           the CTA — relift dropped theirs for exactly this reason. */}
