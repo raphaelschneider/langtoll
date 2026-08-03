@@ -325,7 +325,14 @@ export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
       track('subscribed', { period: pkg.period });
       return 'purchased';
     }
-    track('purchase_failed', { period: pkg.period });
+    // Apple ACCEPTED the purchase (no throw) but the entitlement is not active.
+    // The money moved and the user got nothing — the worst failure mode here, and
+    // the only one that used to produce a bare "could not complete" with no cause.
+    // It means the purchased product carries no entitlement in RevenueCat: the
+    // App Store products shipped with none attached while the Test Store copies
+    // had `plus`, so every sandbox purchase reported failure after succeeding.
+    lastError = `purchased, but "${PLUS_ENTITLEMENT}" is not active — attach the entitlement to ${pkg.raw?.product?.identifier ?? 'this product'} in RevenueCat`;
+    track('purchase_failed', { period: pkg.period, reason: 'entitlement_inactive' });
     return 'error';
   } catch (e: any) {
     if (e?.userCancelled) {
