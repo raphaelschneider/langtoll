@@ -106,12 +106,18 @@ export default function Session() {
   // answer. Both suppressions live inside speakGerman() rather than here —
   // it returns early when the plan doesn't include audio (free, honeymoon
   // over) and when the user has muted it. 'listen' passes force so it beats
-  // the mute toggle, since there the audio IS the question; those exercises
-  // only exist when buildSession was allowed to generate them in the first
-  // place, so a muted or free user never meets one.
+  // the mute toggle, since there the audio IS the question.
+  //
+  // buildSession only plans 'listen' when sound was on at session start, so a
+  // free or already-muted user never meets one. A user who mutes MID-session
+  // still can — see listenAsText, which renders those as text instead.
   useEffect(() => {
     if (phase === 'answer' && (ex.type === 'listen' || ex.type === 'mc_de_en') && ex.audio) {
-      speakGerman(ex.audio, { force: ex.type === 'listen' });
+      // force beats the mute toggle — but NOT once the user has told us they
+      // cannot hear. Muting mid-session leaves already-planned 'listen'
+      // exercises in the queue; forcing audio at someone who just said they
+      // can't hear it would be the one place the app talks over its own user.
+      speakGerman(ex.audio, { force: ex.type === 'listen' && sound });
     }
     if (phase === 'feedback' && ex.type !== 'listen' && ex.type !== 'mc_de_en' && ex.audio) {
       speakGerman(ex.audio);
@@ -228,6 +234,16 @@ export default function Session() {
   const isTyped = ex.type === 'type_de';
   const isOrder = ex.type === 'order';
   const isListen = ex.type === 'listen';
+  // A 'listen' exercise the user cannot hear is unanswerable — and because our
+  // own shield holds the phone until the session ends, being stuck here is a
+  // trap with no way out. buildSession already excludes these when sound is
+  // off, but that decision is made at session START: the user who loses their
+  // headphones, boards a train or sits down in a meeting mid-session is
+  // exactly the person this protects. Falling back to the text turns it into
+  // a normal 'mc_de_en' — the options and answer are already the meanings, so
+  // nothing about grading changes. Derived from `sound` rather than local
+  // state so one tap covers every remaining listen exercise in the plan.
+  const listenAsText = isListen && !sound;
 
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
@@ -305,7 +321,9 @@ export default function Session() {
             <Entrance key={ex.key} from={10}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text variant="overline" color="inkFaint">
-                  {promptLabel[ex.type]}
+                  {/* Once the audio is replaced by its text the question is no
+                      longer "what do you hear?" — it is the meaning question. */}
+                  {listenAsText ? promptLabel.mc_de_en : promptLabel[ex.type]}
                 </Text>
                 {/* Provenance, dev builds only: is this exercise ours or generated?
                     Gated on the same flag as the rest of the dev tooling, so it can
@@ -327,13 +345,41 @@ export default function Session() {
                 )}
               </View>
 
-              {isListen ? (
-                <PressableScale
-                  onPress={() => ex.audio && speakGerman(ex.audio, { force: true })}
-                  style={[styles.listenBtn, shadow.glow, { backgroundColor: theme.accent }]}
-                >
-                  <Ionicons name="volume-high" size={40} color={theme.onAccent} />
-                </PressableScale>
+              {isListen && !listenAsText ? (
+                <>
+                  <PressableScale
+                    onPress={() => ex.audio && speakGerman(ex.audio, { force: true })}
+                    style={[styles.listenBtn, shadow.glow, { backgroundColor: theme.accent }]}
+                  >
+                    <Ionicons name="volume-high" size={40} color={theme.onAccent} />
+                  </PressableScale>
+                  {/* The escape hatch. Quiet by design — it must be findable in
+                      the moment it is needed without inviting everyone to skip
+                      listening practice. Turning sound off is the same switch
+                      as Settings, so the choice persists instead of having to
+                      be made again next session. */}
+                  <PressableScale
+                    onPress={() => {
+                      stopSpeaking();
+                      updateProfile({ soundEnabled: false });
+                      track('listen_fallback_used');
+                    }}
+                    haptic={null}
+                    style={styles.cantHear}
+                  >
+                    <Text variant="caption" color="inkFaint" center>
+                      {t('session.cantHear')}
+                    </Text>
+                  </PressableScale>
+                </>
+              ) : listenAsText ? (
+                // Same shape as the normal prompt path: the word we would have
+                // spoken, shown instead.
+                <View style={styles.promptRow}>
+                  <Text variant="hero" style={{ marginTop: space.sm, flexShrink: 1 }}>
+                    {ex.audio}
+                  </Text>
+                </View>
               ) : (
                 <View style={styles.promptRow}>
                   <Text
@@ -572,6 +618,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
   promptRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   speakerSmall: { paddingTop: space.lg },
+  cantHear: { paddingTop: space.md, paddingHorizontal: space.md, alignSelf: 'center' },
   listenBtn: {
     width: 96,
     height: 96,

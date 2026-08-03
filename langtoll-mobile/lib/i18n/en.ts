@@ -52,6 +52,7 @@ export const en = {
   'session.order': 'Build the sentence',
   'session.orderHint': 'Tap the words in order',
   'session.listen': 'What do you hear?',
+  'session.cantHear': 'I can’t listen right now',
   'session.passIssued': 'Pass issued',
   'session.correctCount': '{correct} of {total} correct',
   'session.back': 'Back to my phone',

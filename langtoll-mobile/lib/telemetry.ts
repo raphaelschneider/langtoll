@@ -34,6 +34,10 @@ export type TelemetryEvent =
   | 'locked'
   | 'unlocked'
   | 'badge_earned'
+  // Fired when a user tells us mid-session that they cannot hear the audio.
+  // Worth counting: if it is common, listening exercises are being planned for
+  // people who cannot use them, and the default belongs somewhere else.
+  | 'listen_fallback_used'
   | 'paywall_viewed'
   | 'purchase_tapped'
   | 'purchase_cancelled'
