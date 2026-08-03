@@ -27,7 +27,7 @@ import { supportCode } from '@/lib/device';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
-import { canUseAudio } from '@/lib/plans';
+import { canUseAudio, FARE_EXERCISES, FARE_MINUTES } from '@/lib/plans';
 import { primeVoices, voicesForActivePack, speakWith, setSpeechShaping, speechIsNative } from '@/lib/tts';
 import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speech/src';
 import { activePack } from '@/lib/pack';
@@ -42,8 +42,6 @@ const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2'];
-const FARE_EXERCISES = [3, 5, 8];
-const FARE_MINUTES = [15, 30, 45];
 // 'system' first, then every locale we ship, labelled with its own endonym so
 // the picker stays usable when the current UI language is one you can't read.
 const LOCALES: { key: 'system' | LocaleCode; label?: string; labelKey?: 'settings.system' }[] = [

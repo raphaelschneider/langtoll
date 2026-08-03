@@ -108,6 +108,21 @@ export function canUseAudio(): boolean {
 export const FREE_EXERCISES_PER_UNLOCK = 5;
 export const FREE_UNLOCK_MINUTES = 30;
 
+/**
+ * The fare a user may choose: how many exercises buy how many minutes.
+ *
+ * Both lists lived as frozen copies in settings.tsx AND onboarding.tsx, so the
+ * two screens could silently offer different fares. They belong here, beside
+ * the free defaults they must always contain — FREE_EXERCISES_PER_UNLOCK and
+ * FREE_UNLOCK_MINUTES are members of these lists, not independent numbers.
+ *
+ * 10 minutes is a deliberate floor: shorter than a session takes to earn, and
+ * the trade stops feeling worth it. 60 is the ceiling for the same reason in
+ * reverse — an hour of unlocked phone for five exercises is barely a lock.
+ */
+export const FARE_EXERCISES = [3, 5, 8] as const;
+export const FARE_MINUTES = [10, 15, 30, 45, 60] as const;
+
 // ── how much you can block (the primary lever) ───────────────────────────────
 // Free locks a single app. Plus unlocks unlimited apps, whole categories, and websites.
 // Family Controls keeps the selection opaque (we never learn WHICH apps), but the picker

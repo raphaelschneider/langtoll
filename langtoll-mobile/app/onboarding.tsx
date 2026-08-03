@@ -34,6 +34,7 @@ import { levelForDifficulty } from '@/lib/pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
+import { FARE_EXERCISES, FARE_MINUTES } from '@/lib/plans';
 import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 
@@ -201,8 +202,6 @@ function RotatingHook() {
     </View>
   );
 }
-const FARE_EXERCISES = [3, 5, 8];
-const FARE_MINUTES = [15, 30, 45];
 
 // ── shared bits ────────────────────────────────────────────────────────────
 
