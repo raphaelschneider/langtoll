@@ -155,6 +155,7 @@ export const en = {
   'settings.fare': 'Fare',
   'settings.fareEx': 'Exercises per unlock',
   'settings.fareMin': 'Minutes unlocked',
+  'settings.fareMinValue': '{min} min',
   'settings.voice': 'Voice',
   'settings.speechSpeed': 'Speech speed',
   'settings.speedSlow': 'Slow',

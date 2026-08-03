@@ -27,7 +27,14 @@ import { supportCode } from '@/lib/device';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
-import { canUseAudio, FARE_EXERCISES, FARE_MINUTES } from '@/lib/plans';
+import {
+  canUseAudio,
+  FARE_EXERCISES,
+  FARE_MINUTES_MIN,
+  FARE_MINUTES_MAX,
+  FARE_MINUTES_STEP,
+} from '@/lib/plans';
+import { FareSlider } from '@/components/ui/FareSlider';
 import { primeVoices, voicesForActivePack, speakWith, setSpeechShaping, speechIsNative } from '@/lib/tts';
 import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speech/src';
 import { activePack } from '@/lib/pack';
@@ -469,16 +476,16 @@ export default function Settings() {
             <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
               {t('settings.fareMin')}
             </Text>
-            <View style={styles.chipRow}>
-              {FARE_MINUTES.map((n) => (
-                <Chip
-                  key={n}
-                  label={`${n}`}
-                  selected={state.unlockMinutes === n}
-                  onPress={() => updateProfile({ unlockMinutes: n })}
-                />
-              ))}
-            </View>
+            <FareSlider
+              value={state.unlockMinutes}
+              min={FARE_MINUTES_MIN}
+              max={FARE_MINUTES_MAX}
+              step={FARE_MINUTES_STEP}
+              onChange={(n) => updateProfile({ unlockMinutes: n })}
+              format={(n) => t('settings.fareMinValue', { min: n })}
+              minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
+              maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
+            />
           </Section>
 
           {/* voice */}

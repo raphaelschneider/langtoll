@@ -121,7 +121,13 @@ export const FREE_UNLOCK_MINUTES = 30;
  * reverse — an hour of unlocked phone for five exercises is barely a lock.
  */
 export const FARE_EXERCISES = [3, 5, 8] as const;
-export const FARE_MINUTES = [10, 15, 30, 45, 60] as const;
+
+// Minutes are dragged, not picked from chips, so they are a RANGE rather than a
+// list — every 5-minute stop from 10 to 60. FREE_UNLOCK_MINUTES (30) sits on the
+// grid, as any default must, or a free user could never return to it.
+export const FARE_MINUTES_MIN = 10;
+export const FARE_MINUTES_MAX = 60;
+export const FARE_MINUTES_STEP = 5;
 
 // ── how much you can block (the primary lever) ───────────────────────────────
 // Free locks a single app. Plus unlocks unlimited apps, whole categories, and websites.

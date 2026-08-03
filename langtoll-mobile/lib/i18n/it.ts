@@ -140,6 +140,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'settings.fare': 'Tariffa',
   'settings.fareEx': 'Esercizi per sblocco',
   'settings.fareMin': 'Minuti sbloccati',
+  'settings.fareMinValue': '{min} min',
   'settings.voice': 'Voce',
   'settings.speechSpeed': 'Velocità della voce',
   'settings.speedSlow': 'Lenta',

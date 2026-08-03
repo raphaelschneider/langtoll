@@ -34,7 +34,13 @@ import { levelForDifficulty } from '@/lib/pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
-import { FARE_EXERCISES, FARE_MINUTES } from '@/lib/plans';
+import {
+  FARE_EXERCISES,
+  FARE_MINUTES_MIN,
+  FARE_MINUTES_MAX,
+  FARE_MINUTES_STEP,
+} from '@/lib/plans';
+import { FareSlider } from '@/components/ui/FareSlider';
 import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 
@@ -633,11 +639,16 @@ export default function Onboarding() {
                 <Text variant="overline" color="inkFaint" style={{ marginTop: space.lg }}>
                   {t('ob.fareMin')}
                 </Text>
-                <View style={styles.chipWrap}>
-                  {FARE_MINUTES.map((n) => (
-                    <Chip key={n} label={`${n}`} selected={fareMin === n} onPress={() => setFareMin(n)} />
-                  ))}
-                </View>
+                <FareSlider
+                  value={fareMin}
+                  min={FARE_MINUTES_MIN}
+                  max={FARE_MINUTES_MAX}
+                  step={FARE_MINUTES_STEP}
+                  onChange={setFareMin}
+                  format={(n) => t('settings.fareMinValue', { min: n })}
+                  minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
+                  maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
+                />
               </Entrance>
             )}
 
