@@ -237,7 +237,45 @@ function orderExercise(s: SentenceItem, rand: () => number, key: string): Exerci
   };
 }
 
-/** Weighted pick of a vocab exercise type for one item. */
+/** The vocab-driven exercise types. Sentences pick between cloze and order. */
+type VocabExerciseType = Extract<
+  ExerciseType,
+  'mc_de_en' | 'mc_en_de' | 'type_de' | 'article' | 'listen'
+>;
+
+/**
+ * How often each type should appear, by difficulty band.
+ *
+ * These are weights, normalised over whatever is ELIGIBLE for the item at hand,
+ * so the printed numbers are the real odds rather than a starting point that
+ * later branches eat into.
+ *
+ * The previous version drew ONE random number and compared it against a chain
+ * of thresholds, which made the branches correlated and the constants
+ * misleading: at difficulty 8 `article` read as 65% and actually fired 10%,
+ * because type_de had already consumed that slice of the same roll. Worse,
+ * difficulty ≤ 3 had no listen branch at all — and 3 is the default every new
+ * user starts on, so the voice we sell as a Plus feature never appeared until
+ * someone raised the difficulty by hand.
+ *
+ * Recognition dominates at the bottom, production at the top; listening runs
+ * throughout, because it is the skill that decays first without practice.
+ */
+const VOCAB_TYPE_WEIGHTS: { maxDifficulty: number; weights: Record<VocabExerciseType, number> }[] = [
+  { maxDifficulty: 3, weights: { mc_de_en: 34, mc_en_de: 22, article: 20, listen: 12, type_de: 12 } },
+  { maxDifficulty: 6, weights: { mc_de_en: 20, mc_en_de: 20, article: 15, listen: 15, type_de: 30 } },
+  { maxDifficulty: 10, weights: { mc_de_en: 12, mc_en_de: 20, article: 12, listen: 18, type_de: 38 } },
+];
+
+/**
+ * Weighted pick of a vocab exercise type for one item.
+ *
+ * A type drops out when the item or the session cannot support it — no article
+ * to ask for, no audio in this plan, or a word the user has never met (typing
+ * something you have not seen is a memory test, not a drill). The remaining
+ * weights renormalise, so removing one type redistributes its share instead of
+ * silently handing it to whichever branch happened to come next.
+ */
 function pickVocabType(
   item: VocabItem,
   seenBefore: boolean,
@@ -245,25 +283,31 @@ function pickVocabType(
   audio: boolean,
   rand: () => number
 ): ExerciseType {
-  const canArticle = articleOf(item) !== null;
-  const roll = rand();
+  const band =
+    VOCAB_TYPE_WEIGHTS.find((b) => difficulty <= b.maxDifficulty) ??
+    VOCAB_TYPE_WEIGHTS[VOCAB_TYPE_WEIGHTS.length - 1];
 
-  if (difficulty <= 3) {
-    if (canArticle && roll < 0.22) return 'article';
-    if (seenBefore && difficulty >= 3 && roll > 0.9) return 'type_de';
-    return roll < 0.62 ? 'mc_de_en' : 'mc_en_de';
+  const eligible = (Object.entries(band.weights) as [VocabExerciseType, number][]).filter(
+    ([type, weight]) => {
+      if (weight <= 0) return false;
+      if (type === 'article') return articleOf(item) !== null;
+      if (type === 'listen') return audio;
+      if (type === 'type_de') return seenBefore;
+      return true;
+    }
+  );
+
+  const total = eligible.reduce((sum, [, weight]) => sum + weight, 0);
+  // Nothing eligible can only happen if the table is emptied; mc_de_en needs
+  // nothing from the item, so it is the one type that is always answerable.
+  if (total <= 0) return 'mc_de_en';
+
+  let r = rand() * total;
+  for (const [type, weight] of eligible) {
+    r -= weight;
+    if (r < 0) return type;
   }
-  if (difficulty <= 6) {
-    if (audio && roll < 0.15) return 'listen';
-    if (canArticle && roll < 0.3) return 'article';
-    if (seenBefore && roll < 0.5) return 'type_de';
-    return roll < 0.75 ? 'mc_de_en' : 'mc_en_de';
-  }
-  // 7–10: production-heavy
-  if (audio && roll < 0.15) return 'listen';
-  if (seenBefore && roll < 0.55) return 'type_de';
-  if (canArticle && roll < 0.65) return 'article';
-  return roll < 0.82 ? 'mc_en_de' : 'mc_de_en';
+  return eligible[eligible.length - 1][0];
 }
 
 /** Fraction of the session that comes from sentences, by difficulty. */
