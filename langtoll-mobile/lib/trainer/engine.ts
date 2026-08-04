@@ -7,7 +7,7 @@
 //   4–6  production starts: typed answers, listening, more cloze
 //   7–10 production-heavy: typing, sentence building (order), listening
 
-import type { LanguagePack, VocabItem, SentenceItem } from '@/content/german/types';
+import type { LanguagePack, VocabItem, SentenceItem, Language } from '@/content/german/types';
 import type { ItemProgressRow } from '@/lib/db/types';
 
 export type ExerciseType =
@@ -164,16 +164,41 @@ function mcOptions(
   return shuffle([correct, ...distractors], rand);
 }
 
-const ARTICLES = ['der', 'die', 'das'] as const;
+// The article sets per language, grouped so a noun is only ever quizzed against
+// articles it could actually take: a singular Spanish noun offers el/la, its
+// plural offers los/las — never a four-way mix a native speaker would not face.
+//
+// This was `['der', 'die', 'das']`, full stop. The article exercise silently
+// never fired for five of the six languages: articleOf matched nothing, its
+// weight redistributed, and a Spanish learner simply had one exercise type less
+// than a German one — with no error anywhere, because "no article found" is
+// also the correct outcome for verbs.
+//
+// English has no entry: 'the' is invariant, so there is nothing to quiz.
+// French/Italian elided forms (l’aéroport, l’azienda) match no set on purpose —
+// the surface form hides the article, which is why those items carry an
+// explicit `gender` field instead. Asking le/la about a noun written l’ would
+// mark a learner wrong for something the language never shows.
+const ARTICLE_GROUPS: Partial<Record<Language, string[][]>> = {
+  de: [['der', 'die', 'das']],
+  es: [['el', 'la'], ['los', 'las']],
+  pt: [['o', 'a'], ['os', 'as']],
+  it: [['il', 'lo', 'la'], ['i', 'gli', 'le']],
+  // French singular only: the plural is always `les`, and a quiz with one
+  // option is not a question.
+  fr: [['le', 'la']],
+};
 
-function articleOf(item: VocabItem): string | null {
+/** The article group this noun's article belongs to, or null if unquizzable. */
+function articleGroupOf(item: VocabItem, language: Language): string[] | null {
   if (item.pos !== 'noun') return null;
-  const first = item.de.split(' ')[0];
-  return (ARTICLES as readonly string[]).includes(first) ? first : null;
+  const first = item.de.split(' ')[0].toLowerCase();
+  return ARTICLE_GROUPS[language]?.find((group) => group.includes(first)) ?? null;
 }
 
-function articleExercise(item: VocabItem, key: string): Exercise {
-  const article = articleOf(item)!;
+function articleExercise(item: VocabItem, language: Language, key: string): Exercise {
+  const options = articleGroupOf(item, language)!;
+  const article = item.de.split(' ')[0];
   const noun = item.de.slice(article.length + 1);
   return {
     key,
@@ -182,8 +207,8 @@ function articleExercise(item: VocabItem, key: string): Exercise {
     source: item.source,
     prompt: `___ ${noun}`,
     hint: item.en[0],
-    options: [...ARTICLES],
-    answer: article,
+    options: [...options],
+    answer: article.toLowerCase(),
     reveal: revealFor(item),
     audio: item.de,
   };
@@ -278,6 +303,7 @@ const VOCAB_TYPE_WEIGHTS: { maxDifficulty: number; weights: Record<VocabExercise
  */
 function pickVocabType(
   item: VocabItem,
+  language: Language,
   seenBefore: boolean,
   difficulty: number,
   audio: boolean,
@@ -290,7 +316,7 @@ function pickVocabType(
   const eligible = (Object.entries(band.weights) as [VocabExerciseType, number][]).filter(
     ([type, weight]) => {
       if (weight <= 0) return false;
-      if (type === 'article') return articleOf(item) !== null;
+      if (type === 'article') return articleGroupOf(item, language) !== null;
       if (type === 'listen') return audio;
       if (type === 'type_de') return seenBefore;
       return true;
@@ -344,11 +370,11 @@ export function buildSession(
 
   vocabItems.forEach((item, i) => {
     const seenBefore = (progress.get(item.id)?.seen ?? 0) > 0;
-    const type = pickVocabType(item, seenBefore, difficulty, audio, rand);
+    const type = pickVocabType(item, pack.language, seenBefore, difficulty, audio, rand);
     const key = `${item.id}-${i}`;
 
     if (type === 'article') {
-      exercises.push(articleExercise(item, key));
+      exercises.push(articleExercise(item, pack.language, key));
     } else if (type === 'listen') {
       exercises.push(listenExercise(item, pack, rand, key));
     } else if (type === 'type_de') {
