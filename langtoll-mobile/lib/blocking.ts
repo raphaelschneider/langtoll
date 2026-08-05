@@ -66,12 +66,20 @@ const ACTIVITY_PREFIX = 'langtoll-relock';
 // Wake-ups that advance the island's vocabulary card — handled entirely inside
 // the extension (PassRotation.swift); they carry no actions.
 const WORD_MONITOR_PREFIX = 'langtoll-word';
-/** Minutes between island vocabulary rotations. */
-const ROTATION_MINUTES = 5;
-/** Cap on rotation monitors: iOS allows ~20 concurrent monitors and the
- *  re-lock machinery needs its two. 10 covers a 55-minute pass at 5-minute
- *  cadence; longer passes just stop rotating near the end. */
-const ROTATION_MAX_WAKEUPS = 10;
+/** Minutes between island vocabulary rotations. 2 is the practical floor:
+ *  DeviceActivity wake-ups are minute-granularity and each one spawns the
+ *  whole extension process — denser would show up as LangToll battery drain
+ *  in iOS Settings, which is a delete-the-app event. Seconds-level rotation
+ *  is not possible on iOS at all: island content is static between updates
+ *  and only Text(timerInterval:) self-animates. */
+const ROTATION_MINUTES = 2;
+/** Cap on rotation monitors: iOS allows ~20 concurrent monitors, the re-lock
+ *  machinery needs its two, and headroom matters more than coverage — a
+ *  re-lock that fails to arm because vocabulary ate its slot would be the
+ *  tail wagging the dog. 14 covers a 28-minute pass at 2-minute cadence;
+ *  longer passes stop rotating near the end (the app also rotates on every
+ *  foregrounding, so a long pass still refreshes whenever LangToll opens). */
+const ROTATION_MAX_WAKEUPS = 14;
 
 // Lazy so the app never crashes when the native module isn't in the binary
 // (Expo Go, or before the dev build exists).

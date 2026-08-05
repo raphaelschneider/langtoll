@@ -98,5 +98,35 @@ public class LangTollActivityModule: Module {
     Function("getRotationDebug") { () -> String? in
       appGroupDefaults()?.string(forKey: ROTATION_DEBUG_KEY)
     }
+
+    // Advance the island's vocabulary card from the APP — the documented
+    // update path, used on every foregrounding. This works regardless of
+    // whether the extension's background updates turn out to be permitted,
+    // so the rotation always has at least one guaranteed vector.
+    Function("advanceWordRotation") { () -> Bool in
+      guard #available(iOS 16.2, *) else { return false }
+      guard let defaults = appGroupDefaults(),
+        let raw = defaults.string(forKey: ROTATION_WORDS_KEY),
+        let data = raw.data(using: .utf8),
+        let pairs = try? JSONDecoder().decode([[String]].self, from: data),
+        !pairs.isEmpty
+      else { return false }
+
+      let index = defaults.integer(forKey: ROTATION_INDEX_KEY)
+      let pair = pairs[index % pairs.count]
+      defaults.set(index + 1, forKey: ROTATION_INDEX_KEY)
+
+      var any = false
+      for activity in Activity<PassActivityAttributes>.activities {
+        let previous = activity.content
+        let state = PassActivityAttributes.ContentState(
+          expiresAt: previous.state.expiresAt,
+          word: pair.first,
+          translation: pair.count > 1 ? pair[1] : nil)
+        Task { await activity.update(ActivityContent(state: state, staleDate: previous.staleDate)) }
+        any = true
+      }
+      return any
+    }
   }
 }

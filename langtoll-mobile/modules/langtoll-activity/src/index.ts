@@ -16,6 +16,7 @@ let native: {
   endPassActivity(): void;
   setWordRotation(pairsJson: string): void;
   getRotationDebug(): string | null;
+  advanceWordRotation(): boolean;
 } | null = null;
 
 if (Platform.OS === 'ios') {
@@ -64,6 +65,15 @@ export function getRotationDebug(): string | null {
     return native?.getRotationDebug() ?? null;
   } catch {
     return null;
+  }
+}
+
+/** Advance the island's word from the app — the documented update path. */
+export function advanceWordRotation(): boolean {
+  try {
+    return native?.advanceWordRotation() ?? false;
+  } catch {
+    return false;
   }
 }
 

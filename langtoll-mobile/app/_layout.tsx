@@ -21,6 +21,7 @@ import { initDeviceId } from '@/lib/device';
 import { syncPassActivity } from '@/lib/pass-activity';
 import { track } from '@/lib/telemetry';
 import { configureShieldAppearance, maybeRelock } from '@/lib/blocking';
+import { advanceWordRotation } from '@/modules/langtoll-activity/src';
 import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
 import { handleNotificationTaps } from '@/lib/notify';
@@ -92,6 +93,10 @@ export default function RootLayout() {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && next === 'active') {
         maybeRelock(isUnlocked(getState()));
+        // Fresh card on the island every time LangToll comes forward mid-pass.
+        // This is the DOCUMENTED activity-update path, so the rotation works
+        // even if the extension's background updates turn out to be blocked.
+        if (isUnlocked(getState())) advanceWordRotation();
       }
       appState.current = next;
     });
