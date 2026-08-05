@@ -229,19 +229,31 @@ struct PassActivityWidget: Widget {
           }
         }
       } compactLeading: {
-        // The mascot IS the app's face here — roundel stays on the keyline.
-        TollyFace(stale: context.isStale, height: 21)
-      } compactTrailing: {
-        // The whole feature lives or dies in THIS view: compact is what floats
-        // above the unlocked apps. While a word is loaded, the word wins the
-        // slot; the countdown keeps running on the lock screen and long-press.
+        // The whole feature lives or dies in the compact views: they are what
+        // floats above the unlocked apps. Mid-rotation the word takes the
+        // leading slot and its translation the trailing one — both sides of
+        // the cutout, because one side alone cannot fit "die Entschuldigung".
+        // Tolly cedes compact to the vocabulary and keeps minimal + expanded;
+        // no artificial width caps — iOS already bounds these regions, and a
+        // hard 72pt cap was throwing away space the island had free.
         if let word = context.state.word, !context.isStale {
           Text(word)
             .font(.system(size: 13, weight: .semibold))
             .foregroundColor(.ticketCream)
             .lineLimit(1)
-            .minimumScaleFactor(0.6)
-            .frame(maxWidth: 72)
+            .minimumScaleFactor(0.5)
+        } else {
+          TollyFace(stale: context.isStale, height: 21)
+        }
+      } compactTrailing: {
+        if context.state.word != nil, !context.isStale {
+          if let translation = context.state.translation {
+            Text(translation)
+              .font(.system(size: 13))
+              .foregroundColor(.railTeal)
+              .lineLimit(1)
+              .minimumScaleFactor(0.5)
+          }
         } else {
           CountdownText(
             expiresAt: context.state.expiresAt, size: 13, weight: .semibold,
