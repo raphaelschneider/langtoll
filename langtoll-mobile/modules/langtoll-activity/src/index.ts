@@ -9,9 +9,13 @@ let native: {
     expiresAtMs: number,
     passenger: string,
     packLabel: string,
-    serial: string
+    serial: string,
+    word: string | null,
+    translation: string | null
   ): boolean;
   endPassActivity(): void;
+  setWordRotation(pairsJson: string): void;
+  getRotationDebug(): string | null;
 } | null = null;
 
 if (Platform.OS === 'ios') {
@@ -28,12 +32,38 @@ export function startPassActivity(
   expiresAtMs: number,
   passenger: string,
   packLabel: string,
-  serial: string
+  serial: string,
+  word: string | null = null,
+  translation: string | null = null
 ): boolean {
   try {
-    return native?.startPassActivity(expiresAtMs, passenger, packLabel, serial) ?? false;
+    return (
+      native?.startPassActivity(expiresAtMs, passenger, packLabel, serial, word, translation) ??
+      false
+    );
   } catch {
     return false;
+  }
+}
+
+/**
+ * Store the rotation deck (word/translation pairs) in the app group, where the
+ * DeviceActivity extension advances through it on its background wake-ups.
+ */
+export function setWordRotation(pairs: [string, string][]): void {
+  try {
+    native?.setWordRotation(JSON.stringify(pairs));
+  } catch {
+    // no-op — the island simply keeps its first word
+  }
+}
+
+/** The extension's last rotation report, for the dev tools screen. */
+export function getRotationDebug(): string | null {
+  try {
+    return native?.getRotationDebug() ?? null;
+  } catch {
+    return null;
   }
 }
 

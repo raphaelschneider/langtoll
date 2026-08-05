@@ -12,6 +12,12 @@ import WidgetKit
 struct PassActivityAttributes: ActivityAttributes {
   public struct ContentState: Codable, Hashable {
     var expiresAt: Date
+    // The rotating vocabulary card: while the pass runs, the island keeps
+    // showing one word + its translation, advanced by the DeviceActivity
+    // extension (see targets/ActivityMonitorExtension/PassRotation.swift).
+    // Optional so a pass with no rotation data falls back to the countdown.
+    var word: String?
+    var translation: String?
   }
 
   var passenger: String
@@ -70,6 +76,30 @@ struct CountdownText: View {
   }
 }
 
+/// The rotating vocabulary line: target word in cream, translation in teal.
+/// One line, shrink-to-fit — German compounds and French phrases must never
+/// wrap the island.
+struct WordLine: View {
+  let word: String
+  let translation: String?
+  var size: CGFloat
+
+  var body: some View {
+    HStack(alignment: .lastTextBaseline, spacing: 6) {
+      Text(word)
+        .font(.system(size: size, weight: .bold))
+        .foregroundColor(.ticketCream)
+      if let translation {
+        Text(translation)
+          .font(.system(size: size * 0.72))
+          .foregroundColor(.railTeal)
+      }
+    }
+    .lineLimit(1)
+    .minimumScaleFactor(0.55)
+  }
+}
+
 struct LockScreenView: View {
   let context: ActivityViewContext<PassActivityAttributes>
 
@@ -95,13 +125,31 @@ struct LockScreenView: View {
               (context.isStale ? Color.stampVermilion : Color.validationMint).opacity(0.5),
               lineWidth: 1))
       }
-      HStack(alignment: .lastTextBaseline) {
-        CountdownText(expiresAt: context.state.expiresAt, size: 36, stale: context.isStale)
-        Text(context.isStale ? "pass expired — practise to unlock" : "of phone time left")
-          .font(.system(size: 12))
-          .foregroundColor(.ticketCream.opacity(0.6))
-        Spacer()
-        TollyFace(stale: context.isStale, height: 34)
+      // With a word to teach, the word IS the headline and the countdown steps
+      // back to a caption. The stale pass drops the word — an expired island
+      // sells the next session, not vocabulary.
+      if let word = context.state.word, !context.isStale {
+        HStack(alignment: .center) {
+          WordLine(word: word, translation: context.state.translation, size: 26)
+          Spacer()
+          TollyFace(stale: false, height: 34)
+        }
+        HStack {
+          CountdownText(expiresAt: context.state.expiresAt, size: 13, weight: .semibold)
+          Text("of phone time left")
+            .font(.system(size: 11))
+            .foregroundColor(.ticketCream.opacity(0.5))
+          Spacer()
+        }
+      } else {
+        HStack(alignment: .lastTextBaseline) {
+          CountdownText(expiresAt: context.state.expiresAt, size: 36, stale: context.isStale)
+          Text(context.isStale ? "pass expired — practise to unlock" : "of phone time left")
+            .font(.system(size: 12))
+            .foregroundColor(.ticketCream.opacity(0.6))
+          Spacer()
+          TollyFace(stale: context.isStale, height: 34)
+        }
       }
       HStack {
         Text(context.attributes.passenger)
@@ -149,28 +197,58 @@ struct PassActivityWidget: Widget {
             .padding(.trailing, 4)
         }
         DynamicIslandExpandedRegion(.bottom) {
-          HStack(alignment: .lastTextBaseline, spacing: 8) {
-            CountdownText(expiresAt: context.state.expiresAt, size: 34, stale: context.isStale)
-            Text(context.isStale ? "pass expired" : "of phone time left")
-              .font(.system(size: 12))
-              .foregroundColor(.ticketCream.opacity(0.6))
-            Spacer()
-            Text(context.attributes.passenger)
-              .font(.system(size: 10, weight: .semibold, design: .monospaced))
-              .kerning(1.2)
-              .foregroundColor(.ticketCream.opacity(0.7))
+          if let word = context.state.word, !context.isStale {
+            VStack(alignment: .leading, spacing: 4) {
+              WordLine(word: word, translation: context.state.translation, size: 28)
+              HStack(spacing: 6) {
+                CountdownText(expiresAt: context.state.expiresAt, size: 12, weight: .semibold)
+                Text("left")
+                  .font(.system(size: 11))
+                  .foregroundColor(.ticketCream.opacity(0.5))
+                Spacer()
+                Text(context.attributes.packLabel)
+                  .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                  .kerning(1.2)
+                  .foregroundColor(.ticketCream.opacity(0.7))
+              }
+            }
+            .padding(.horizontal, 4)
+          } else {
+            HStack(alignment: .lastTextBaseline, spacing: 8) {
+              CountdownText(expiresAt: context.state.expiresAt, size: 34, stale: context.isStale)
+              Text(context.isStale ? "pass expired" : "of phone time left")
+                .font(.system(size: 12))
+                .foregroundColor(.ticketCream.opacity(0.6))
+              Spacer()
+              Text(context.attributes.passenger)
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .kerning(1.2)
+                .foregroundColor(.ticketCream.opacity(0.7))
+            }
+            .padding(.horizontal, 4)
           }
-          .padding(.horizontal, 4)
         }
       } compactLeading: {
-        // The mascot IS the app's face here (Ralph's call) — roundel stays on the keyline.
+        // The mascot IS the app's face here — roundel stays on the keyline.
         TollyFace(stale: context.isStale, height: 21)
       } compactTrailing: {
-        CountdownText(
-          expiresAt: context.state.expiresAt, size: 13, weight: .semibold,
-          stale: context.isStale
-        )
-        .frame(maxWidth: 44)
+        // The whole feature lives or dies in THIS view: compact is what floats
+        // above the unlocked apps. While a word is loaded, the word wins the
+        // slot; the countdown keeps running on the lock screen and long-press.
+        if let word = context.state.word, !context.isStale {
+          Text(word)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.ticketCream)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .frame(maxWidth: 72)
+        } else {
+          CountdownText(
+            expiresAt: context.state.expiresAt, size: 13, weight: .semibold,
+            stale: context.isStale
+          )
+          .frame(maxWidth: 44)
+        }
       } minimal: {
         TollyFace(stale: context.isStale, height: 19)
       }

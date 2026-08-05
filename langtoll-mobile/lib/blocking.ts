@@ -63,6 +63,15 @@ const SELECTION_ID = 'langtoll-blocked';
 // actions are explicitly emptied on re-grant; even if stopMonitoring can't cancel
 // a mid-flight interval, its callback fires into a no-op.
 const ACTIVITY_PREFIX = 'langtoll-relock';
+// Wake-ups that advance the island's vocabulary card — handled entirely inside
+// the extension (PassRotation.swift); they carry no actions.
+const WORD_MONITOR_PREFIX = 'langtoll-word';
+/** Minutes between island vocabulary rotations. */
+const ROTATION_MINUTES = 5;
+/** Cap on rotation monitors: iOS allows ~20 concurrent monitors and the
+ *  re-lock machinery needs its two. 10 covers a 55-minute pass at 5-minute
+ *  cadence; longer passes just stop rotating near the end. */
+const ROTATION_MAX_WAKEUPS = 10;
 
 // Lazy so the app never crashes when the native module isn't in the binary
 // (Expo Go, or before the dev build exists).
@@ -262,8 +271,8 @@ export function grantUnlock(minutes: number): void {
     const activityName = `${ACTIVITY_PREFIX}.main.${stamp}`;
     const lastCallName = `${ACTIVITY_PREFIX}.lastcall.${stamp}`;
     try {
-      const prior: string[] = (m.getActivities?.() ?? []).filter((n: string) =>
-        n.startsWith(ACTIVITY_PREFIX)
+      const prior: string[] = (m.getActivities?.() ?? []).filter(
+        (n: string) => n.startsWith(ACTIVITY_PREFIX) || n.startsWith(WORD_MONITOR_PREFIX)
       );
       for (const name of prior) {
         try {
@@ -318,6 +327,28 @@ export function grantUnlock(minutes: number): void {
         };
       }
       console.log('[blocking] relock:', JSON.stringify(lastRelock));
+
+      // Island vocabulary wake-ups: one future-dated monitor per rotation. The
+      // extension advances the deck at each intervalDidStart (PassRotation.swift);
+      // no actions are configured, so a stray wake after a re-lock does nothing
+      // visible. Strictly best-effort and AFTER the re-lock monitors: rotation
+      // must never compete with, delay, or fail the machinery that puts the
+      // shield back.
+      try {
+        for (let k = 1; k <= ROTATION_MAX_WAKEUPS; k++) {
+          const at = new Date(now.getTime() + k * ROTATION_MINUTES * 60_000);
+          if (at >= end) break; // pass expired — nothing left to teach on it
+          // Apple's 15-minute minimum applies to the interval LENGTH; only its
+          // START matters to us, and starts may be staggered freely.
+          await m.startMonitoring(
+            `${WORD_MONITOR_PREFIX}.${k}.${stamp}`,
+            { intervalStart: dc(at), intervalEnd: dc(new Date(at.getTime() + 15 * 60_000)), repeats: false },
+            []
+          );
+        }
+      } catch (e) {
+        console.log('[blocking] word rotation monitors failed (non-fatal):', e);
+      }
     })();
     // When the interval ends, re-block — runs in the extension even if the app is closed.
     //

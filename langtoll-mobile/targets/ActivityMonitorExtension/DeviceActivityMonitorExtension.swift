@@ -17,6 +17,16 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     super.intervalDidStart(for: activity)
     logger.log("intervalDidStart")
 
+    // Word-rotation wake-ups (langtoll-word.<k>.<stamp>) exist only to advance
+    // the pass Live Activity's vocabulary card — they carry no actions and no
+    // other machinery should run for them.
+    if activity.rawValue.hasPrefix(WORD_MONITOR_PREFIX) {
+      if #available(iOS 16.2, *) {
+        advancePassWord()
+      }
+      return
+    }
+
     self.executeActionsForEvent(
       activityName: activity.rawValue,
       callbackName: "intervalDidStart",

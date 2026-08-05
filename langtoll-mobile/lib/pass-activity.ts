@@ -5,16 +5,28 @@
 // loses it (found the hard way on Ralph's phone, 2026-08-01).
 import { getState, isUnlocked } from '@/lib/store';
 import { activePack } from '@/lib/pack';
-import { startPassActivity } from '@/modules/langtoll-activity/src';
+import { startPassActivity, setWordRotation } from '@/modules/langtoll-activity/src';
+import { pickRotationDeck } from '@/lib/word-rotation';
 
 export function syncPassActivity(): void {
   const s = getState();
   if (!isUnlocked(s) || !s.unlockExpiresAt) return;
   const pack = activePack();
+
+  // The island's vocabulary rotation: the activity launches showing card 0 and
+  // the DeviceActivity extension advances through the stored deck on its
+  // background wake-ups (armed in blocking.ts). An empty deck (fresh install)
+  // degrades to the plain countdown island.
+  const deck = pickRotationDeck();
+  setWordRotation(deck);
+  const first = deck[0] ?? null;
+
   startPassActivity(
     s.unlockExpiresAt,
     (s.name ?? 'PASSENGER').toUpperCase(),
     `${pack.language.toUpperCase()} · ${pack.level}`,
-    `№ ${String(s.sessionsCompleted).padStart(4, '0')}`
+    `№ ${String(s.sessionsCompleted).padStart(4, '0')}`,
+    first ? first[0] : null,
+    first ? first[1] : null
   );
 }
