@@ -19,7 +19,7 @@
         "NSSupportsLiveActivities": true,
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "8"
+      "buildNumber": "9"
     },
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -43,7 +43,8 @@
         "react-native-device-activity",
         {
           "appGroup": "group.com.langtoll.app",
-          "appleTeamId": "QSAPKESRUG"
+          "appleTeamId": "QSAPKESRUG",
+          "copyToTargetFolder": false
         }
       ],
       "expo-asset",
