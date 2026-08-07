@@ -11,13 +11,13 @@ import type { LanguagePack, VocabItem, SentenceItem, Language } from '@/content/
 import type { ItemProgressRow } from '@/lib/db/types';
 
 export type ExerciseType =
-  | 'mc_de_en' // German word → pick English
-  | 'mc_en_de' // English word → pick German
-  | 'type_de' // English word → type German
+  | 'mc_de_en' // target-language word → pick meaning
+  | 'mc_en_de' // meaning → pick the target-language word
+  | 'type_de' // meaning → type the target-language word
   | 'cloze' // fill the blank in a sentence
-  | 'article' // pick der/die/das for a noun
-  | 'order' // arrange words into the German sentence
-  | 'listen'; // hear German → pick meaning
+  | 'article' // pick the noun's article (der/die/das, el/la, o/a, il/lo/la, le/la)
+  | 'order' // arrange words into the target-language sentence
+  | 'listen'; // hear the target language → pick meaning
 
 export interface Exercise {
   /** Stable per-session key. */

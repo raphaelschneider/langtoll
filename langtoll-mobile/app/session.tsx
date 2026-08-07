@@ -1,6 +1,6 @@
 // The practice session — the fare gate. N exercises, one at a time; finishing
 // issues the pass. Difficulty shapes the mix (see lib/trainer/engine); voice
-// mode reads German aloud. Answer → feedback (correct answer always shown) →
+// mode reads the target language aloud. Answer → feedback (correct answer always shown) →
 // Continue. No timers, no auto-advance: predictable while we iterate.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
@@ -29,7 +29,7 @@ import {
   updateProfile,
 } from '@/lib/store';
 import { playMessageChime } from '@/lib/sound';
-import { speakGerman, stopSpeaking } from '@/lib/tts';
+import { speakTarget, stopSpeaking } from '@/lib/tts';
 import { canUseAudio } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
@@ -103,7 +103,7 @@ export default function Session() {
 
   // Autoplay is the DEFAULT: hear the target language when a target-language
   // prompt appears, and again on reveal so the pronunciation lands with the
-  // answer. Both suppressions live inside speakGerman() rather than here —
+  // answer. Both suppressions live inside speakTarget() rather than here —
   // it returns early when the plan doesn't include audio (free, honeymoon
   // over) and when the user has muted it. 'listen' passes force so it beats
   // the mute toggle, since there the audio IS the question.
@@ -117,10 +117,10 @@ export default function Session() {
       // cannot hear. Muting mid-session leaves already-planned 'listen'
       // exercises in the queue; forcing audio at someone who just said they
       // can't hear it would be the one place the app talks over its own user.
-      speakGerman(ex.audio, { force: ex.type === 'listen' && sound });
+      speakTarget(ex.audio, { force: ex.type === 'listen' && sound });
     }
     if (phase === 'feedback' && ex.type !== 'listen' && ex.type !== 'mc_de_en' && ex.audio) {
-      speakGerman(ex.audio);
+      speakTarget(ex.audio);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ex.key, phase]);
@@ -372,7 +372,7 @@ export default function Session() {
               {isListen && !listenAsText ? (
                 <>
                   <PressableScale
-                    onPress={() => ex.audio && speakGerman(ex.audio, { force: true })}
+                    onPress={() => ex.audio && speakTarget(ex.audio, { force: true })}
                     style={[styles.listenBtn, shadow.glow, { backgroundColor: theme.accent }]}
                   >
                     <Ionicons name="volume-high" size={40} color={theme.onAccent} />
@@ -416,7 +416,7 @@ export default function Session() {
                     <PressableScale
                       onPress={() =>
                         audioAllowed
-                          ? ex.audio && speakGerman(ex.audio, { force: true })
+                          ? ex.audio && speakTarget(ex.audio, { force: true })
                           : router.push('/paywall')
                       }
                       style={styles.speakerSmall}
@@ -548,7 +548,7 @@ export default function Session() {
                         key={`${word}-${i}`}
                         disabled={phase !== 'answer' || used}
                         onPress={() => {
-                          speakGerman(word);
+                          speakTarget(word);
                           setOrderPicked((cur) => [...cur, i]);
                         }}
                         style={[

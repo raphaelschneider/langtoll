@@ -1,7 +1,7 @@
 // Voice mode: on-device TTS via expo-speech in the language being learned. Free,
 // offline, no API. The locale follows the active pack (de-DE, pt-BR, …). All
 // entry points respect the profile's soundEnabled toggle so callers can just
-// call speakGerman() unconditionally.
+// call speakTarget() unconditionally.
 //
 // We pick the VOICE explicitly rather than passing only a language. Two reasons:
 //
@@ -210,7 +210,7 @@ export function voiceEnabled(): boolean {
 }
 
 /** Speak target-language text in the active pack's locale. No-op when voice is off. */
-export function speakGerman(text: string, opts?: { force?: boolean; rate?: number }): void {
+export function speakTarget(text: string, opts?: { force?: boolean; rate?: number }): void {
   // Plan gate first, and deliberately ahead of the `force` check: the replay
   // buttons pass force:true to bypass the user's mute toggle, and must not be
   // able to bypass the entitlement with it.
@@ -219,7 +219,7 @@ export function speakGerman(text: string, opts?: { force?: boolean; rate?: numbe
   // Pre-rendered studio audio first — an ASYNC disk check, because the sync
   // version could only ever hit its warm memo and every first play since
   // launch fell through to TTS (the build-12 bug: 195 downloaded files on
-  // disk, all unused). Callers never awaited speakGerman, so going async
+  // disk, all unused). Callers never awaited speakTarget, so going async
   // inside changes nothing for them; TTS starts a few ms later on a miss.
   void (async () => {
     try {
