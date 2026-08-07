@@ -81,23 +81,33 @@ const misses = new Set<string>();
 let downloading = 0;
 
 /**
- * Play the pre-rendered file for `text` if cached. Returns true when playing
- * (caller skips TTS). On a miss: queues the download for NEXT time, returns
- * false so the TTS fallback speaks now.
+ * Play the pre-rendered file for `text` if it exists on disk, downloading for
+ * next time when it doesn't. Resolves true when the file is playing (caller
+ * skips TTS), false when the caller should speak via TTS now.
+ *
+ * ASYNC ON PURPOSE. The first version was synchronous and could only play
+ * files already confirmed in the in-memory memo — so the FIRST play of every
+ * text since launch fell back to TTS while the check completed behind it. The
+ * trainer deliberately avoids repeating a text within a session, which made
+ * "first play" nearly EVERY play: build 12 shipped with 195 correctly
+ * downloaded files sitting unused on disk while every exercise spoke TTS.
+ * A one-time getInfoAsync costs a few ms; the wrong voice costs the feature.
  */
-export function playPrerendered(text: string, opts?: { rate?: number }): boolean {
+export async function playPrerendered(text: string, opts?: { rate?: number }): Promise<boolean> {
   const lang = activePack().language;
   const path = fileFor(lang, text);
-  const info = cachedInfo.get(path);
-  if (info !== true) {
-    if (info === undefined) {
-      // Unknown — check asynchronously so this call stays synchronous for the
-      // trainer; the answer benefits the next play of the same word.
-      void FileSystem.getInfoAsync(path).then((s) => {
-        cachedInfo.set(path, s.exists);
-        if (!s.exists) void download(lang, text);
-      });
+
+  let exists = cachedInfo.get(path);
+  if (exists === undefined) {
+    try {
+      exists = (await FileSystem.getInfoAsync(path)).exists;
+    } catch {
+      exists = false;
     }
+    cachedInfo.set(path, exists);
+  }
+  if (!exists) {
+    void download(lang, text); // for next time; TTS covers this play
     return false;
   }
   try {

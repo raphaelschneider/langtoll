@@ -216,12 +216,23 @@ export function speakGerman(text: string, opts?: { force?: boolean; rate?: numbe
   // able to bypass the entitlement with it.
   if (!canUseAudio()) return;
   if (!opts?.force && !voiceEnabled()) return;
+  // Pre-rendered studio audio first — an ASYNC disk check, because the sync
+  // version could only ever hit its warm memo and every first play since
+  // launch fell through to TTS (the build-12 bug: 195 downloaded files on
+  // disk, all unused). Callers never awaited speakGerman, so going async
+  // inside changes nothing for them; TTS starts a few ms later on a miss.
+  void (async () => {
+    try {
+      if (await playPrerendered(text, { rate: getState().voiceRate ?? SPEECH_RATE })) return;
+    } catch {
+      // disk/playback hiccup — the voice below covers it
+    }
+    speakViaTts(text, opts);
+  })();
+}
+
+function speakViaTts(text: string, opts?: { force?: boolean; rate?: number }): void {
   try {
-    // Pre-rendered studio audio first: a cache hit plays the neural rendering
-    // and skips TTS entirely; a miss queues the file for next time and falls
-    // through to the voice below. This is what makes voice quality not depend
-    // on which Apple voice the user happens to have installed.
-    if (playPrerendered(text, { rate: getState().voiceRate ?? SPEECH_RATE })) return;
     const locale = activePack().speechLocale;
     const { identifier, missing } = pickVoice(locale);
     // Wrong-accent playback teaches the wrong thing; silence is the safer bug.
