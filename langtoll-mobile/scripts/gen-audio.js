@@ -26,8 +26,18 @@ const ROOT = path.join(__dirname, '..');
 const CACHE = path.join(ROOT, '.audio-build');
 const OUT_ROOT = path.join(ROOT, '..', 'langtoll-web', 'public', 'audio-packs');
 
-const LANG_NAMES = {
-  de: 'German', es: 'Spanish', fr: 'French', it: 'Italian', pt: 'Portuguese', en: 'English',
+// Speaker descriptions keyed by the packs' own speechLocale — the accent is a
+// CONTENT decision (pt-BR is Brazilian, es-ES Castilian, en-GB British) and is
+// read from packFor(lang).speechLocale at runtime, never assumed from the
+// language name. "Portuguese" alone once produced European PT samples for a
+// Brazilian-Portuguese app.
+const LOCALE_SPEAKERS = {
+  'de-DE': 'German (Germany)',
+  'es-ES': 'Spanish (Spain, Castilian)',
+  'fr-FR': 'French (France)',
+  'it-IT': 'Italian (Italy)',
+  'pt-BR': 'Brazilian Portuguese',
+  'en-GB': 'British English',
 };
 // One consistent voice across all languages — switching voices per language
 // would make the app feel like six different apps.
@@ -110,6 +120,14 @@ async function main() {
       for (const v of pack.vocab) texts.set(v.de, true);
       for (const s of pack.sentences) texts.set(s.de, true);
     }
+    const speechLocale = (() => {
+      try { return content.packFor(lang, 'A1').speechLocale; } catch { return null; }
+    })();
+    const speaker = LOCALE_SPEAKERS[speechLocale];
+    if (!speaker) {
+      console.error(`${lang}: no speaker mapping for speechLocale ${speechLocale} — SKIPPING (add it to LOCALE_SPEAKERS)`);
+      continue;
+    }
     const outDir = path.join(OUT_ROOT, lang);
     fs.mkdirSync(outDir, { recursive: true });
 
@@ -127,7 +145,7 @@ async function main() {
           if (text === undefined) return;
           const hash = crypto.createHash('sha1').update(`${lang}|${text}`).digest('hex');
           try {
-            const audio = await synthesize(key, LANG_NAMES[lang] ?? lang, text);
+            const audio = await synthesize(key, speaker, text);
             fs.writeFileSync(path.join(outDir, `${hash}.mp3`), audio);
             if (++done % 50 === 0) console.log(`  ${lang}: ${done}/${todo.length}`);
           } catch (e) {
