@@ -22,6 +22,8 @@ export type ExerciseType =
 export interface Exercise {
   /** Stable per-session key. */
   key: string;
+  /** Extra typed renderings graded as correct (speaker-gendered siblings). */
+  altAnswers?: string[];
   type: ExerciseType;
   itemId: string;
   /** The question line shown big (word, cloze sentence, or English sentence for `order`). */
@@ -383,6 +385,7 @@ export function buildSession(
         type,
         itemId: item.id,
     source: item.source,
+        altAnswers: item.altAnswers,
         prompt: item.en[0],
         answer: item.de,
         reveal: revealFor(item),

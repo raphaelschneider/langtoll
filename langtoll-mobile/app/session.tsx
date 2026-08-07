@@ -151,8 +151,18 @@ export default function Session() {
 
   function answer(given: string) {
     if (phase !== 'answer') return;
+    // Typed answers grade against the canonical form AND its altAnswers —
+    // "obrigada" is a fully correct "thank you" from the person who says it,
+    // never a typo of "obrigado". Best grade across the variants wins.
+    const rank: Record<Grade, number> = { correct: 2, almost: 1, wrong: 0 };
     const g: Grade =
-      ex.type === 'type_de' ? gradeTyped(ex.answer, given) : given === ex.answer ? 'correct' : 'wrong';
+      ex.type === 'type_de'
+        ? [ex.answer, ...(ex.altAnswers ?? [])]
+            .map((a) => gradeTyped(a, given))
+            .reduce((best, cur) => (rank[cur] > rank[best] ? cur : best), 'wrong' as Grade)
+        : given === ex.answer
+          ? 'correct'
+          : 'wrong';
     finishAnswer(given, g);
   }
 
@@ -304,14 +314,28 @@ export default function Session() {
               onPress={() =>
                 audioAllowed ? updateProfile({ soundEnabled: !sound }) : router.push('/paywall')
               }
-              style={styles.close}
+              style={[
+                styles.close,
+                // Muted must be VISIBLE, not a faint gray ghost: audio-off is a
+                // persisted state (the cantHear link sets it too) and the user
+                // who muted in yesterday's meeting needs to notice it today.
+                // The filled pill reads as "something is switched off — tap me".
+                audioAllowed && !sound
+                  ? {
+                      backgroundColor: withAlpha(theme.accent, 0.15),
+                      borderWidth: 1,
+                      borderColor: withAlpha(theme.accent, 0.4),
+                      borderRadius: radius.pill,
+                    }
+                  : null,
+              ]}
               haptic={null}
               accessibilityLabel={audioAllowed ? t('settings.voice') : t('plus.locked')}
             >
               <Ionicons
                 name={!audioAllowed ? 'lock-closed' : sound ? 'volume-high' : 'volume-mute'}
                 size={20}
-                color={!audioAllowed ? theme.inkFaint : sound ? theme.accent : theme.inkFaint}
+                color={!audioAllowed ? theme.inkFaint : sound ? theme.accent : theme.accent}
               />
             </PressableScale>
           </View>

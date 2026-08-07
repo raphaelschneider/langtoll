@@ -41,6 +41,11 @@ export type SpeakerGender = 'm' | 'f';
 
 export interface VocabItem {
   speakerGender?: SpeakerGender;
+  /**
+   * Other renderings graded as fully correct when typed — the speaker-gendered
+   * sibling (obrigado <-> obrigada) or true synonyms. Never shown; only graded.
+   */
+  altAnswers?: string[];
 
   id: string;
   /** German side — nouns include the article (der/die/das). */
