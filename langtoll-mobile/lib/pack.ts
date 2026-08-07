@@ -65,6 +65,22 @@ function localizeItems<V extends VocabItem[], S extends SentenceItem[]>(
   };
 }
 
+/**
+ * Keep only the speaker-gendered variants matching the learner's chosen forms.
+ * With forms unset (or 'both' semantics) everything stays — the annotations on
+ * the items do the explaining. The voice never changes either way: the same
+ * teacher reads whichever form the learner is being taught.
+ */
+function filterPackForForms(pack: LanguagePack, forms: 'm' | 'f' | null): LanguagePack {
+  if (!forms) return pack;
+  const keep = (g?: 'm' | 'f') => !g || g === forms;
+  return {
+    ...pack,
+    vocab: pack.vocab.filter((v) => keep(v.speakerGender)),
+    sentences: pack.sentences.filter((x) => keep(x.speakerGender)),
+  };
+}
+
 export function activePack(): LanguagePack {
   const s = getState();
   const locale = resolvedLocale();
@@ -86,12 +102,17 @@ export function activePack(): LanguagePack {
   const useTopic = !!topic && s.useCustomTopic && topic.vocab.length > 0;
   const topicItems = useTopic ? localizeItems(topic!.vocab, topic!.sentences, locale) : null;
 
-  if (!topicItems && !pool.vocab.length && !pool.sentences.length) return base;
+  if (!topicItems && !pool.vocab.length && !pool.sentences.length) {
+    return filterPackForForms(base, s.forms);
+  }
 
-  return {
-    ...base,
-    name: useTopic ? `${base.name} · ${topic!.name}` : base.name,
-    vocab: [...base.vocab, ...pool.vocab, ...(topicItems?.vocab ?? [])],
-    sentences: [...base.sentences, ...pool.sentences, ...(topicItems?.sentences ?? [])],
-  };
+  return filterPackForForms(
+    {
+      ...base,
+      name: useTopic ? `${base.name} · ${topic!.name}` : base.name,
+      vocab: [...base.vocab, ...pool.vocab, ...(topicItems?.vocab ?? [])],
+      sentences: [...base.sentences, ...pool.sentences, ...(topicItems?.sentences ?? [])],
+    },
+    s.forms
+  );
 }

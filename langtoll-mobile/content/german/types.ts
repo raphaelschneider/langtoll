@@ -31,7 +31,17 @@ export type PartOfSpeech =
   | 'conj'
   | 'question';
 
+/**
+ * Speaker-gender agreement marker. Some items are forms only one speaker
+ * gender uses (pt obrigado/obrigada, es encantado/a): 'm' and 'f' mark the
+ * variants, and filterPackForForms() keeps the ones matching the learner's
+ * chosen forms (state.forms). Unmarked items are for everyone.
+ */
+export type SpeakerGender = 'm' | 'f';
+
 export interface VocabItem {
+  speakerGender?: SpeakerGender;
+
   id: string;
   /** German side — nouns include the article (der/die/das). */
   de: string;
@@ -77,6 +87,8 @@ export interface VocabItem {
 }
 
 export interface SentenceItem {
+  speakerGender?: SpeakerGender;
+
   id: string;
   de: string;
   en: string;

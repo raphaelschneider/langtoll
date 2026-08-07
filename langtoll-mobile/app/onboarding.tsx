@@ -55,6 +55,7 @@ const STEPS = [
   'when',
   'fare',
   'goal',
+  'forms',
   'printing',
   'summary',
   'paywall',
@@ -331,6 +332,7 @@ export default function Onboarding() {
   const [difficulty, setDifficulty] = useState(3);
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
+  const [forms, setForms] = useState<'m' | 'f' | null>(null);
   const [daypart, setDaypart] = useState<Daypart | null>(null);
   const [fareEx, setFareEx] = useState(5);
   const [fareMin, setFareMin] = useState(30);
@@ -363,7 +365,7 @@ export default function Onboarding() {
   // 'paywall' skips via the header — a quiet exit in the corner instead of a
   // "Maybe later" advertised under the CTA (relift dropped theirs for the same
   // reason: the exit must exist, not be promoted).
-  const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'paywall'];
+  const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms', 'paywall'];
   const showSkip = skippable.includes(step);
   const progress = stepIdx / (STEPS.length - 1);
 
@@ -389,6 +391,7 @@ export default function Onboarding() {
       level: derivedLevel,
       blockedApps: apps,
       goal,
+      forms,
       nudgeHour,
       exercisesPerUnlock: fareEx,
       unlockMinutes: fareMin,
@@ -679,6 +682,24 @@ export default function Onboarding() {
                   maxLength={120}
                   returnKeyType="done"
                 />
+              </Entrance>
+            )}
+
+            {/* Speaker-gendered forms (pt obrigado/obrigada, es encantado/a …):
+                asked as a GRAMMAR question, never an identity one. Skipping or
+                "both" keeps every variant with its "(said by men/women)" note.
+                The teacher's voice is the same in all three cases. */}
+            {step === 'forms' && (
+              <Entrance key="forms">
+                <Text variant="title">{t('ob.formsTitle')}</Text>
+                <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
+                  {t('ob.formsSub')}
+                </Text>
+                <View style={{ marginTop: space.xl, gap: space.sm }}>
+                  <OptionRow label={t('ob.formsM')} selected={forms === 'm'} onPress={() => setForms('m')} />
+                  <OptionRow label={t('ob.formsF')} selected={forms === 'f'} onPress={() => setForms('f')} />
+                  <OptionRow label={t('ob.formsBoth')} selected={forms === null} onPress={() => setForms(null)} />
+                </View>
               </Entrance>
             )}
 

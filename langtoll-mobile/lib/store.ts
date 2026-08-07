@@ -48,6 +48,12 @@ export interface AppState {
   blockedApps: string[];
   goal: string | null;
   /**
+   * Which speaker-gendered forms to teach (pt obrigado/obrigada …): 'm', 'f',
+   * or null = show both variants. A grammar preference, not an identity —
+   * asked as "which forms should we teach you?".
+   */
+  forms: 'm' | 'f' | null;
+  /**
    * When we spent this install's one App Store review prompt (ISO), or null if
    * we never have. Deliberately not reset by resetProfile — a dev reset must not
    * let us pester a real user twice.
@@ -111,6 +117,7 @@ const initialState: AppState = {
   lastPassDate: null,
   blockedApps: [],
   goal: null,
+  forms: null,
   reviewPromptedAt: null,
   nudgeHour: null,
   locale: 'system',
@@ -269,6 +276,7 @@ export function updateProfile(
       | 'soundEnabled'
       | 'blockedApps'
       | 'goal'
+      | 'forms'
       | 'nudgeHour'
       | 'reviewPromptedAt'
       | 'exercisesPerUnlock'

@@ -19,7 +19,7 @@
         "NSSupportsLiveActivities": true,
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "10"
+      "buildNumber": "11"
     },
     "splash": {
       "image": "./assets/images/splash-icon.png",

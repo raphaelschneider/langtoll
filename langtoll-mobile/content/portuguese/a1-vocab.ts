@@ -20,8 +20,8 @@ export const A1_VOCAB: VocabItem[] = [
   // obrigado/obrigada agrees with the SPEAKER: a woman says obrigada. Two items,
   // both annotated, and the audio renderer voices each with the matching gender
   // (gen-audio.js SPEAKER_GENDER_RULES) so the voice never models the wrong form.
-  { id: 'pv007', de: 'obrigado', en: ['thank you (said by men)'], gloss: { de: ['danke (sagen Männer)'], es: ['gracias (dicen los hombres)'], fr: ['merci (disent les hommes)'], it: ['grazie (dicono gli uomini)'] }, pos: 'phrase', level: 'A1', category: 'greetings' },
-  { id: 'pv007b', de: 'obrigada', en: ['thank you (said by women)'], gloss: { de: ['danke (sagen Frauen)'], es: ['gracias (dicen las mujeres)'], fr: ['merci (disent les femmes)'], it: ['grazie (dicono le donne)'] }, pos: 'phrase', level: 'A1', category: 'greetings' },
+  { id: 'pv007', speakerGender: 'm', de: 'obrigado', en: ['thank you (said by men)'], gloss: { de: ['danke (sagen Männer)'], es: ['gracias (dicen los hombres)'], fr: ['merci (disent les hommes)'], it: ['grazie (dicono gli uomini)'] }, pos: 'phrase', level: 'A1', category: 'greetings' },
+  { id: 'pv007b', speakerGender: 'f', de: 'obrigada', en: ['thank you (said by women)'], gloss: { de: ['danke (sagen Frauen)'], es: ['gracias (dicen las mujeres)'], fr: ['merci (disent les femmes)'], it: ['grazie (dicono le donne)'] }, pos: 'phrase', level: 'A1', category: 'greetings' },
   { id: 'pv008', de: 'de nada', en: ['you’re welcome'], gloss: { de: ['gern geschehen'], es: ['de nada'], fr: ['de rien'], it: ['prego'] }, pos: 'phrase', level: 'A1', category: 'greetings' },
   { id: 'pv009', de: 'desculpa', en: ['sorry', 'excuse me'], gloss: { de: ['Entschuldigung'], es: ['perdón', 'disculpa'], fr: ['pardon', 'excuse-moi'], it: ['scusa'] }, pos: 'phrase', level: 'A1', category: 'greetings' },
   { id: 'pv010', de: 'sim', en: ['yes'], gloss: { de: ['ja'], es: ['sí'], fr: ['oui'], it: ['sì'] }, pos: 'phrase', level: 'A1', category: 'greetings' },

@@ -448,6 +448,27 @@ export default function Settings() {
               maxLength={120}
               returnKeyType="done"
             />
+            {/* Speaker-gendered forms — same three-way choice as onboarding,
+                editable later. null = show both variants. */}
+            <Text variant="caption" color="inkFaint">
+              {t('ob.formsTitle')}
+            </Text>
+            <View style={[styles.chipRow, { marginBottom: space.lg }]}>
+              {(
+                [
+                  ['m', 'ob.formsM'],
+                  ['f', 'ob.formsF'],
+                  [null, 'ob.formsBoth'],
+                ] as const
+              ).map(([value, label]) => (
+                <Chip
+                  key={String(value)}
+                  label={t(label)}
+                  selected={state.forms === value}
+                  onPress={() => updateProfile({ forms: value })}
+                />
+              ))}
+            </View>
             <Text variant="caption" color="inkFaint">
               {t('settings.level')}
             </Text>
