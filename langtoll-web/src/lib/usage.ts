@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-export type UsageKind = 'image' | 'chat' | 'topics';
+export type UsageKind = 'image' | 'chat' | 'topics' | 'tts';
 
 /** Fire-and-forget: record one billable call. Never throws. */
 export async function logUsage(

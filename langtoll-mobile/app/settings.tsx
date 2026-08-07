@@ -422,6 +422,32 @@ export default function Settings() {
 
           {/* course */}
           <Section title={t('settings.course')}>
+            {/* The learner's long-term goal. Free text gears every AI-generated
+                pack toward it (lib/goal.ts -> /api/topics/generate); the four
+                onboarding chips remain valid values and map to canonical
+                phrases. t() renders both — unknown keys pass through. */}
+            <Text variant="caption" color="inkFaint">
+              {t('settings.goal')}
+            </Text>
+            <TextInput
+              defaultValue={state.goal && !state.goal.startsWith('ob.') ? state.goal : ''}
+              onEndEditing={(e) => {
+                const text = e.nativeEvent.text.trim();
+                // Empty input only clears a typed goal — it must not erase a chip choice.
+                if (text || (state.goal && !state.goal.startsWith('ob.'))) {
+                  updateProfile({ goal: text || null });
+                }
+              }}
+              placeholder={
+                state.goal?.startsWith('ob.')
+                  ? t(state.goal as Parameters<typeof t>[0])
+                  : t('settings.goalPlaceholder')
+              }
+              placeholderTextColor={theme.inkFaint}
+              style={[styles.input, { borderColor: theme.line, color: theme.ink, marginBottom: space.lg }]}
+              maxLength={120}
+              returnKeyType="done"
+            />
             <Text variant="caption" color="inkFaint">
               {t('settings.level')}
             </Text>

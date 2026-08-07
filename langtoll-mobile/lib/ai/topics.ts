@@ -15,6 +15,7 @@
 import type { Level, VocabItem, SentenceItem, PartOfSpeech, Language } from '@/content/german/types';
 import type { CustomTopic } from '@/lib/store';
 import { getDeviceId } from '@/lib/device';
+import { aiGoal } from '@/lib/goal';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 
@@ -159,7 +160,10 @@ export async function generateTopicPack(
         // then they're dormant server-side, so this call succeeds without them.
         'x-device-id': safeDeviceId(),
       },
-      body: JSON.stringify({ topic, language, level }),
+      // The goal gears generation toward what the learner is FOR ("pass the
+      // B1 exam") rather than only what the pack is about. Server treats it
+      // as delimited data, screens it, and partitions the cache by it.
+      body: JSON.stringify({ topic, language, level, goal: aiGoal() ?? undefined }),
     });
     if (res.status === 429) throw new Error('Too many requests — give it a minute and try again.');
     if (res.status === 402 || res.status === 403) throw new Error('AI topics are a Plus feature.');

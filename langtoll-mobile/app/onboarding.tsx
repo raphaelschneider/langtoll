@@ -665,6 +665,20 @@ export default function Onboarding() {
                     />
                   ))}
                 </View>
+                {/* A typed goal ("Pass the B1 exam") gears every AI-generated
+                    pack toward it — the chips only flavor the copy. Chip and
+                    text are one field: typing replaces the chip, tapping a
+                    chip replaces the text, and t() renders both (unknown keys
+                    pass through verbatim). */}
+                <TextInput
+                  value={goal && !GOAL_KEYS.includes(goal as (typeof GOAL_KEYS)[number]) ? goal : ''}
+                  onChangeText={(text) => setGoal(text || null)}
+                  placeholder={t('ob.goalCustom')}
+                  placeholderTextColor={theme.inkFaint}
+                  style={[styles.input, { borderColor: theme.line, color: theme.ink, marginTop: space.md }]}
+                  maxLength={120}
+                  returnKeyType="done"
+                />
               </Entrance>
             )}
 

@@ -18,6 +18,10 @@ import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { activePack } from '@/lib/pack';
 
 const BASE_URL = process.env.EXPO_PUBLIC_AUDIO_URL ?? 'https://langtoll.app/audio-packs';
+// JIT endpoint for AI-generated pack items — texts that didn't exist when the
+// static corpus was rendered. The server synthesizes registered texts on first
+// request and caches forever (langtoll-web /api/audio).
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 
 // Tiny pure-JS SHA-1 (no expo-crypto in the build). Audio keys only — nothing
 // security-relevant hangs off this.
@@ -138,14 +142,29 @@ async function download(lang: string, text: string): Promise<void> {
   downloading++;
   try {
     await FileSystem.makeDirectoryAsync(cacheDir(lang), { intermediates: true });
+    // Static corpus first (Cloudflare-cached, covers all authored content) …
     const res = await FileSystem.downloadAsync(remoteFor(lang, text), path);
     if (res.status === 200) {
       cachedInfo.set(path, true);
-    } else {
-      // Not rendered (AI topic pack, or corpus gap) — remember and stop asking.
-      misses.add(key);
+      return;
+    }
+    await FileSystem.deleteAsync(path, { idempotent: true });
+    // … then the JIT endpoint for AI-generated items. Server-side it only
+    // synthesizes texts registered by pack generation, so a 404 here is
+    // final: this text has no audio anywhere.
+    if (API_BASE) {
+      const hash = sha1(`${lang}|${text}`);
+      const jit = await FileSystem.downloadAsync(
+        `${API_BASE}/api/audio?lang=${lang}&hash=${hash}`,
+        path
+      );
+      if (jit.status === 200) {
+        cachedInfo.set(path, true);
+        return;
+      }
       await FileSystem.deleteAsync(path, { idempotent: true });
     }
+    misses.add(key); // no audio exists for this text — stop asking
   } catch {
     // offline — retry naturally on a future play
   } finally {

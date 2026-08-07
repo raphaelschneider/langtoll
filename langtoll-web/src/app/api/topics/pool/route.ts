@@ -23,6 +23,7 @@ import { rateLimit, LIMITS } from '@/lib/ratelimit';
 import { requireBudget } from '@/lib/usage';
 import { query } from '@/lib/db';
 import { topicsForLevel, topicSlug, CATALOGUE_SIZE } from '@/lib/ai/catalogue';
+import { registerPackAudio } from '@/lib/ai/tts';
 import { generateTopicPack, LANGS, LEVELS } from '@/lib/ai/generate';
 
 export const runtime = 'nodejs';
@@ -69,6 +70,11 @@ export async function GET(req: NextRequest) {
       console.warn('[pool] warm failed for', missing, err instanceof Error ? err.message : err);
     }
   }
+
+  // Every served pack's texts become synthesizable by /api/audio — including
+  // packs cached before JIT audio existed. Fire-and-forget; INSERT IGNORE
+  // makes repeats free.
+  for (const pack of packs) void registerPackAudio(language, pack);
 
   return NextResponse.json({
     packs,

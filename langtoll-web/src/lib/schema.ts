@@ -98,6 +98,19 @@ export const SERVER_SCHEMA: string[] = [
      reset_at BIGINT NOT NULL,
      INDEX idx_rl_reset (reset_at)
    )`,
+
+  // Texts /api/audio is allowed to synthesize — written by pack generation
+  // (registerPackAudio), read by the audio route. This registry is the abuse
+  // boundary: an unregistered (lang, hash) is a 404, so arbitrary text can
+  // never reach the TTS spend. hash = sha1("<lang>|<text>"), the same
+  // addressing as the pre-rendered corpus and the app's cache.
+  `CREATE TABLE IF NOT EXISTS jit_audio (
+     lang       VARCHAR(8)  NOT NULL,
+     hash       CHAR(40)    NOT NULL,
+     text       VARCHAR(255) NOT NULL,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     PRIMARY KEY (lang, hash)
+   )`,
 ];
 
 // Idempotent column adds for tables that already exist on a deployed DB (CREATE TABLE IF NOT EXISTS

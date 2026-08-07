@@ -42,6 +42,24 @@ const LOCALE_SPEAKERS = {
 // One consistent voice across all languages — switching voices per language
 // would make the app feel like six different apps.
 const VOICE = process.env.TTS_VOICE || 'nova';
+const MALE_VOICE = process.env.TTS_MALE_VOICE || 'onyx';
+
+// Speaker-gender agreement: some words agree with the SPEAKER, and a female
+// voice saying "obrigado" models a form a Brazilian woman never uses (caught
+// by the user hearing exactly that). Texts matching a masculine speaker form
+// are voiced male; feminine forms keep the default female voice. Mirrored in
+// langtoll-web/src/lib/ai/tts.ts for JIT audio — keep in lockstep.
+const SPEAKER_GENDER_RULES = [
+  { lang: 'pt', pattern: /\bobrigado\b/i, voice: MALE_VOICE },
+  { lang: 'pt', pattern: /\bobrigada\b/i, voice: VOICE },
+  { lang: 'es', pattern: /\bencantado\b/i, voice: MALE_VOICE },
+  { lang: 'fr', pattern: /\benchanté(?!e)\b/i, voice: MALE_VOICE },
+];
+
+function voiceFor(lang, text) {
+  const rule = SPEAKER_GENDER_RULES.find((r) => r.lang === lang && r.pattern.test(text));
+  return rule ? rule.voice : VOICE;
+}
 const MODEL = process.env.TTS_MODEL || 'gpt-4o-mini-tts';
 const CONCURRENCY = 4;
 
@@ -78,13 +96,13 @@ function compileContent() {
   return require(path.join(CACHE, 'content', 'index.js'));
 }
 
-async function synthesize(key, langName, text) {
+async function synthesize(key, langName, text, langCodeForVoice) {
   const res = await fetch('https://api.openai.com/v1/audio/speech', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: MODEL,
-      voice: VOICE,
+      voice: voiceFor(langCodeForVoice, text),
       input: text,
       response_format: 'mp3',
       instructions:
@@ -144,15 +162,33 @@ async function main() {
           const text = queue.shift();
           if (text === undefined) return;
           const hash = crypto.createHash('sha1').update(`${lang}|${text}`).digest('hex');
-          try {
-            const audio = await synthesize(key, speaker, text);
-            fs.writeFileSync(path.join(outDir, `${hash}.mp3`), audio);
-            if (++done % 50 === 0) console.log(`  ${lang}: ${done}/${todo.length}`);
-          } catch (e) {
+          // 401s here are usually TRANSIENT: a scope change propagates unevenly
+          // across OpenAI's edge for a while, so the same key alternates between
+          // success and "missing scopes" (observed 2026-08-07: 3 renders, then a
+          // 401, then renders again). Retry with backoff; only a persistently
+          // failing item aborts the queue — that's a genuinely bad key.
+          let lastErr = null;
+          for (let attempt = 0; attempt < 5; attempt++) {
+            try {
+              const audio = await synthesize(key, speaker, text, lang);
+              fs.writeFileSync(path.join(outDir, `${hash}.mp3`), audio);
+              if (++done % 50 === 0) console.log(`  ${lang}: ${done}/${todo.length}`);
+              lastErr = null;
+              break;
+            } catch (e) {
+              lastErr = e;
+              const transient =
+                String(e.message).startsWith('401') || String(e.message).startsWith('429') ||
+                String(e.message).startsWith('5');
+              if (!transient) break;
+              await new Promise((r) => setTimeout(r, 15000 * (attempt + 1)));
+            }
+          }
+          if (lastErr) {
             failed++;
-            console.error(`  FAIL ${lang} ${JSON.stringify(text)}: ${e.message}`);
-            if (String(e.message).startsWith('401') || String(e.message).startsWith('429')) {
-              queue.length = 0; // key/scope/rate problem — stop burning the queue
+            console.error(`  FAIL ${lang} ${JSON.stringify(text)}: ${lastErr.message}`);
+            if (String(lastErr.message).startsWith('401')) {
+              queue.length = 0; // five 401s in a row across 2.5 min — the key really is bad
             }
           }
         }

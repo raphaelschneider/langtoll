@@ -122,6 +122,15 @@ export const LIMITS: Record<string, RateWindow[]> = {
     { tag: 'h', limit: 20, windowMs: HOUR },
     { tag: 'd', limit: 40, windowMs: DAY },
   ],
+  // JIT pronunciation audio. Bursty by nature — the app prefetches a fresh
+  // topic pack's ~37 files in one go — so the minute window is generous; the
+  // day cap is what actually bounds spend (a synthesized file is cached and
+  // never paid for again, so steady-state traffic is pure file serving).
+  audio: [
+    { tag: 'm', limit: 60, windowMs: MIN },
+    { tag: 'h', limit: 400, windowMs: HOUR },
+    { tag: 'd', limit: 1500, windowMs: DAY },
+  ],
   // Telemetry is a public MySQL-write endpoint (no OpenAI cost, but a row per call) — cap it to stop
   // DB-bloat spam. Deliberately GENEROUS: real bursty usage is well under this, and it keys per-IP so
   // a shared/NAT IP (many legit users) must never be throttled. The event allowlist already bounds it.
