@@ -35,7 +35,15 @@ import {
   FARE_MINUTES_STEP,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
-import { primeVoices, voicesForActivePack, speakWith, setSpeechShaping, speechIsNative } from '@/lib/tts';
+import {
+  primeVoices,
+  voicesForActivePack,
+  speakWith,
+  setSpeechShaping,
+  speechIsNative,
+  voiceIsCompact,
+  voiceMissingForActivePack,
+} from '@/lib/tts';
 import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speech/src';
 import { activePack } from '@/lib/pack';
 import type { Level } from '@/content/german';
@@ -326,6 +334,7 @@ export default function Settings() {
 
   const plus = isPlus(state);
   const audioAllowed = canUseAudio();
+  const pack = activePack();
 
   async function generate() {
     if (!plus) {
@@ -508,6 +517,35 @@ export default function Settings() {
                 </PressableScale>
               )}
             </View>
+
+            {/* The voice-quality nudge. iOS ships only the compact robot voice
+                per language; the natural Enhanced/Premium voices are a free
+                download most users have never heard of. voiceIsCompact() has
+                known this since it was written — this is the first place that
+                actually asks it. No deep link: Settings URLs into Accessibility
+                are private API, so the path is spelled out instead. */}
+            {audioAllowed && state.soundEnabled && (voiceMissingForActivePack() || voiceIsCompact()) && (
+              <View
+                style={{
+                  marginTop: space.lg,
+                  padding: space.md,
+                  borderRadius: radius.md,
+                  borderWidth: 1,
+                  borderColor: withAlpha(theme.accent, 0.35),
+                  backgroundColor: withAlpha(theme.accent, 0.08),
+                }}
+              >
+                <Text variant="callout">
+                  {t(
+                    voiceMissingForActivePack() ? 'settings.voiceMissing' : 'settings.voiceCompact',
+                    { lang: t(`lang.${pack.language}` as Parameters<typeof t>[0]) }
+                  )}
+                </Text>
+                <Text variant="caption" color="inkSoft" style={{ marginTop: space.xs }}>
+                  {t('settings.voicePath')}
+                </Text>
+              </View>
+            )}
 
             {audioAllowed && state.soundEnabled && (
               <>
