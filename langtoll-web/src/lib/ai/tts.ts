@@ -34,21 +34,9 @@ const LOCALE_SPEAKERS: Record<string, string> = {
 
 const TTS_MODEL = process.env.LANGTOLL_TTS_MODEL || 'gpt-4o-mini-tts';
 const TTS_VOICE = process.env.LANGTOLL_TTS_VOICE || 'nova';
-const TTS_MALE_VOICE = process.env.LANGTOLL_TTS_MALE_VOICE || 'onyx';
-
-// Speaker-gender agreement — obrigado/obrigada agrees with the SPEAKER, so a
-// female voice must never model the masculine form. Mirrors
-// langtoll-mobile/scripts/gen-audio.js SPEAKER_GENDER_RULES; keep in lockstep.
-const SPEAKER_GENDER_RULES: { lang: string; pattern: RegExp; voice: string }[] = [
-  { lang: 'pt', pattern: /\bobrigado\b/i, voice: TTS_MALE_VOICE },
-  { lang: 'pt', pattern: /\bobrigada\b/i, voice: TTS_VOICE },
-  { lang: 'es', pattern: /\bencantado\b/i, voice: TTS_MALE_VOICE },
-  { lang: 'fr', pattern: /\benchanté(?!e)\b/i, voice: TTS_MALE_VOICE },
-];
-
-function voiceFor(lang: string, text: string): string {
-  return SPEAKER_GENDER_RULES.find((r) => r.lang === lang && r.pattern.test(text))?.voice ?? TTS_VOICE;
-}
+// Speaker-gendered forms (obrigado/obrigada) keep the same voice as everything
+// else — a teacher doesn't change gender to teach a form; the item annotations
+// "(said by men/women)" carry the teaching. See gen-audio.js for the same rule.
 
 export function audioHash(lang: string, text: string): string {
   return crypto.createHash('sha1').update(`${lang}|${text}`).digest('hex');
@@ -105,7 +93,7 @@ export async function ensureAudioFile(lang: string, hash: string): Promise<strin
   try {
     const res = await getOpenAI().audio.speech.create({
       model: TTS_MODEL,
-      voice: voiceFor(lang, text),
+      voice: TTS_VOICE,
       input: text,
       response_format: 'mp3',
       instructions:

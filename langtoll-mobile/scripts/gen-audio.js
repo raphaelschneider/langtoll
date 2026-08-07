@@ -42,24 +42,11 @@ const LOCALE_SPEAKERS = {
 // One consistent voice across all languages — switching voices per language
 // would make the app feel like six different apps.
 const VOICE = process.env.TTS_VOICE || 'nova';
-const MALE_VOICE = process.env.TTS_MALE_VOICE || 'onyx';
-
-// Speaker-gender agreement: some words agree with the SPEAKER, and a female
-// voice saying "obrigado" models a form a Brazilian woman never uses (caught
-// by the user hearing exactly that). Texts matching a masculine speaker form
-// are voiced male; feminine forms keep the default female voice. Mirrored in
-// langtoll-web/src/lib/ai/tts.ts for JIT audio — keep in lockstep.
-const SPEAKER_GENDER_RULES = [
-  { lang: 'pt', pattern: /\bobrigado\b/i, voice: MALE_VOICE },
-  { lang: 'pt', pattern: /\bobrigada\b/i, voice: VOICE },
-  { lang: 'es', pattern: /\bencantado\b/i, voice: MALE_VOICE },
-  { lang: 'fr', pattern: /\benchanté(?!e)\b/i, voice: MALE_VOICE },
-];
-
-function voiceFor(lang, text) {
-  const rule = SPEAKER_GENDER_RULES.find((r) => r.lang === lang && r.pattern.test(text));
-  return rule ? rule.voice : VOICE;
-}
+// Speaker-gendered forms (obrigado/obrigada, encantado/a, désolé(e)) keep the
+// SAME voice as everything else: a female teacher doesn't become male to teach
+// a man to say "obrigado" (the user's framing, and correct). The teaching
+// lives in the content annotations — "(said by men)" / "(said by women)" on
+// the items themselves — never in switching narrators.
 const MODEL = process.env.TTS_MODEL || 'gpt-4o-mini-tts';
 const CONCURRENCY = 4;
 
@@ -96,13 +83,13 @@ function compileContent() {
   return require(path.join(CACHE, 'content', 'index.js'));
 }
 
-async function synthesize(key, langName, text, langCodeForVoice) {
+async function synthesize(key, langName, text) {
   const res = await fetch('https://api.openai.com/v1/audio/speech', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: MODEL,
-      voice: voiceFor(langCodeForVoice, text),
+      voice: VOICE,
       input: text,
       response_format: 'mp3',
       instructions:
@@ -170,7 +157,7 @@ async function main() {
           let lastErr = null;
           for (let attempt = 0; attempt < 5; attempt++) {
             try {
-              const audio = await synthesize(key, speaker, text, lang);
+              const audio = await synthesize(key, speaker, text);
               fs.writeFileSync(path.join(outDir, `${hash}.mp3`), audio);
               if (++done % 50 === 0) console.log(`  ${lang}: ${done}/${todo.length}`);
               lastErr = null;
