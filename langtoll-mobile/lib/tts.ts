@@ -18,6 +18,7 @@ import { setAudioModeAsync } from 'expo-audio';
 import { getState, updateProfile } from '@/lib/store';
 import { activePack } from '@/lib/pack';
 import { canUseAudio } from '@/lib/plans';
+import { playPrerendered, stopPrerendered } from '@/lib/audio-pack';
 import {
   isNativeSpeechAvailable,
   speak as nativeSpeak,
@@ -216,6 +217,11 @@ export function speakGerman(text: string, opts?: { force?: boolean; rate?: numbe
   if (!canUseAudio()) return;
   if (!opts?.force && !voiceEnabled()) return;
   try {
+    // Pre-rendered studio audio first: a cache hit plays the neural rendering
+    // and skips TTS entirely; a miss queues the file for next time and falls
+    // through to the voice below. This is what makes voice quality not depend
+    // on which Apple voice the user happens to have installed.
+    if (playPrerendered(text, { rate: getState().voiceRate ?? SPEECH_RATE })) return;
     const locale = activePack().speechLocale;
     const { identifier, missing } = pickVoice(locale);
     // Wrong-accent playback teaches the wrong thing; silence is the safer bug.
@@ -266,6 +272,7 @@ export function speechIsNative(): boolean {
 }
 
 export function stopSpeaking(): void {
+  stopPrerendered();
   if (isNativeSpeechAvailable()) void nativeStop();
   try {
     Speech.stop();
