@@ -17,6 +17,10 @@ export interface CustomTopic {
   vocab: VocabItem[];
   sentences: SentenceItem[];
   createdAt: string;
+  /** Course the pack was generated for — used to invalidate the goal pack on
+   *  language/level change. Optional: packs stored before this field exist. */
+  language?: string;
+  level?: string;
 }
 
 export interface AppState {
@@ -71,6 +75,12 @@ export interface AppState {
   appearance: 'dark' | 'light' | 'system';
   /** AI-generated topic pack (lib/ai) merged into training when enabled. */
   customTopic: CustomTopic | null;
+  /**
+   * The goal, made real: a pack generated FROM state.goal itself and merged
+   * into every session. Without this the goal only seasoned manually generated
+   * topics — the user set "Pass the B1 exam" and saw zero difference.
+   */
+  goalPack: CustomTopic | null;
   useCustomTopic: boolean;
   /** Subscription plan, mirrored live from RevenueCat's 'plus' entitlement. */
   plan: 'free' | 'plus';
@@ -123,6 +133,7 @@ const initialState: AppState = {
   locale: 'system',
   appearance: 'dark',
   customTopic: null,
+  goalPack: null,
   useCustomTopic: false,
   plan: 'free',
   planSince: null,
@@ -285,6 +296,7 @@ export function updateProfile(
       | 'locale'
       | 'appearance'
       | 'customTopic'
+      | 'goalPack'
       | 'useCustomTopic'
       | 'voiceOverride'
       | 'voiceRate'

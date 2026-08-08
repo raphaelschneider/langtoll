@@ -21,7 +21,7 @@ import {
   isPlus,
   applyEntitlement,
 } from '@/lib/store';
-import { generateTopicPack, aiAvailable } from '@/lib/ai/topics';
+import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus } from '@/lib/blocking';
 import { supportCode } from '@/lib/device';
 import { AppPicker } from '@/components/blocking/AppPicker';
@@ -29,6 +29,7 @@ import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
 import {
   canUseAudio,
+  SPEAKER_FORM_EXAMPLES,
   FARE_EXERCISES,
   FARE_MINUTES_MIN,
   FARE_MINUTES_MAX,
@@ -436,6 +437,8 @@ export default function Settings() {
                 // Empty input only clears a typed goal — it must not erase a chip choice.
                 if (text || (state.goal && !state.goal.startsWith('ob.'))) {
                   updateProfile({ goal: text || null });
+                  // Regenerate the goal's session pack — the visible effect.
+                  void refreshGoalPack();
                 }
               }}
               placeholder={
@@ -449,26 +452,33 @@ export default function Settings() {
               returnKeyType="done"
             />
             {/* Speaker-gendered forms — same three-way choice as onboarding,
-                editable later. null = show both variants. */}
-            <Text variant="caption" color="inkFaint">
-              {t('ob.formsTitle')}
-            </Text>
-            <View style={[styles.chipRow, { marginBottom: space.lg }]}>
-              {(
-                [
-                  ['m', 'ob.formsM'],
-                  ['f', 'ob.formsF'],
-                  [null, 'ob.formsBoth'],
-                ] as const
-              ).map(([value, label]) => (
-                <Chip
-                  key={String(value)}
-                  label={t(label)}
-                  selected={state.forms === value}
-                  onPress={() => updateProfile({ forms: value })}
-                />
-              ))}
-            </View>
+                editable later. null = show both variants. Hidden entirely for
+                languages without the concept (de, en), and the examples follow
+                the ACTIVE language — a German learner once saw Portuguese here. */}
+            {SPEAKER_FORM_EXAMPLES[pack.language] && (
+              <>
+                <Text variant="caption" color="inkFaint">
+                  {t('ob.formsTitle')}
+                </Text>
+                <View style={[styles.chipRow, { marginBottom: space.lg }]}>
+                  <Chip
+                    label={t('ob.formsM', { m: SPEAKER_FORM_EXAMPLES[pack.language]!.m })}
+                    selected={state.forms === 'm'}
+                    onPress={() => updateProfile({ forms: 'm' })}
+                  />
+                  <Chip
+                    label={t('ob.formsF', { f: SPEAKER_FORM_EXAMPLES[pack.language]!.f })}
+                    selected={state.forms === 'f'}
+                    onPress={() => updateProfile({ forms: 'f' })}
+                  />
+                  <Chip
+                    label={t('ob.formsBoth')}
+                    selected={state.forms === null}
+                    onPress={() => updateProfile({ forms: null })}
+                  />
+                </View>
+              </>
+            )}
             <Text variant="caption" color="inkFaint">
               {t('settings.level')}
             </Text>

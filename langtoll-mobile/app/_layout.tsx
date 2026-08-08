@@ -24,6 +24,7 @@ import { configureShieldAppearance, maybeRelock } from '@/lib/blocking';
 import { advanceWordRotation } from '@/modules/langtoll-activity/src';
 import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
+import { refreshGoalPack } from '@/lib/ai/topics';
 import { prefetchActivePack } from '@/lib/audio-pack';
 import { handleNotificationTaps } from '@/lib/notify';
 import { primeVoices, configureAudioSession, applyStoredShaping } from '@/lib/tts';
@@ -72,6 +73,9 @@ export default function RootLayout() {
       // level. Deliberately not awaited: the lock never waits on a network call.
       const s = getState();
       void initPool(s.learningLanguage, s.level);
+      // The goal's own pack — generated once per (goal, language, level) and
+      // merged into sessions. Fire-and-forget like the pool.
+      void refreshGoalPack();
       // Pre-rendered pronunciation audio for the active pack, fetched in the
       // background — same contract as initPool: never awaited, quietly resumes
       // where it left off, bails offline. First plays may fall back to TTS;

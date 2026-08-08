@@ -102,7 +102,16 @@ export function activePack(): LanguagePack {
   const useTopic = !!topic && s.useCustomTopic && topic.vocab.length > 0;
   const topicItems = useTopic ? localizeItems(topic!.vocab, topic!.sentences, locale) : null;
 
-  if (!topicItems && !pool.vocab.length && !pool.sentences.length) {
+  // The goal's pack rides along whenever it matches the active course — this
+  // is what makes "Pass the B1 exam" VISIBLE in sessions rather than a label.
+  const goalPack =
+    s.goalPack && s.goalPack.language === s.learningLanguage && s.goalPack.level === s.level
+      ? sanitizeTopic(s.goalPack)
+      : null;
+  const goalItems =
+    goalPack && goalPack.vocab.length ? localizeItems(goalPack.vocab, goalPack.sentences, locale) : null;
+
+  if (!topicItems && !goalItems && !pool.vocab.length && !pool.sentences.length) {
     return filterPackForForms(base, s.forms);
   }
 
@@ -110,8 +119,13 @@ export function activePack(): LanguagePack {
     {
       ...base,
       name: useTopic ? `${base.name} · ${topic!.name}` : base.name,
-      vocab: [...base.vocab, ...pool.vocab, ...(topicItems?.vocab ?? [])],
-      sentences: [...base.sentences, ...pool.sentences, ...(topicItems?.sentences ?? [])],
+      vocab: [...base.vocab, ...pool.vocab, ...(topicItems?.vocab ?? []), ...(goalItems?.vocab ?? [])],
+      sentences: [
+        ...base.sentences,
+        ...pool.sentences,
+        ...(topicItems?.sentences ?? []),
+        ...(goalItems?.sentences ?? []),
+      ],
     },
     s.forms
   );

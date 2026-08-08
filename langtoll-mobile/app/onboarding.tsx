@@ -35,7 +35,9 @@ import { downloadPackAudio } from '@/lib/audio-pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
+import { refreshGoalPack } from '@/lib/ai/topics';
 import {
+  SPEAKER_FORM_EXAMPLES,
   FARE_EXERCISES,
   FARE_MINUTES_MIN,
   FARE_MINUTES_MAX,
@@ -320,7 +322,6 @@ export default function Onboarding() {
     }
     return 0;
   });
-  const step: Step = STEPS[stepIdx];
 
   // answers
   const [name, setName] = useState('');
@@ -330,6 +331,13 @@ export default function Onboarding() {
   const [language, setLanguage] = useState<Language>(
     () => learnableLanguages(resolvedLocale())[0] ?? 'de'
   );
+  // The step list adapts to the chosen language: the speaker-forms question
+  // only exists where the language HAS speaker-gendered forms — a German
+  // learner once got a Portuguese grammar lesson here.
+  const steps = (SPEAKER_FORM_EXAMPLES[language ?? 'de']
+    ? STEPS
+    : STEPS.filter((x) => x !== 'forms')) as readonly Step[];
+  const step: Step = steps[stepIdx];
   const [difficulty, setDifficulty] = useState(3);
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
@@ -395,7 +403,7 @@ export default function Onboarding() {
 
   function next() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
+    setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   }
   function back() {
     if (stepIdx === 0) return;
@@ -420,6 +428,9 @@ export default function Onboarding() {
       exercisesPerUnlock: fareEx,
       unlockMinutes: fareMin,
     });
+    // The goal's session pack generates in the background while the user
+    // finishes the paywall/lock steps — first session already carries it.
+    void refreshGoalPack();
     // At the hour THEY named — permission was just granted (or denied) during
     // lock setup, and the scheduler quietly no-ops without it.
     void scheduleDailyNudge(nudgeHour);
@@ -721,11 +732,22 @@ export default function Onboarding() {
               <Entrance key="forms">
                 <Text variant="title">{t('ob.formsTitle')}</Text>
                 <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
-                  {t('ob.formsSub')}
+                  {t('ob.formsSub', {
+                    m: SPEAKER_FORM_EXAMPLES[language ?? 'de']?.m ?? '',
+                    f: SPEAKER_FORM_EXAMPLES[language ?? 'de']?.f ?? '',
+                  })}
                 </Text>
                 <View style={{ marginTop: space.xl, gap: space.sm }}>
-                  <OptionRow label={t('ob.formsM')} selected={forms === 'm'} onPress={() => setForms('m')} />
-                  <OptionRow label={t('ob.formsF')} selected={forms === 'f'} onPress={() => setForms('f')} />
+                  <OptionRow
+                    label={t('ob.formsM', { m: SPEAKER_FORM_EXAMPLES[language ?? 'de']?.m ?? '' })}
+                    selected={forms === 'm'}
+                    onPress={() => setForms('m')}
+                  />
+                  <OptionRow
+                    label={t('ob.formsF', { f: SPEAKER_FORM_EXAMPLES[language ?? 'de']?.f ?? '' })}
+                    selected={forms === 'f'}
+                    onPress={() => setForms('f')}
+                  />
                   <OptionRow label={t('ob.formsBoth')} selected={forms === null} onPress={() => setForms(null)} />
                 </View>
               </Entrance>

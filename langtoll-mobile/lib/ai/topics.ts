@@ -14,6 +14,7 @@
 //                         so the flow is still demonstrable fully offline.
 import type { Level, VocabItem, SentenceItem, PartOfSpeech, Language } from '@/content/german/types';
 import type { CustomTopic } from '@/lib/store';
+import { getState, updateProfile } from '@/lib/store';
 import { getDeviceId } from '@/lib/device';
 import { aiGoal } from '@/lib/goal';
 
@@ -234,4 +235,35 @@ function demoPack(topic: string, level: Level): Promise<CustomTopic> {
       1200
     )
   );
+}
+
+/**
+ * Generate (or refresh) the pack derived from the user's goal and merge it
+ * into sessions via the store — the goal's VISIBLE effect. Regenerates only
+ * when goal, level or language changed; silently a no-op for free users
+ * outside the honeymoon (the route is entitlement-gated anyway) and offline.
+ */
+export async function refreshGoalPack(): Promise<void> {
+  const s = getState();
+  const goal = aiGoal();
+  if (!goal) return;
+  const existing = s.goalPack;
+  if (
+    existing &&
+    existing.name === goal &&
+    existing.level === s.level &&
+    existing.language === s.learningLanguage
+  ) {
+    return;
+  }
+  if (!aiAvailable()) return;
+  try {
+    const pack = await generateTopicPack(goal, s.level, s.learningLanguage);
+    // Stamp the course so a language/level switch invalidates rather than
+    // leaking Spanish exam items into a German session.
+    updateProfile({ goalPack: { ...pack, language: s.learningLanguage, level: s.level } });
+  } catch {
+    // offline / not entitled / budget — the goal simply stays cosmetic until
+    // a later launch retries
+  }
 }

@@ -167,3 +167,17 @@ export function canUseFullCurriculum(): boolean {
 export function canUseAiTopics(): boolean {
   return isPlus();
 }
+
+// Speaker-gendered form examples per learnable language — drives BOTH whether
+// the "which forms?" question appears at all (null = the language has no
+// meaningful speaker agreement; German learners never see it) and which words
+// illustrate it. A Portuguese example in front of a German learner was the bug
+// that created this table.
+export const SPEAKER_FORM_EXAMPLES: Record<string, { m: string; f: string } | null> = {
+  pt: { m: 'obrigado', f: 'obrigada' },
+  es: { m: 'encantado', f: 'encantada' },
+  fr: { m: 'désolé', f: 'désolée' },
+  it: { m: 'stanco', f: 'stanca' },
+  de: null,
+  en: null,
+};
