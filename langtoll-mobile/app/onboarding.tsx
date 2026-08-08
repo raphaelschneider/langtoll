@@ -31,6 +31,7 @@ import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
 import { levelForDifficulty } from '@/lib/pack';
+import { downloadPackAudio } from '@/lib/audio-pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
@@ -338,21 +339,44 @@ export default function Onboarding() {
   const [fareMin, setFareMin] = useState(30);
   const [lockReady, setLockReady] = useState(false);
 
-  // printing-step stage ticker
+  // printing-step: two cosmetic beats, then the REAL work — downloading the
+  // chosen language's studio audio. The step does not advance until the pack
+  // is on the device: install-time connectivity is guaranteed (you cannot get
+  // the app without internet), so the first session never falls back to the
+  // robot TTS voice. Founder decision, 2026-08-08.
   const [printStage, setPrintStage] = useState(0);
+  const [audioPct, setAudioPct] = useState(0);
   useEffect(() => {
     if (step !== 'printing') return;
+    let cancelled = false;
     setPrintStage(0);
+    setAudioPct(0);
     const t1 = setTimeout(() => setPrintStage(1), 800);
     const t2 = setTimeout(() => setPrintStage(2), 1700);
-    const t3 = setTimeout(() => {
+    (async () => {
+      try {
+        const lvl = levelForDifficulty(difficulty);
+        const pack = packFor(language ?? 'de', lvl);
+        await downloadPackAudio(
+          pack.vocab.map((v) => v.de),
+          pack.sentences.map((x) => x.de),
+          pack.language,
+          (done, totalFiles) => {
+            if (!cancelled) setAudioPct(Math.round((100 * done) / totalFiles));
+          }
+        );
+      } catch {
+        // network died mid-download — background prefetch heals the gap later
+      }
+      if (cancelled) return;
+      setPrintStage(3);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setStepIdx((i) => i + 1);
-    }, 2700);
+      setTimeout(() => setStepIdx((i) => i + 1), 500);
+    })();
     return () => {
+      cancelled = true;
       clearTimeout(t1);
       clearTimeout(t2);
-      clearTimeout(t3);
     };
   }, [step]);
 
@@ -404,7 +428,11 @@ export default function Onboarding() {
     router.replace('/');
   }
 
-  const printLines = [t('ob.print1'), t('ob.print2'), t('ob.print3')];
+  const printLines = [
+    t('ob.print1'),
+    t('ob.print2'),
+    audioPct < 100 ? t('ob.printAudio', { pct: audioPct }) : t('ob.printAudioDone'),
+  ];
 
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>

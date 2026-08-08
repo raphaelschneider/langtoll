@@ -52,8 +52,20 @@ export async function registerPackAudio(
   pack: { vocab: { de: string }[]; sentences: { de: string }[] }
 ): Promise<void> {
   if (!LOCALE_SPEAKERS[lang]) return;
-  const texts = [...pack.vocab.map((v) => v.de), ...pack.sentences.map((s) => s.de)]
-    .filter((t) => typeof t === 'string' && t.trim().length > 0 && t.length <= 200);
+  const sentenceWords = pack.sentences.flatMap((s) =>
+    typeof s.de === 'string'
+      ? // The order exercise speaks single words as they are tapped — each
+        // needs its own render or the tap falls back to robot TTS.
+        s.de.replace(/[.,!?;:¿¡«»"„“”]/g, ' ').split(/\s+/)
+      : []
+  );
+  const texts = [
+    ...new Set(
+      [...pack.vocab.map((v) => v.de), ...pack.sentences.map((s) => s.de), ...sentenceWords].filter(
+        (t) => typeof t === 'string' && t.trim().length > 0 && t.length <= 200
+      )
+    ),
+  ];
   try {
     for (const text of texts) {
       await query(`INSERT IGNORE INTO jit_audio (lang, hash, text) VALUES (?, ?, ?)`, [

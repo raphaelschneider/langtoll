@@ -3,7 +3,7 @@
 // mode reads the target language aloud. Answer → feedback (correct answer always shown) →
 // Continue. No timers, no auto-advance: predictable while we iterate.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -35,6 +35,7 @@ import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
 import { Tolly } from '@/components/ui/Tolly';
 import { syncPassActivity } from '@/lib/pass-activity';
+import { ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
 import { clearDeliveredNotifications } from '@/lib/notify';
 
@@ -85,6 +86,28 @@ export default function Session() {
     if (reviewTimer.current) clearTimeout(reviewTimer.current);
   }, []);
 
+  // Hold the first card briefly until this session's own audio is on disk —
+  // corpus files arrive at onboarding, but AI-pack items synthesize on first
+  // request (a couple of seconds server-side) and the order exercise speaks
+  // individual words. Bounded inside ensureAudio: past the deadline the
+  // session starts and TTS covers any straggler. Founder call: the first
+  // sound of a session is never the robot voice when audio is obtainable.
+  const [audioReady, setAudioReady] = useState(false);
+  useEffect(() => {
+    const texts = plan.exercises.flatMap((e) => {
+      const out: string[] = [];
+      if (e.audio) out.push(e.audio);
+      if (e.type === 'order' && e.options) out.push(...e.options);
+      return out;
+    });
+    let alive = true;
+    ensureAudio(texts).finally(() => alive && setAudioReady(true));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan]);
+
   const ex: Exercise = plan.exercises[idx];
   const audioAllowed = canUseAudio();
   // Locked users still SEE the speaker (it is a paywall entry point); it just
@@ -112,6 +135,7 @@ export default function Session() {
   // free or already-muted user never meets one. A user who mutes MID-session
   // still can — see listenAsText, which renders those as text instead.
   useEffect(() => {
+    if (!audioReady) return; // gate below renders a loader; speak nothing yet
     if (phase === 'answer' && (ex.type === 'listen' || ex.type === 'mc_de_en') && ex.audio) {
       // force beats the mute toggle — but NOT once the user has told us they
       // cannot hear. Muting mid-session leaves already-planned 'listen'
@@ -123,9 +147,18 @@ export default function Session() {
       speakTarget(ex.audio);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ex.key, phase]);
+  }, [ex.key, phase, audioReady]);
 
   useEffect(() => () => stopSpeaking(), []);
+
+  if (!audioReady) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.paper }}>
+        <ActivityIndicator color={theme.accent} />
+      </View>
+    );
+  }
+
 
   function finishAnswer(given: string, g: Grade) {
     const ok = g !== 'wrong';
@@ -191,6 +224,9 @@ export default function Session() {
       setPhase('done');
       return;
     }
+    // Cut whatever is still speaking the moment the user moves on — a long
+    // sentence must never bleed over the next exercise's own audio.
+    stopSpeaking();
     setIdx(idx + 1);
     setPicked(null);
     setTyped('');

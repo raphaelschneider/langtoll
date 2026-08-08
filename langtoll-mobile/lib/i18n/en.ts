@@ -100,6 +100,8 @@ export const en = {
   'ob.formsM': 'Masculine — “obrigado”',
   'ob.formsF': 'Feminine — “obrigada”',
   'ob.formsBoth': 'Show me both',
+  'ob.printAudio': 'Downloading your course audio… {pct}%',
+  'ob.printAudioDone': 'Course audio ready',
   'settings.goal': 'Your goal',
   'settings.goalPlaceholder': 'e.g. Pass the B1 exam',
   'ob.goalCustom': 'Or type your own — e.g. “Pass the B1 exam”',

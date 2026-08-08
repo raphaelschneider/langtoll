@@ -216,6 +216,11 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
   // able to bypass the entitlement with it.
   if (!canUseAudio()) return;
   if (!opts?.force && !voiceEnabled()) return;
+  // New speech preempts old IMMEDIATELY and across engines: without this, a
+  // long pre-rendered sentence kept playing under the next exercise's TTS —
+  // playPrerendered only ever stopped the previous FILE, and the TTS path
+  // stopped only the TTS engines.
+  stopSpeaking();
   // Pre-rendered studio audio first — an ASYNC disk check, because the sync
   // version could only ever hit its warm memo and every first play since
   // launch fell through to TTS (the build-12 bug: 195 downloaded files on

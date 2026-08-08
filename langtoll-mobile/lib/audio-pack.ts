@@ -207,6 +207,61 @@ async function download(lang: string, text: string): Promise<void> {
 }
 
 /**
+ * Download one language pack's full audio, reporting progress — the onboarding
+ * "printing your plan" step runs this and WAITS. The founder's call, and the
+ * install-time logic backs it: you cannot install the app without internet, so
+ * onboarding always has the connectivity the first session needs. No user ever
+ * hears the robot fallback as their first impression.
+ *
+ * Bounded retries per file, and files that repeatedly fail are skipped rather
+ * than trapping the user on a dying hotel wifi — TTS covers stragglers, and
+ * the background prefetch heals them later.
+ */
+export async function downloadPackAudio(
+  vocabTexts: string[],
+  sentenceTexts: string[],
+  lang: string,
+  onProgress?: (done: number, total: number) => void
+): Promise<void> {
+  const texts = [...new Set([...vocabTexts, ...sentenceTexts])];
+  let done = 0;
+  for (const text of texts) {
+    const path = fileFor(lang, text);
+    if (cachedInfo.get(path) !== true) {
+      const stat = await FileSystem.getInfoAsync(path).catch(() => ({ exists: false }));
+      cachedInfo.set(path, !!stat.exists);
+      if (!stat.exists) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await download(lang, text);
+          if (cachedInfo.get(path) === true || misses.has(`${lang}|${text}`)) break;
+        }
+      }
+    }
+    onProgress?.(++done, texts.length);
+  }
+}
+
+/**
+ * Best-effort await of the audio for one session's exercises — covers AI-pack
+ * items the corpus download can't know about (JIT synthesis takes a couple of
+ * seconds per item server-side). Bounded: past the deadline the session starts
+ * and TTS covers any straggler.
+ */
+export async function ensureAudio(texts: string[], timeoutMs = 6000): Promise<void> {
+  const lang = activePack().language;
+  const work = (async () => {
+    for (const text of [...new Set(texts)]) {
+      const path = fileFor(lang, text);
+      if (cachedInfo.get(path) === true) continue;
+      const stat = await FileSystem.getInfoAsync(path).catch(() => ({ exists: false }));
+      cachedInfo.set(path, !!stat.exists);
+      if (!stat.exists) await download(lang, text);
+    }
+  })();
+  await Promise.race([work, new Promise((r) => setTimeout(r, timeoutMs))]);
+}
+
+/**
  * Background-fetch the active pack's audio, current material first. Fire and
  * forget from app launch / language change; bails quietly offline. Words
  * before sentences: they play in every exercise type, sentences only in two.

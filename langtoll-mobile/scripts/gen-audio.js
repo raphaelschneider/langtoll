@@ -123,7 +123,15 @@ async function main() {
       }
       if (!pack || pack.level !== level) continue; // packFor falls back — skip duplicates
       for (const v of pack.vocab) texts.set(v.de, true);
-      for (const s of pack.sentences) texts.set(s.de, true);
+      for (const s of pack.sentences) {
+        texts.set(s.de, true);
+        // Every word of every sentence, individually: the order exercise
+        // speaks single words as they are tapped, and a word without a render
+        // falls back to robot TTS mid-sentence-building.
+        for (const w of s.de.replace(/[.,!?;:¿¡«»"„“”]/g, ' ').split(/\s+/)) {
+          if (w.trim()) texts.set(w.trim(), true);
+        }
+      }
     }
     const speechLocale = (() => {
       try { return content.packFor(lang, 'A1').speechLocale; } catch { return null; }

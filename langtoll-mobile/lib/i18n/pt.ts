@@ -87,6 +87,8 @@ export const pt: Partial<Record<StringKey, string>> = {
   'ob.formsM': 'Masculinas — “obrigado”',
   'ob.formsF': 'Femininas — “obrigada”',
   'ob.formsBoth': 'Quero ver as duas',
+  'ob.printAudio': 'Baixando o áudio do curso… {pct}%',
+  'ob.printAudioDone': 'Áudio do curso pronto',
   'settings.goal': 'Seu objetivo',
   'settings.goalPlaceholder': 'ex.: Passar na prova B1',
   'ob.goalCustom': 'Ou escreva o seu — ex.: “Passar na prova B1”',
