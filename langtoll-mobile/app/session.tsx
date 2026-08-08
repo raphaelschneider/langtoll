@@ -3,7 +3,7 @@
 // mode reads the target language aloud. Answer → feedback (correct answer always shown) →
 // Continue. No timers, no auto-advance: predictable while we iterate.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState as RNAppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -151,6 +151,18 @@ export default function Session() {
   }, [ex.key, phase, audioReady]);
 
   useEffect(() => () => stopSpeaking(), []);
+
+  // Backgrounding mid-animation freezes Reanimated entering transitions at
+  // their start frame (opacity ~0): the user returned to a ghost screen with
+  // the prompt invisible. Re-keying the animated content on every return to
+  // foreground re-runs the entrances cleanly.
+  const [resumeTick, setResumeTick] = useState(0);
+  useEffect(() => {
+    const sub = RNAppState.addEventListener('change', (st) => {
+      if (st === 'active') setResumeTick((n) => n + 1);
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!audioReady) {
     return (
@@ -379,7 +391,7 @@ export default function Session() {
 
           {/* prompt */}
           <View style={styles.body}>
-            <Entrance key={ex.key} from={10}>
+            <Entrance key={`${ex.key}:r${resumeTick}`} from={10}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text variant="overline" color="inkFaint">
                   {/* Once the audio is replaced by its text the question is no
@@ -625,7 +637,7 @@ export default function Session() {
                     : theme.fill;
                 const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
                 return (
-                  <Entrance key={`${ex.key}-${opt}-${i}`} delay={40 * i} from={8}>
+                  <Entrance key={`${ex.key}-${opt}-${i}:r${resumeTick}`} delay={40 * i} from={8}>
                     <PressableScale
                       onPress={() => answer(opt)}
                       disabled={phase !== 'answer'}
