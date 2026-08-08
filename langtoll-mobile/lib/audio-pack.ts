@@ -107,9 +107,11 @@ export async function playPrerendered(text: string, opts?: { rate?: number }): P
     cachedInfo.set(path, exists);
   }
   if (!exists) {
+    console.log(`[audio] MISS ${lang} "${text.slice(0, 30)}" -> ${path.slice(-60)}`);
     void download(lang, text); // for next time; TTS covers this play
     return false;
   }
+  console.log(`[audio] HIT ${lang} "${text.slice(0, 30)}"`);
   try {
     try {
       player?.remove();
@@ -127,7 +129,8 @@ export async function playPrerendered(text: string, opts?: { rate?: number }): P
     }
     player.play();
     return true;
-  } catch {
+  } catch (e) {
+    console.log(`[audio] PLAY threw: ${e instanceof Error ? e.message : String(e)}`);
     cachedInfo.set(path, false); // corrupt / evicted — refetch next time
     return false;
   }
@@ -153,7 +156,27 @@ async function download(lang: string, text: string): Promise<void> {
   try {
     await FileSystem.makeDirectoryAsync(cacheDir(lang), { intermediates: true });
     // Static corpus first (Cloudflare-cached, covers all authored content) …
-    const res = await FileSystem.downloadAsync(remoteFor(lang, text), path);
+    //
+    // 304 is the trap that broke TestFlight builds 12/13: iOS's URLCache keeps
+    // an entry per audio URL, re-requests go out conditional, the server
+    // correctly answers 304 Not Modified — and the old code read non-200 as
+    // failure, DELETED the already-good local file, fell through to the JIT
+    // route (404 for corpus texts) and marked the word a permanent miss. The
+    // origin logs showed 473 x 304 while every exercise spoke robot TTS.
+    // A 304 body is empty by spec, so it only counts as success if a real
+    // file is already on disk; otherwise retry once with a cache-buster that
+    // no URLCache entry can match.
+    let res = await FileSystem.downloadAsync(remoteFor(lang, text), path);
+    if (res.status === 304) {
+      const kept = await FileSystem.getInfoAsync(path);
+      if (kept.exists && (kept.size ?? 0) > 512) {
+        console.log(`[audio] corpus 304, file intact for "${text.slice(0, 30)}"`);
+        cachedInfo.set(path, true);
+        return;
+      }
+      res = await FileSystem.downloadAsync(`${remoteFor(lang, text)}?cb=${Date.now()}`, path);
+    }
+    console.log(`[audio] corpus fetch ${res.status} for "${text.slice(0, 30)}"`);
     if (res.status === 200) {
       cachedInfo.set(path, true);
       return;
@@ -175,7 +198,8 @@ async function download(lang: string, text: string): Promise<void> {
       await FileSystem.deleteAsync(path, { idempotent: true });
     }
     misses.add(key); // no audio exists for this text — stop asking
-  } catch {
+  } catch (e) {
+    console.log(`[audio] download THREW: ${e instanceof Error ? e.message : String(e)}`);
     // offline — retry naturally on a future play
   } finally {
     downloading--;
