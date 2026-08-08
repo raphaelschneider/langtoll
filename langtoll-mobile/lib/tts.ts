@@ -221,17 +221,24 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
   // playPrerendered only ever stopped the previous FILE, and the TTS path
   // stopped only the TTS engines.
   stopSpeaking();
-  // Pre-rendered studio audio first — an ASYNC disk check, because the sync
-  // version could only ever hit its warm memo and every first play since
-  // launch fell through to TTS (the build-12 bug: 195 downloaded files on
-  // disk, all unused). Callers never awaited speakTarget, so going async
-  // inside changes nothing for them; TTS starts a few ms later on a miss.
+  // In-flight plays are invalidated by the epoch: playPrerendered's disk check
+  // yields, so without it a fast Continue-tap let the OLD exercise's audio
+  // start after the new one's ("keeps playing on the next exercise", second
+  // edition). A stale play neither starts the file nor falls back to TTS.
+  const epoch = speechEpoch;
   void (async () => {
     try {
-      if (await playPrerendered(text, { rate: getState().voiceRate ?? SPEECH_RATE })) return;
+      if (
+        await playPrerendered(text, {
+          rate: getState().voiceRate ?? SPEECH_RATE,
+          stillCurrent: () => speechEpoch === epoch,
+        })
+      )
+        return;
     } catch {
       // disk/playback hiccup — the voice below covers it
     }
+    if (speechEpoch !== epoch) return; // stopped or superseded while checking
     speakViaTts(text, opts);
   })();
 }
@@ -287,7 +294,11 @@ export function speechIsNative(): boolean {
   return isNativeSpeechAvailable();
 }
 
+// Monotonic epoch: every stop or new speak invalidates all in-flight plays.
+let speechEpoch = 0;
+
 export function stopSpeaking(): void {
+  speechEpoch++;
   stopPrerendered();
   if (isNativeSpeechAvailable()) void nativeStop();
   try {

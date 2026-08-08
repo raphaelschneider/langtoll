@@ -93,7 +93,10 @@ let downloading = 0;
  * downloaded files sitting unused on disk while every exercise spoke TTS.
  * A one-time getInfoAsync costs a few ms; the wrong voice costs the feature.
  */
-export async function playPrerendered(text: string, opts?: { rate?: number }): Promise<boolean> {
+export async function playPrerendered(
+  text: string,
+  opts?: { rate?: number; stillCurrent?: () => boolean }
+): Promise<boolean> {
   const lang = activePack().language;
   const path = fileFor(lang, text);
 
@@ -111,6 +114,11 @@ export async function playPrerendered(text: string, opts?: { rate?: number }): P
     void download(lang, text); // for next time; TTS covers this play
     return false;
   }
+  // The disk check yielded — a newer speak or a stop may have happened while
+  // we were away. Playing now would resurrect the OLD exercise's audio over
+  // the new one's (the tap-Continue-fast overlap). Claim handled: stale audio
+  // must not play AND must not fall back to TTS.
+  if (opts?.stillCurrent && !opts.stillCurrent()) return true;
   console.log(`[audio] HIT ${lang} "${text.slice(0, 30)}"`);
   try {
     try {
