@@ -52,13 +52,9 @@ export function FareSlider({
   const cfg = useRef({ value, min, max, step, width: 0, onChange });
   cfg.current = { ...cfg.current, value, min, max, step, onChange };
 
-  /** Commit a value from an x offset relative to the track's own left edge. */
-  function commitFromX(x: number) {
+  /** Quantize and commit a value; haptic tick per step crossed. */
+  function commitValue(raw: number) {
     const c = cfg.current;
-    const travel = c.width - KNOB;
-    if (travel <= 0) return;
-    const ratio = Math.min(1, Math.max(0, (x - KNOB / 2) / travel));
-    const raw = c.min + ratio * (c.max - c.min);
     const next = Math.min(c.max, Math.max(c.min, Math.round(raw / c.step) * c.step));
     if (next !== c.value) {
       cfg.current.value = next;
@@ -69,22 +65,46 @@ export function FareSlider({
     }
   }
 
+  const containerRef = useRef<View>(null);
+
   const pan = useRef(
     (() => {
-      // Anchored to where the touch started plus its delta, rather than to page
-      // coordinates from measure(): a page origin goes stale the moment the
-      // surrounding ScrollView moves, and this control lives inside one.
-      let startX = 0;
+      // DRAGS ARE RELATIVE: value at finger-down plus the finger's delta.
+      // The first version mapped the grant point through locationX — which is
+      // relative to the view TOUCHED, so grabbing the 28pt knob read as
+      // "x≈0..28 in the container" and slammed the value to the minimum
+      // before the drag even began (the "always starts from 10 min" bug).
+      let startValue = 0;
+      let moved = false;
       return PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
         // Claim the gesture so the parent ScrollView cannot steal a drag.
         onPanResponderTerminationRequest: () => false,
-        onPanResponderGrant: (e) => {
-          startX = e.nativeEvent.locationX;
-          commitFromX(startX);
+        onPanResponderGrant: () => {
+          startValue = cfg.current.value;
+          moved = false;
         },
-        onPanResponderMove: (_e, g) => commitFromX(startX + g.dx),
+        onPanResponderMove: (_e, g) => {
+          if (Math.abs(g.dx) > 4) moved = true;
+          const c = cfg.current;
+          const travel = c.width - KNOB;
+          if (travel <= 0) return;
+          commitValue(startValue + (g.dx / travel) * (c.max - c.min));
+        },
+        onPanResponderRelease: (_e, g) => {
+          // A tap (no real movement) jumps to the tapped spot. Resolved against
+          // a fresh window measurement — never locationX, and measured at tap
+          // time so scrolling can't stale the origin.
+          if (moved) return;
+          containerRef.current?.measureInWindow((x) => {
+            const c = cfg.current;
+            const travel = c.width - KNOB;
+            if (travel <= 0) return;
+            const ratio = Math.min(1, Math.max(0, (g.x0 - x - KNOB / 2) / travel));
+            commitValue(c.min + ratio * (c.max - c.min));
+          });
+        },
       });
     })()
   ).current;
@@ -106,6 +126,7 @@ export function FareSlider({
       </Text>
 
       <View
+        ref={containerRef}
         onLayout={onLayout}
         style={styles.hit}
         {...pan.panHandlers}
