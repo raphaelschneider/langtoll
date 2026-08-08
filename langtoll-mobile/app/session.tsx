@@ -35,6 +35,7 @@ import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
 import { Tolly } from '@/components/ui/Tolly';
 import { syncPassActivity } from '@/lib/pass-activity';
+import { OrderBuilder } from '@/components/session/OrderBuilder';
 import { ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
 import { clearDeliveredNotifications } from '@/lib/notify';
@@ -484,23 +485,24 @@ export default function Session() {
                     …
                   </Text>
                 ) : (
-                  <View style={styles.orderWrap}>
-                    {orderPicked.map((optIdx, i) => (
-                      <PressableScale
-                        key={`${optIdx}-${i}`}
-                        haptic={null}
-                        onPress={() =>
-                          phase === 'answer' &&
-                          setOrderPicked((cur) => cur.filter((_, j) => j !== i))
-                        }
-                        style={[styles.orderChip, { backgroundColor: withAlpha(theme.accent, 0.12), borderColor: withAlpha(theme.accent, 0.4) }]}
-                      >
-                        <Text variant="bodyMedium" style={{ color: theme.accent }}>
-                          {ex.options![optIdx]}
-                        </Text>
-                      </PressableScale>
-                    ))}
-                  </View>
+                  // Placed words: tap sends a word back, DRAG reorders it in
+                  // place — changing your mind about the order no longer means
+                  // dismantling the sentence.
+                  <OrderBuilder
+                    words={orderPicked.map((optIdx) => ex.options![optIdx])}
+                    interactive={phase === 'answer'}
+                    onRemoveAt={(i) =>
+                      setOrderPicked((cur) => cur.filter((_, j) => j !== i))
+                    }
+                    onReorder={(from, to) =>
+                      setOrderPicked((cur) => {
+                        const next = [...cur];
+                        const [moved] = next.splice(from, 1);
+                        next.splice(to, 0, moved);
+                        return next;
+                      })
+                    }
+                  />
                 )}
               </View>
             )}
