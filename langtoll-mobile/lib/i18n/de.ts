@@ -91,7 +91,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.printAudioDone': 'Kurs-Audio bereit',
   'settings.goal': 'Dein Ziel',
   'settings.goalPlaceholder': 'z. B. Die B1-Prüfung bestehen',
-  'ob.goalCustom': 'Oder eigenes Ziel eingeben — z. B. „Die B1-Prüfung bestehen“',
+  'ob.goalCustom': 'Eigenes Ziel — „B1-Prüfung bestehen“',
   'ob.whenTitle': 'Wann verlierst du die meiste Zeit?',
   'ob.whenMorning': 'Morgens — bevor der Tag überhaupt anfängt',
   'ob.whenMidday': 'Mittags — der Scroll in der Pause',

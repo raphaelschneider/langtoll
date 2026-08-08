@@ -3,7 +3,7 @@
 // (name first, used everywhere after) → emotional mirror → plan-printing loading →
 // personalized summary → transformation paywall. Skip on every optional step.
 // All copy via lib/i18n; target-language flavor comes from the content pack.
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   AccessibilityInfo,
+  ScrollView,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -342,6 +343,7 @@ export default function Onboarding() {
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
   const [forms, setForms] = useState<'m' | 'f' | null>(null);
+  const goalScrollRef = useRef<ScrollView>(null);
   const [daypart, setDaypart] = useState<Daypart | null>(null);
   const [fareEx, setFareEx] = useState(5);
   const [fareMin, setFareMin] = useState(30);
@@ -696,6 +698,15 @@ export default function Onboarding() {
 
             {step === 'goal' && (
               <Entrance key="goal">
+                {/* Scrollable: with the keyboard up, the pinned Continue used to
+                    sit directly ON the custom-goal input. Focusing the input
+                    scrolls it clear of both keyboard and CTA. */}
+                <ScrollView
+                  ref={goalScrollRef}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ paddingBottom: 96 }}
+                >
                 <Text variant="title">{t('ob.goalTitle', { lang })}</Text>
                 <View style={{ marginTop: space.xl, gap: space.sm }}>
                   {GOAL_KEYS.map((k) => (
@@ -720,7 +731,9 @@ export default function Onboarding() {
                   style={[styles.input, { borderColor: theme.line, color: theme.ink, marginTop: space.md }]}
                   maxLength={120}
                   returnKeyType="done"
+                  onFocus={() => setTimeout(() => goalScrollRef.current?.scrollToEnd({ animated: true }), 250)}
                 />
+                </ScrollView>
               </Entrance>
             )}
 

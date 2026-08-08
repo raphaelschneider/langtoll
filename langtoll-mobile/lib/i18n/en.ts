@@ -104,7 +104,7 @@ export const en = {
   'ob.printAudioDone': 'Course audio ready',
   'settings.goal': 'Your goal',
   'settings.goalPlaceholder': 'e.g. Pass the B1 exam',
-  'ob.goalCustom': 'Or type your own — e.g. “Pass the B1 exam”',
+  'ob.goalCustom': 'Your own goal — “Pass the B1 exam”',
   'ob.whenTitle': 'When do you lose the most time?',
   'ob.whenMorning': 'Morning — before the day even starts',
   'ob.whenMidday': 'Midday — the lunch scroll',

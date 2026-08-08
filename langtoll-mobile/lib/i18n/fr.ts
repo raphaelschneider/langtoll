@@ -91,7 +91,7 @@ export const fr: Partial<Record<StringKey, string>> = {
   'ob.printAudioDone': 'Audio du cours prêt',
   'settings.goal': 'Ton objectif',
   'settings.goalPlaceholder': 'p. ex. Réussir l’examen B1',
-  'ob.goalCustom': 'Ou écris le tien — p. ex. « Réussir l’examen B1 »',
+  'ob.goalCustom': 'Ton objectif — « Réussir le B1 »',
   'ob.whenTitle': 'Quand perds-tu le plus de temps ?',
   'ob.whenMorning': 'Le matin — avant même que la journée commence',
   'ob.whenMidday': 'À midi — le scroll de la pause déjeuner',

@@ -91,7 +91,7 @@ export const es: Partial<Record<StringKey, string>> = {
   'ob.printAudioDone': 'Audio del curso listo',
   'settings.goal': 'Tu objetivo',
   'settings.goalPlaceholder': 'p. ej. Aprobar el examen B1',
-  'ob.goalCustom': 'O escribe el tuyo — p. ej. «Aprobar el examen B1»',
+  'ob.goalCustom': 'Tu objetivo — «Aprobar el B1»',
   'ob.whenTitle': '¿Cuándo pierdes más tiempo?',
   'ob.whenMorning': 'Por la mañana — antes de que empiece el día',
   'ob.whenMidday': 'A mediodía — el scroll de la comida',
