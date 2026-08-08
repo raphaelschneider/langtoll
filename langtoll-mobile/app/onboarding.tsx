@@ -349,20 +349,38 @@ export default function Onboarding() {
   const [fareMin, setFareMin] = useState(30);
   const [lockReady, setLockReady] = useState(false);
 
-  // printing-step: two cosmetic beats, then the REAL work — downloading the
-  // chosen language's studio audio. The step does not advance until the pack
-  // is on the device: install-time connectivity is guaranteed (you cannot get
-  // the app without internet), so the first session never falls back to the
-  // robot TTS voice. Founder decision, 2026-08-08.
+  // printing-step stage ticker — pure theater, and FAST: the paywall must
+  // arrive without a download in front of it (founder call, 2026-08-08). The
+  // real audio download runs during the LOCK step below, after the trial
+  // decision — every path (trial or skip-into-honeymoon) passes through it,
+  // so the first session still never falls back to the robot voice.
   const [printStage, setPrintStage] = useState(0);
-  const [audioPct, setAudioPct] = useState(0);
   useEffect(() => {
     if (step !== 'printing') return;
-    let cancelled = false;
     setPrintStage(0);
-    setAudioPct(0);
     const t1 = setTimeout(() => setPrintStage(1), 800);
     const t2 = setTimeout(() => setPrintStage(2), 1700);
+    const t3 = setTimeout(() => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setStepIdx((i) => i + 1);
+    }, 2700);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [step]);
+
+  // Lock step: the audio pack downloads WHILE the user grants Screen Time
+  // permission — the two waits overlap, so the added time is usually zero.
+  // The finish button holds until the pack is complete (progress in its
+  // label); downloadPackAudio counts every attempted file, so a dead network
+  // still reaches 100% and can never trap the user here.
+  const [audioPct, setAudioPct] = useState(0);
+  useEffect(() => {
+    if (step !== 'lock') return;
+    let cancelled = false;
+    setAudioPct(0);
     (async () => {
       try {
         const lvl = levelForDifficulty(difficulty);
@@ -376,17 +394,12 @@ export default function Onboarding() {
           }
         );
       } catch {
-        // network died mid-download — background prefetch heals the gap later
+        // background prefetch heals any gap later
       }
-      if (cancelled) return;
-      setPrintStage(3);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setTimeout(() => setStepIdx((i) => i + 1), 500);
+      if (!cancelled) setAudioPct(100);
     })();
     return () => {
       cancelled = true;
-      clearTimeout(t1);
-      clearTimeout(t2);
     };
   }, [step]);
 
@@ -441,11 +454,7 @@ export default function Onboarding() {
     router.replace('/');
   }
 
-  const printLines = [
-    t('ob.print1'),
-    t('ob.print2'),
-    audioPct < 100 ? t('ob.printAudio', { pct: audioPct }) : t('ob.printAudioDone'),
-  ];
+  const printLines = [t('ob.print1'), t('ob.print2'), t('ob.print3')];
 
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
@@ -888,14 +897,16 @@ export default function Onboarding() {
                       : step === 'summary'
                         ? t('ob.sumCta')
                         : step === 'lock'
-                          ? lockReady
-                            ? t('ob.lockCta')
-                            : t('ob.lockCtaWait')
+                          ? !lockReady
+                            ? t('ob.lockCtaWait')
+                            : audioPct < 100
+                              ? t('ob.printAudio', { pct: audioPct })
+                              : t('ob.lockCta')
                           : t('common.continue')
                 }
                 glow
                 full
-                disabled={step === 'lock' && !lockReady}
+                disabled={step === 'lock' && (!lockReady || audioPct < 100)}
                 onPress={step === 'lock' ? finish : next}
               />
             </View>
