@@ -37,6 +37,14 @@ import {
  */
 const SPEECH_RATE = 0.7;
 
+/**
+ * What "Normal" means for the pre-rendered studio files, which are recorded at
+ * a natural pace: 1.0 was too fast to shadow, 0.7 (the raw TTS scale) dragged.
+ * 0.8 chosen by ear on device (founder call, 2026-08-09). Pitch correction in
+ * the player keeps the voice's pitch natural at any rate.
+ */
+const FILE_RATE_NORMAL = 0.8;
+
 let voices: Speech.Voice[] | null = null;
 let loading: Promise<void> | null = null;
 
@@ -233,9 +241,9 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
           // voiceRate is TTS-scale, where SPEECH_RATE is the learner-paced
           // "Normal" — but the studio files are ALREADY rendered at a natural
           // learner pace, so applying it raw played every file at 70% speed.
-          // Dividing by SPEECH_RATE re-bases the setting for files: Normal is
-          // exactly 1.0 (the untouched recording), Slow/Fast scale around it.
-          rate: (getState().voiceRate ?? SPEECH_RATE) / SPEECH_RATE,
+          // Re-base the setting for files: Normal lands on FILE_RATE_NORMAL,
+          // Slow/Fast scale around it.
+          rate: ((getState().voiceRate ?? SPEECH_RATE) / SPEECH_RATE) * FILE_RATE_NORMAL,
           stillCurrent: () => speechEpoch === epoch,
         })
       )
