@@ -157,6 +157,8 @@ export const it: Partial<Record<StringKey, string>> = {
   'settings.fareEx': 'Esercizi per sblocco',
   'settings.fareMin': 'Minuti sbloccati',
   'settings.fareMinValue': '{min} min',
+  'settings.strictMode': 'Modalità rigorosa',
+  'settings.strictModeDetail': 'Riblocca nell’istante in cui scade il tuo pass — senza margine.',
   'settings.voice': 'Voce',
   'settings.speechSpeed': 'Velocità della voce',
   'settings.speedSlow': 'Lenta',

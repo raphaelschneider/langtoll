@@ -157,6 +157,8 @@ export const fr: Partial<Record<StringKey, string>> = {
   'settings.fareEx': 'Exercices par déverrouillage',
   'settings.fareMin': 'Minutes débloquées',
   'settings.fareMinValue': '{min} min',
+  'settings.strictMode': 'Mode strict',
+  'settings.strictModeDetail': "Reverrouille à l'expiration exacte de ton pass — sans délai de grâce.",
   'settings.voice': 'Voix',
   'settings.speechSpeed': 'Vitesse de parole',
   'settings.speedSlow': 'Lente',

@@ -23,6 +23,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { endPassActivity } from '@/modules/langtoll-activity/src';
 import { schedulePassExpiryNotice, cancelPassExpiryNotice } from '@/lib/notify';
+import { strictModeActive } from '@/lib/plans';
 
 /**
  * Minutes between the pass expiring and the shield actually landing. The pass
@@ -245,10 +246,13 @@ export function grantUnlock(minutes: number): void {
     // The shield does NOT slam mid-flow: the pass expires on time (UI, island and
     // countdown all use the store's timestamp), but the re-lock lands GRACE
     // minutes later, so whatever the user is in the middle of gets an off-ramp.
-    // A notification at true expiry makes the window legible. When Strict Mode
-    // ships (Plus), strict sets the grace to zero — that IS the feature.
-    const relockAt = new Date(end.getTime() + RELOCK_GRACE_MINUTES * 60_000);
-    schedulePassExpiryNotice(end.getTime(), RELOCK_GRACE_MINUTES);
+    // A notification at true expiry makes the window legible. Strict Mode
+    // (Plus) sets the grace to zero — that IS the feature — and the notice is
+    // skipped with it: it exists to explain a delayed shield, and in strict
+    // there is no delay to explain.
+    const grace = strictModeActive() ? 0 : RELOCK_GRACE_MINUTES;
+    const relockAt = new Date(end.getTime() + grace * 60_000);
+    if (grace > 0) schedulePassExpiryNotice(end.getTime(), grace);
 
     // FULL date components, not just hour/minute. With time-of-day only,
     // DeviceActivity reads the schedule as a daily wall-clock pattern — so an

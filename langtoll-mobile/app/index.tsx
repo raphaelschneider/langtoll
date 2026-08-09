@@ -19,6 +19,7 @@ import { FareGate, type FareGateTrigger } from '@/components/pass/FareGate';
 import { JourneyLine } from '@/components/home/JourneyLine';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { activePack } from '@/lib/pack';
+import { effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
 import { useT, type StringKey } from '@/lib/i18n';
 import {
   useAppState,
@@ -121,8 +122,8 @@ export default function Home() {
               <PassCard
                 state={unlocked ? 'active' : 'void'}
                 remainingMs={unlockRemainingMs(state, now)}
-                unlockMinutes={state.unlockMinutes}
-                exercisesPerUnlock={state.exercisesPerUnlock}
+                unlockMinutes={effectiveUnlockMinutes()}
+                exercisesPerUnlock={effectiveExercisesPerUnlock()}
                 packLabel={`${pack.language.toUpperCase()} · ${pack.level}`}
                 serial={state.sessionsCompleted}
                 passenger={state.name}
@@ -132,7 +133,7 @@ export default function Home() {
 
           <Entrance delay={220}>
             <Button
-              label={unlocked ? t('home.topUp', { min: state.unlockMinutes }) : t('home.practice')}
+              label={unlocked ? t('home.topUp', { min: effectiveUnlockMinutes() }) : t('home.practice')}
               variant={unlocked ? 'pine' : 'primary'}
               icon={unlocked ? 'flash' : 'lock-open'}
               glow={!unlocked}

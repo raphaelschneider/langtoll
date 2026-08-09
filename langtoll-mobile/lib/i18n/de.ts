@@ -157,6 +157,8 @@ export const de: Partial<Record<StringKey, string>> = {
   'settings.fareEx': 'Übungen pro Entsperrung',
   'settings.fareMin': 'Minuten freigeschaltet',
   'settings.fareMinValue': '{min} Min.',
+  'settings.strictMode': 'Strikter Modus',
+  'settings.strictModeDetail': 'Sperrt exakt beim Ablauf deines Passes — ohne Karenzzeit.',
   'settings.voice': 'Stimme',
   'settings.speechSpeed': 'Sprechtempo',
   'settings.speedSlow': 'Langsam',

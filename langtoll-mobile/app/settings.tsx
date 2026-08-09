@@ -29,6 +29,11 @@ import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
 import {
   canUseAudio,
+  canUseAiTopics,
+  canCustomizeLock,
+  canUseStrictMode,
+  effectiveExercisesPerUnlock,
+  effectiveUnlockMinutes,
   SPEAKER_FORM_EXAMPLES,
   FARE_EXERCISES,
   FARE_MINUTES_MIN,
@@ -338,7 +343,7 @@ export default function Settings() {
   const pack = activePack();
 
   async function generate() {
-    if (!plus) {
+    if (!canUseAiTopics()) {
       router.push('/paywall');
       return;
     }
@@ -524,7 +529,8 @@ export default function Settings() {
             </View>
           </Section>
 
-          {/* fare */}
+          {/* fare — the levers are Plus/honeymoon; locked they show the free
+              defaults and route to the paywall, mirroring the voice row. */}
           <Section title={t('settings.fare')}>
             <Text variant="caption" color="inkFaint">
               {t('settings.fareEx')}
@@ -534,24 +540,63 @@ export default function Settings() {
                 <Chip
                   key={n}
                   label={`${n}`}
-                  selected={state.exercisesPerUnlock === n}
-                  onPress={() => updateProfile({ exercisesPerUnlock: n })}
+                  selected={effectiveExercisesPerUnlock() === n}
+                  onPress={() =>
+                    canCustomizeLock()
+                      ? updateProfile({ exercisesPerUnlock: n })
+                      : router.push('/paywall')
+                  }
                 />
               ))}
             </View>
             <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
               {t('settings.fareMin')}
             </Text>
-            <FareSlider
-              value={state.unlockMinutes}
-              min={FARE_MINUTES_MIN}
-              max={FARE_MINUTES_MAX}
-              step={FARE_MINUTES_STEP}
-              onChange={(n) => updateProfile({ unlockMinutes: n })}
-              format={(n) => t('settings.fareMinValue', { min: n })}
-              minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
-              maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
-            />
+            {canCustomizeLock() ? (
+              <FareSlider
+                value={state.unlockMinutes}
+                min={FARE_MINUTES_MIN}
+                max={FARE_MINUTES_MAX}
+                step={FARE_MINUTES_STEP}
+                onChange={(n) => updateProfile({ unlockMinutes: n })}
+                format={(n) => t('settings.fareMinValue', { min: n })}
+                minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
+                maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
+              />
+            ) : (
+              <PressableScale
+                onPress={() => router.push('/paywall')}
+                haptic={null}
+                style={styles.switchRow}
+              >
+                <Text variant="callout" color="inkSoft" style={{ flex: 1 }}>
+                  {t('settings.fareMinValue', { min: effectiveUnlockMinutes() })}
+                </Text>
+                <Ionicons name="lock-closed" size={20} color={theme.inkFaint} />
+              </PressableScale>
+            )}
+
+            {/* strict mode: zero-grace re-lock (Plus) */}
+            <View style={[styles.switchRow, { marginTop: space.lg }]}>
+              <View style={{ flex: 1 }}>
+                <Text variant="callout">{t('settings.strictMode')}</Text>
+                <Text variant="caption" color="inkFaint" style={{ marginTop: 2 }}>
+                  {t('settings.strictModeDetail')}
+                </Text>
+              </View>
+              {canUseStrictMode() ? (
+                <Switch
+                  value={state.strictMode}
+                  onValueChange={(v) => updateProfile({ strictMode: v })}
+                  trackColor={{ true: theme.accent, false: 'rgba(255,255,255,0.15)' }}
+                  thumbColor="#FFFFFF"
+                />
+              ) : (
+                <PressableScale onPress={() => router.push('/paywall')} haptic={null}>
+                  <Ionicons name="lock-closed" size={20} color={theme.inkFaint} />
+                </PressableScale>
+              )}
+            </View>
           </Section>
 
           {/* voice */}

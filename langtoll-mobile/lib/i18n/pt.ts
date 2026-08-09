@@ -157,6 +157,8 @@ export const pt: Partial<Record<StringKey, string>> = {
   'settings.fareEx': 'Exercícios por liberação',
   'settings.fareMin': 'Minutos liberados',
   'settings.fareMinValue': '{min} min',
+  'settings.strictMode': 'Modo estrito',
+  'settings.strictModeDetail': 'Tranca no instante em que seu passe expira — sem janela de tolerância.',
   'settings.voice': 'Voz',
   'settings.speechSpeed': 'Velocidade da fala',
   'settings.speedSlow': 'Lenta',

@@ -45,6 +45,12 @@ export interface AppState {
   difficulty: number;
   /** Voice mode: German TTS on prompts / taps / listening exercises. */
   soundEnabled: boolean;
+  /**
+   * Strict mode (Plus): the re-lock lands at the exact pass expiry instead of
+   * after the grace window. Stored raw; whether it APPLIES is plans.ts's
+   * strictModeActive(), which also checks the entitlement.
+   */
+  strictMode: boolean;
   /** Consecutive days with at least one completed session. */
   streak: number;
   lastPassDate: string | null;
@@ -123,6 +129,7 @@ const initialState: AppState = {
   level: 'A1',
   difficulty: 3,
   soundEnabled: true,
+  strictMode: false,
   streak: 0,
   lastPassDate: null,
   blockedApps: [],
@@ -285,6 +292,7 @@ export function updateProfile(
       | 'level'
       | 'difficulty'
       | 'soundEnabled'
+      | 'strictMode'
       | 'blockedApps'
       | 'goal'
       | 'forms'

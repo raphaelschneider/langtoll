@@ -56,6 +56,13 @@ export interface BuildOptions {
   difficulty?: number;
   /** Whether audio (listen) exercises may be included. */
   audio?: boolean;
+  /**
+   * Whether typed answers and sentence-building may be planned (Plus /
+   * honeymoon — plans.canUseFullCurriculum). Free trains multiple choice:
+   * mc both ways, articles and cloze. Defaults to true so tests and any
+   * future callers get the whole trainer unless they opt down.
+   */
+  fullCurriculum?: boolean;
 }
 
 // Mulberry32 — tiny seeded PRNG so a session is stable for a given seed but
@@ -310,6 +317,7 @@ function pickVocabType(
   seenBefore: boolean,
   difficulty: number,
   audio: boolean,
+  fullCurriculum: boolean,
   rand: () => number
 ): ExerciseType {
   const band =
@@ -321,7 +329,7 @@ function pickVocabType(
       if (weight <= 0) return false;
       if (type === 'article') return articleGroupOf(item, language) !== null;
       if (type === 'listen') return audio;
-      if (type === 'type_de') return seenBefore;
+      if (type === 'type_de') return seenBefore && fullCurriculum;
       return true;
     }
   );
@@ -360,6 +368,7 @@ export function buildSession(
 ): SessionPlan {
   const difficulty = Math.min(10, Math.max(1, opts.difficulty ?? 3));
   const audio = opts.audio ?? false;
+  const fullCurriculum = opts.fullCurriculum ?? true;
   const rand = rng(seed);
   const progress = new Map(progressRows.map((r) => [r.item_id, r]));
 
@@ -404,7 +413,7 @@ export function buildSession(
 
   vocabItems.forEach((item, i) => {
     const seenBefore = (progress.get(item.id)?.seen ?? 0) > 0;
-    const type = pickVocabType(item, pack.language, seenBefore, difficulty, audio, rand);
+    const type = pickVocabType(item, pack.language, seenBefore, difficulty, audio, fullCurriculum, rand);
     const key = `${item.id}-${i}`;
 
     if (type === 'article') {
@@ -455,7 +464,7 @@ export function buildSession(
     // to you), so make it available from the very start — it used to be gated to
     // difficulty >= 5, which meant beginners never got the one drill that teaches word order,
     // the whole battle in German. Cap at 9 words so the tile bank stays tappable.
-    const useOrder = s.de.split(/\s+/).length <= 9 && rand() < 0.5;
+    const useOrder = fullCurriculum && s.de.split(/\s+/).length <= 9 && rand() < 0.5;
     exercises.push(useOrder ? orderExercise(s, rand, `${s.id}-${i}`) : clozeExercise(s, rand, `${s.id}-${i}`));
   });
 

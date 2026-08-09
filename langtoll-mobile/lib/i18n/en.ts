@@ -172,6 +172,8 @@ export const en = {
   'settings.fareEx': 'Exercises per unlock',
   'settings.fareMin': 'Minutes unlocked',
   'settings.fareMinValue': '{min} min',
+  'settings.strictMode': 'Strict mode',
+  'settings.strictModeDetail': 'Re-locks the instant your pass expires — no grace window.',
   'settings.voice': 'Voice',
   'settings.speechSpeed': 'Speech speed',
   'settings.speedSlow': 'Slow',

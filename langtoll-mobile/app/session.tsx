@@ -30,7 +30,7 @@ import {
 } from '@/lib/store';
 import { playMessageChime } from '@/lib/sound';
 import { speakTarget, stopSpeaking } from '@/lib/tts';
-import { canUseAudio } from '@/lib/plans';
+import { canUseAudio, canUseFullCurriculum, effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
 import { Tolly } from '@/components/ui/Tolly';
@@ -57,11 +57,12 @@ export default function Session() {
   const seed = useRef(Math.floor(Math.random() * 2 ** 31)).current;
   const plan = useMemo(
     () =>
-      buildSession(pack, progressRows(), getState().exercisesPerUnlock, seed, {
+      buildSession(pack, progressRows(), effectiveExercisesPerUnlock(), seed, {
         difficulty: getState().difficulty,
         // Gate generation, not just playback: a 'listen' exercise with no audio
         // has no question to answer, so a free user must never be dealt one.
         audio: canUseAudio() && getState().soundEnabled,
+        fullCurriculum: canUseFullCurriculum(),
       }),
     [pack, seed]
   );
@@ -237,8 +238,8 @@ export default function Session() {
       // Coarse dims only (language + CEFR level) — the words themselves never leave the phone.
       const st = getState();
       track('session_completed', { language: st.learningLanguage, level: st.level });
-      track('unlocked', { minutes: st.unlockMinutes + bonus });
-      grantUnlock(getState().unlockMinutes + bonus); // lift the real shield + schedule re-lock (native only)
+      track('unlocked', { minutes: effectiveUnlockMinutes() + bonus });
+      grantUnlock(effectiveUnlockMinutes() + bonus); // lift the real shield + schedule re-lock (native only)
       // The pass, live: countdown in the Dynamic Island / lock screen until the
       // grant expires. Store timestamp is the source of truth (works sans native).
       syncPassActivity();
@@ -290,8 +291,8 @@ export default function Session() {
             <PassIssue
               state="active"
               remainingMs={unlockRemainingMs(s)}
-              unlockMinutes={s.unlockMinutes}
-              exercisesPerUnlock={s.exercisesPerUnlock}
+              unlockMinutes={effectiveUnlockMinutes()}
+              exercisesPerUnlock={effectiveExercisesPerUnlock()}
               packLabel={`${pack.language.toUpperCase()} · ${pack.level}`}
               serial={s.sessionsCompleted}
               passenger={s.name}

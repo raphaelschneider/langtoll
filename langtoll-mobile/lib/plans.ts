@@ -27,7 +27,7 @@ export const PRODUCT_IDS = {
 export const PLUS_FEATURES = [
   { icon: 'apps-outline', title: 'Lock your whole world', detail: 'Block unlimited apps, entire categories, and websites — free locks a single app' },
   { icon: 'options-outline', title: 'Your lock, your rules', detail: 'Tune the fare and how long apps stay open — free stays on the standard setting' },
-  { icon: 'flame-outline', title: 'Strict mode', detail: 'No skips, no mercy: the phone stays locked until you finish the session' },
+  { icon: 'flame-outline', title: 'Strict mode', detail: 'Zero grace: the shield lands the instant your pass expires' },
   { icon: 'school-outline', title: 'The full curriculum', detail: 'Typed answers, sentence building, listening and harder levels — free trains multiple choice' },
   { icon: 'sparkles-outline', title: 'AI topic packs', detail: 'Generate vocabulary for your world — brunch orders, match-day slang, anything' },
   // Sells canUseAudio(), which is a real gate. The bullet here used to promise
@@ -148,24 +148,48 @@ export function selectionExceedsFreeLimit(c: SelectionCounts, plus: boolean): bo
   return c.applicationCount > FREE_MAX_APPS || c.categoryCount > 0 || c.webDomainCount > 0;
 }
 
-/** Custom fare (exercise count / unlock duration / strict mode) is Plus. */
+// Every gate below includes the honeymoon: ob.payPrice promises "your first
+// week is the full experience", so the first seven days must behave exactly
+// like Plus — the paywall then sells what the user is about to LOSE.
+
+/** Custom fare (exercise count / unlock duration) is Plus. */
 export function canCustomizeLock(): boolean {
-  return isPlus();
+  return isPlus() || withinHoneymoon();
 }
 
-/** Strict mode (no skipping the session) is Plus. */
+/** Strict mode (re-lock with zero grace) is Plus. */
 export function canUseStrictMode(): boolean {
-  return isPlus();
+  return isPlus() || withinHoneymoon();
 }
 
 /** Typed / sentence-building / listening drills are Plus; free trains multiple choice. */
 export function canUseFullCurriculum(): boolean {
-  return isPlus();
+  return isPlus() || withinHoneymoon();
 }
 
 /** AI topic packs are Plus. */
 export function canUseAiTopics(): boolean {
-  return isPlus();
+  return isPlus() || withinHoneymoon();
+}
+
+/**
+ * The fare that actually applies, derived at READ time rather than snapped
+ * back on downgrade: a lapsed subscriber's stored custom fare stays put (so
+ * resubscribing restores it) but stops applying the moment the entitlement
+ * lapses. Everything that grants, displays or builds sessions reads these,
+ * never the raw store fields.
+ */
+export function effectiveExercisesPerUnlock(): number {
+  return canCustomizeLock() ? getState().exercisesPerUnlock : FREE_EXERCISES_PER_UNLOCK;
+}
+
+export function effectiveUnlockMinutes(): number {
+  return canCustomizeLock() ? getState().unlockMinutes : FREE_UNLOCK_MINUTES;
+}
+
+/** Strict mode as it actually applies — the toggle only bites while entitled. */
+export function strictModeActive(): boolean {
+  return canUseStrictMode() && getState().strictMode;
 }
 
 // Speaker-gendered form examples per learnable language — drives BOTH whether
