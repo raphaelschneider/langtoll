@@ -21,6 +21,7 @@ const isDev = process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 
 module.exports = ({ config }) => ({
   ...config,
+  plugins: [...(config.plugins || []), require.resolve('./plugins/withTailscaleMetroIp')],
   ios: {
     ...config.ios,
     infoPlist: {
