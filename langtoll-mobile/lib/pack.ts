@@ -6,6 +6,7 @@ import { resolvedLocale } from '@/lib/i18n';
 import { sanitizeTopic } from '@/lib/ai/topics';
 import { poolItems } from '@/lib/ai/pool';
 import { FALLBACK_LOCALE, type LocaleCode } from '@/lib/locales';
+import { canUseAiTopics } from '@/lib/plans';
 
 /** Onboarding difficulty (1–10) → CEFR level. Four bands since B2 landed. */
 export function levelForDifficulty(d: number): Level {
@@ -104,8 +105,14 @@ export function activePack(): LanguagePack {
 
   // The goal's pack rides along whenever it matches the active course — this
   // is what makes "Pass the B1 exam" VISIBLE in sessions rather than a label.
+  // Gated at MERGE time like the fare levers: a lapsed subscriber keeps the
+  // stored pack (resubscribing restores it instantly) but its items stop
+  // flowing the moment the entitlement does.
   const goalPack =
-    s.goalPack && s.goalPack.language === s.learningLanguage && s.goalPack.level === s.level
+    canUseAiTopics() &&
+    s.goalPack &&
+    s.goalPack.language === s.learningLanguage &&
+    s.goalPack.level === s.level
       ? sanitizeTopic(s.goalPack)
       : null;
   const rawGoalItems =

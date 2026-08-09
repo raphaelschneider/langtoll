@@ -17,6 +17,7 @@ import type { CustomTopic } from '@/lib/store';
 import { getState, updateProfile } from '@/lib/store';
 import { getDeviceId } from '@/lib/device';
 import { aiGoal } from '@/lib/goal';
+import { canUseAiTopics } from '@/lib/plans';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 
@@ -247,6 +248,14 @@ export async function refreshGoalPack(): Promise<void> {
   const s = getState();
   const goal = aiGoal();
   if (!goal) return;
+  // Plus/honeymoon perk, same gate as the settings generator. The goal itself
+  // stays stored and cosmetic (paywall quotes it back); only the generated
+  // curriculum is entitled. pack.ts gates the merge for packs that already
+  // exist locally.
+  if (!canUseAiTopics()) {
+    console.log('[goal] pack skipped: not entitled (free, past honeymoon)');
+    return;
+  }
   const existing = s.goalPack;
   if (
     existing &&
