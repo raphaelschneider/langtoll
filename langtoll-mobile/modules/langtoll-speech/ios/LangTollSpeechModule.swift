@@ -83,6 +83,26 @@ public final class LangTollSpeechModule: Module {
   private var lastError: String?
   private var lastDeEssPeakCutDb: Float = 0
 
+  // Render-epoch: speak() renders the WHOLE utterance before playing, so a
+  // stop() (or a newer speak) can land while a render is still in flight — and
+  // without this guard that stale render finishes and plays anyway, which is
+  // how rapid word-taps queued up and played one after another. Same pattern
+  // as lib/tts.ts's speechEpoch, one layer down. The lock covers the write
+  // callback, which fires on the synthesizer's own thread.
+  private var speakEpoch: Int = 0
+  private let epochLock = NSLock()
+
+  private func bumpEpoch() -> Int {
+    epochLock.lock(); defer { epochLock.unlock() }
+    speakEpoch += 1
+    return speakEpoch
+  }
+
+  private func currentEpoch() -> Int {
+    epochLock.lock(); defer { epochLock.unlock() }
+    return speakEpoch
+  }
+
   public func definition() -> ModuleDefinition {
     Name("LangTollSpeech")
 
@@ -136,6 +156,7 @@ public final class LangTollSpeechModule: Module {
     }
 
     AsyncFunction("stop") { () -> Void in
+      _ = self.bumpEpoch()
       self.player.stop()
       self.synthesizer.stopSpeaking(at: .immediate)
     }
@@ -143,6 +164,14 @@ public final class LangTollSpeechModule: Module {
     // Render → shape → play. Resolves once playback has been scheduled, not when
     // it finishes; callers treat speech as fire-and-forget.
     AsyncFunction("speak") { (text: String, opts: [String: Any], promise: Promise) in
+      // New speech preempts old right here, not just via the JS stop() call —
+      // the two bridge calls are independent, so relying on their order left a
+      // window where the old render survived. Cutting playback before the new
+      // render also silences the previous word during the render gap.
+      let epoch = self.bumpEpoch()
+      self.player.stop()
+      self.synthesizer.stopSpeaking(at: .immediate)
+
       let utterance = AVSpeechUtterance(string: text)
 
       if let voiceId = opts["voice"] as? String,
@@ -164,6 +193,11 @@ public final class LangTollSpeechModule: Module {
         guard let pcm = buffer as? AVAudioPCMBuffer else { return }
         // The synthesizer signals completion with a zero-length buffer.
         if pcm.frameLength == 0 {
+          // Superseded or stopped while rendering: this audio must not play.
+          guard epoch == self.currentEpoch() else {
+            promise.resolve(false)
+            return
+          }
           if let out = collected {
             self.lastRenderFrames = Int(out.frameLength)
             do {
