@@ -122,6 +122,11 @@ export async function playPrerendered(
   console.log(`[audio] HIT ${lang} "${text.slice(0, 30)}"`);
   try {
     try {
+      // pause() BEFORE remove(): remove only releases the registry reference,
+      // and the underlying AVPlayer keeps playing until the JS object happens
+      // to be garbage-collected — the cross-screen bleed bug. Only pause stops
+      // it deterministically.
+      player?.pause();
       player?.remove();
     } catch {
       // replacing a finished player throws harmlessly
@@ -150,6 +155,8 @@ export async function playPrerendered(
 
 export function stopPrerendered(): void {
   try {
+    // Same as above: remove() alone lets the AVPlayer play on until GC.
+    player?.pause();
     player?.remove();
   } catch {
     // already stopped
