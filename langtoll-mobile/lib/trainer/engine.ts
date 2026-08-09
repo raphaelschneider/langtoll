@@ -40,10 +40,11 @@ export interface Exercise {
   audio?: string;
   /**
    * Provenance of the underlying item — absent means authored, 'ai' means it
-   * came from the generated pool. Carried through so a dev build can show which
-   * is which on a real device, and so answer quality can be compared later.
+   * came from the generated pool, 'goal' from the learner's goal pack. Carried
+   * through so a dev build can show which is which on a real device, and so
+   * answer quality can be compared later.
    */
-  source?: 'ai';
+  source?: 'ai' | 'goal';
 }
 
 export interface SessionPlan {
@@ -365,8 +366,39 @@ export function buildSession(
   const sentenceCount = Math.max(1, Math.round(count * sentenceShare(difficulty)));
   const vocabCount = count - sentenceCount;
 
-  const vocabItems = pickVocab(pack, progress, vocabCount, rand);
-  const sentences = shuffle(pack.sentences, rand).slice(0, sentenceCount);
+  // Guaranteed seats for the learner's goal pack ("Pass the B1 exam"): about a
+  // third of the session, split across vocab and sentences in the session's own
+  // proportion. Without this the goal items — a couple dozen appended to many
+  // hundreds of base and pool items — almost never surfaced, which read as the
+  // goal doing nothing. pickVocab still ranks WITHIN the goal subset, so its
+  // strugglers and unseen items follow the same pedagogy as everything else.
+  const goalVocabPool = pack.vocab.filter((v) => v.source === 'goal');
+  const goalSentencePool = pack.sentences.filter((s) => s.source === 'goal');
+  const goalSeats = Math.ceil(count / 3);
+  const goalSentenceTarget = Math.min(
+    goalSentencePool.length,
+    sentenceCount,
+    Math.round(goalSeats * sentenceShare(difficulty))
+  );
+  const goalVocabTarget = Math.min(goalVocabPool.length, vocabCount, goalSeats - goalSentenceTarget);
+
+  const goalVocab = pickVocab({ ...pack, vocab: goalVocabPool }, progress, goalVocabTarget, rand);
+  const goalVocabIds = new Set(goalVocab.map((v) => v.id));
+  const restVocab = pickVocab(
+    { ...pack, vocab: pack.vocab.filter((v) => !goalVocabIds.has(v.id)) },
+    progress,
+    vocabCount - goalVocab.length,
+    rand
+  );
+  const vocabItems = shuffle([...goalVocab, ...restVocab], rand);
+
+  const goalSentences = shuffle(goalSentencePool, rand).slice(0, goalSentenceTarget);
+  const goalSentenceIds = new Set(goalSentences.map((s) => s.id));
+  const restSentences = shuffle(
+    pack.sentences.filter((s) => !goalSentenceIds.has(s.id)),
+    rand
+  ).slice(0, sentenceCount - goalSentences.length);
+  const sentences = [...goalSentences, ...restSentences];
 
   const exercises: Exercise[] = [];
 

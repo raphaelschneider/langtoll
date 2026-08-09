@@ -87,8 +87,10 @@ export interface VocabItem {
    * IS the authored case. Surfaced in-session behind the dev-tools flag so the
    * provenance of any exercise can be checked on a real device, and so answer
    * quality can later be compared between the two sources.
+   * 'goal' marks items from the pack generated for the learner's own goal
+   * ("Pass the B1 exam") — the trainer guarantees these seats in a session.
    */
-  source?: 'ai';
+  source?: 'ai' | 'goal';
 }
 
 export interface SentenceItem {
@@ -116,8 +118,10 @@ export interface SentenceItem {
    * IS the authored case. Surfaced in-session behind the dev-tools flag so the
    * provenance of any exercise can be checked on a real device, and so answer
    * quality can later be compared between the two sources.
+   * 'goal' marks items from the pack generated for the learner's own goal
+   * ("Pass the B1 exam") — the trainer guarantees these seats in a session.
    */
-  source?: 'ai';
+  source?: 'ai' | 'goal';
 }
 
 export interface LanguagePack {

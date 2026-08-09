@@ -108,8 +108,17 @@ export function activePack(): LanguagePack {
     s.goalPack && s.goalPack.language === s.learningLanguage && s.goalPack.level === s.level
       ? sanitizeTopic(s.goalPack)
       : null;
-  const goalItems =
+  const rawGoalItems =
     goalPack && goalPack.vocab.length ? localizeItems(goalPack.vocab, goalPack.sentences, locale) : null;
+  // Tagged 'goal' so the trainer can guarantee them seats — merged untagged
+  // they are outnumbered ~10:1 by the base pack and pool, which made the goal
+  // statistically invisible in any single session.
+  const goalItems = rawGoalItems
+    ? {
+        vocab: rawGoalItems.vocab.map((v) => ({ ...v, source: 'goal' as const })),
+        sentences: rawGoalItems.sentences.map((s) => ({ ...s, source: 'goal' as const })),
+      }
+    : null;
 
   if (!topicItems && !goalItems && !pool.vocab.length && !pool.sentences.length) {
     return filterPackForForms(base, s.forms);

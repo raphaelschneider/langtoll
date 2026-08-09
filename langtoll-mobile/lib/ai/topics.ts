@@ -254,6 +254,9 @@ export async function refreshGoalPack(): Promise<void> {
     existing.level === s.level &&
     existing.language === s.learningLanguage
   ) {
+    console.log(
+      `[goal] pack current: "${goal}" ${existing.language}/${existing.level} (${existing.vocab.length}v/${existing.sentences.length}s)`
+    );
     return;
   }
   if (!aiAvailable()) return;
@@ -262,8 +265,13 @@ export async function refreshGoalPack(): Promise<void> {
     // Stamp the course so a language/level switch invalidates rather than
     // leaking Spanish exam items into a German session.
     updateProfile({ goalPack: { ...pack, language: s.learningLanguage, level: s.level } });
-  } catch {
-    // offline / not entitled / budget — the goal simply stays cosmetic until
-    // a later launch retries
+    console.log(
+      `[goal] pack ready: "${goal}" ${s.learningLanguage}/${s.level} (${pack.vocab.length}v/${pack.sentences.length}s)`
+    );
+  } catch (e) {
+    // offline / not entitled / budget — the goal stays invisible until a later
+    // launch retries. That invisibility is exactly why this logs: a silent
+    // failure here is indistinguishable from the feature not existing.
+    console.log(`[goal] pack refresh failed: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
