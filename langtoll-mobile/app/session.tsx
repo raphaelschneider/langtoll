@@ -3,7 +3,7 @@
 // mode reads the target language aloud. Answer → feedback (correct answer always shown) →
 // Continue. No timers, no auto-advance: predictable while we iterate.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState as RNAppState } from 'react-native';
+import { View, ScrollView, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState as RNAppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -157,6 +157,18 @@ export default function Session() {
   // the prompt invisible. Re-keying the animated content on every return to
   // foreground re-runs the entrances cleanly.
   const [resumeTick, setResumeTick] = useState(0);
+  const bodyScrollRef = useRef<ScrollView>(null);
+
+  // Long AI sentences overflow the body; it scrolls now, so the feedback
+  // banner can land below the fold — bring it into view when it appears, and
+  // reset to the top for each fresh exercise.
+  useEffect(() => {
+    if (phase === 'feedback') {
+      const id = setTimeout(() => bodyScrollRef.current?.scrollToEnd({ animated: true }), 120);
+      return () => clearTimeout(id);
+    }
+    bodyScrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [phase, idx]);
   useEffect(() => {
     const sub = RNAppState.addEventListener('change', (st) => {
       if (st === 'active') setResumeTick((n) => n + 1);
@@ -393,7 +405,12 @@ export default function Session() {
           </View>
 
           {/* prompt */}
-          <View style={styles.body}>
+          <ScrollView
+            ref={bodyScrollRef}
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.body}
+            showsVerticalScrollIndicator={false}
+          >
             <Entrance key={`${ex.key}:r${resumeTick}`} from={10}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text variant="overline" color="inkFaint">
@@ -459,7 +476,16 @@ export default function Session() {
               ) : (
                 <View style={styles.promptRow}>
                   <Text
-                    variant={ex.type === 'cloze' || isOrder ? 'title' : 'hero'}
+                    // Sentence prompts step down a size once they'd wrap past
+                    // ~4 lines — an AI B2 sentence at title size pushed the
+                    // feedback banner clean off the screen.
+                    variant={
+                      ex.type === 'cloze' || isOrder
+                        ? ex.prompt.length > 70
+                          ? 'headline'
+                          : 'title'
+                        : 'hero'
+                    }
                     style={{ marginTop: space.sm, flexShrink: 1 }}
                   >
                     {ex.prompt}
@@ -553,7 +579,7 @@ export default function Session() {
                 </View>
               </Entrance>
             )}
-          </View>
+          </ScrollView>
 
           {/* answers */}
           <View style={styles.answers}>
@@ -692,7 +718,7 @@ const styles = StyleSheet.create({
   trackFill: { position: 'absolute', left: 4, height: 2, borderRadius: 1, top: 19 },
   stations: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   station: { borderWidth: 1.5 },
-  body: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
+  body: { paddingHorizontal: space.xl, paddingTop: space.xxl, paddingBottom: space.lg },
   promptRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   speakerSmall: { paddingTop: space.lg },
   cantHear: { paddingTop: space.md, paddingHorizontal: space.md, alignSelf: 'center' },
