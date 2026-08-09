@@ -232,6 +232,9 @@ export default function Session() {
       syncPassActivity();
       // Fare paid — last run's "pass expired" banner is now a lie; sweep it.
       clearDeliveredNotifications();
+      // The last exercise's speech must not bleed under the pass-issued
+      // screen (the chime plays there, not the lesson audio).
+      stopSpeaking();
       playMessageChime();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPhase('done');

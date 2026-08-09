@@ -3,7 +3,7 @@
 // foreground when a grant has expired (native only; no-op in stub/simulator).
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, View, type AppStateStatus } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -27,7 +27,7 @@ import { initPool } from '@/lib/ai/pool';
 import { refreshGoalPack } from '@/lib/ai/topics';
 import { prefetchActivePack } from '@/lib/audio-pack';
 import { handleNotificationTaps } from '@/lib/notify';
-import { primeVoices, configureAudioSession, applyStoredShaping } from '@/lib/tts';
+import { primeVoices, configureAudioSession, applyStoredShaping, stopSpeaking } from '@/lib/tts';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 // Belt-and-suspenders: force-hide the native splash after a hard ceiling,
@@ -138,6 +138,14 @@ export default function RootLayout() {
 // Inside the provider so the status bar + page ground follow the active theme.
 function ThemedShell() {
   const theme = useTheme();
+  // Speech is screen-scoped: whatever screen started it, leaving that screen
+  // silences it. Individual screens also stop audio at their own transition
+  // points, but this is the app-wide backstop — no navigation, however it was
+  // triggered, may carry audio onto the next screen.
+  const pathname = usePathname();
+  useEffect(() => {
+    stopSpeaking();
+  }, [pathname]);
   return (
     <>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
