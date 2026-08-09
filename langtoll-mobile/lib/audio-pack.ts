@@ -127,10 +127,14 @@ export async function playPrerendered(
       // replacing a finished player throws harmlessly
     }
     player = createAudioPlayer({ uri: path });
-    // Speech-speed setting carries over to file playback where supported.
+    // Speech-speed setting carries over to file playback where supported. At
+    // rate 1 the file plays untouched. Off 1, pitch correction keeps the voice
+    // at its natural pitch — varispeed (the default) drops it with the tempo,
+    // the slowed-tape sound.
     if (opts?.rate && opts.rate !== 1) {
       try {
-        player.setPlaybackRate(opts.rate);
+        player.shouldCorrectPitch = true;
+        player.setPlaybackRate(opts.rate, 'high');
       } catch {
         // natural speed is an acceptable fallback
       }

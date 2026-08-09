@@ -230,7 +230,12 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
     try {
       if (
         await playPrerendered(text, {
-          rate: getState().voiceRate ?? SPEECH_RATE,
+          // voiceRate is TTS-scale, where SPEECH_RATE is the learner-paced
+          // "Normal" — but the studio files are ALREADY rendered at a natural
+          // learner pace, so applying it raw played every file at 70% speed.
+          // Dividing by SPEECH_RATE re-bases the setting for files: Normal is
+          // exactly 1.0 (the untouched recording), Slow/Fast scale around it.
+          rate: (getState().voiceRate ?? SPEECH_RATE) / SPEECH_RATE,
           stillCurrent: () => speechEpoch === epoch,
         })
       )
