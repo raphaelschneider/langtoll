@@ -133,6 +133,12 @@ export const fr: Partial<Record<StringKey, string>> = {
   'ob.lockSub': "LangToll les bloque jusqu'à ce que tu finisses une session. C'est tout l'intérêt.",
   'ob.lockCta': 'Verrouiller ces apps',
   'ob.lockCtaWait': "Choisis d'abord des apps",
+  'ob.notifyTitle': 'Autorise les notifications — vraiment.',
+  'ob.notifyBody':
+    "Elles te ramènent d'une app bloquée vers l'entraînement, t'apportent ton rappel quotidien et te préviennent avant que ton pass expire.",
+  'ob.notifyCta': 'Autoriser les notifications',
+  'ob.notifyOn': 'Notifications activées — c’est bon',
+  'ob.notifySettings': 'Active-les dans Réglages',
 
   'lock.enable': "Activer Temps d'écran",
   'lock.authBody': 'Autorise Temps d’écran pour que LangToll verrouille tes apps, et les notifications pour que le blocage puisse te ramener ici. Apple ne le demande qu’une fois.',

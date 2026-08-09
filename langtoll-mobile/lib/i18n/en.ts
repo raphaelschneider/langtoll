@@ -146,6 +146,12 @@ export const en = {
   'ob.lockSub': 'LangToll shields these until you finish a session. This is the whole point.',
   'ob.lockCta': 'Lock these apps',
   'ob.lockCtaWait': 'Choose apps first',
+  'ob.notifyTitle': 'Allow notifications — really.',
+  'ob.notifyBody':
+    'They’re how a locked app hands you back to practice, how your daily reminder lands, and how you get a heads-up before your pass runs out.',
+  'ob.notifyCta': 'Allow notifications',
+  'ob.notifyOn': 'Notifications on — you’re set',
+  'ob.notifySettings': 'Turn them on in Settings',
 
   // lock setup
   'lock.enable': 'Enable Screen Time',

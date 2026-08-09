@@ -43,6 +43,23 @@ export function handleNotificationTaps(): () => void {
 }
 
 /**
+ * Full permission state, for UI that must distinguish "never asked" (can show
+ * the system prompt) from "asked and denied" (only Settings can flip it now —
+ * iOS will not show the prompt twice).
+ */
+export async function notificationPermissionState(): Promise<{
+  granted: boolean;
+  canAskAgain: boolean;
+}> {
+  try {
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    return { granted: status === 'granted', canAskAgain };
+  } catch {
+    return { granted: false, canAskAgain: false };
+  }
+}
+
+/**
  * Whether notifications are currently allowed. The shield's "Practice now"
  * button posts one — with permission denied it does nothing at all, silently,
  * which is indistinguishable from the bug this whole flow replaced. So the app

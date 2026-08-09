@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   AccessibilityInfo,
+  AppState,
   ScrollView,
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
@@ -27,7 +28,12 @@ import { Button } from '@/components/ui/Button';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
-import { scheduleDailyNudge } from '@/lib/notify';
+import {
+  scheduleDailyNudge,
+  requestNotificationPermission,
+  notificationPermissionState,
+  openSystemSettings,
+} from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
@@ -303,6 +309,75 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
           {detail}
         </Text>
       </View>
+    </View>
+  );
+}
+
+// The pitch for notification permission, shown on the lock step: the shield's
+// "Practice now" button reaches the user THROUGH a notification (a
+// ShieldActionExtension cannot open its app — see lib/notify.ts), so a denial
+// quietly breaks the core loop. The card makes the case before the system
+// prompt appears (LockSetup fires it right after Screen Time auth), reflects a
+// grant, and — since iOS never re-prompts — routes an "asked and denied" state
+// to Settings instead.
+function NotifyNudge() {
+  const theme = useTheme();
+  const t = useT();
+  const [perm, setPerm] = useState<{ granted: boolean; canAskAgain: boolean } | null>(null);
+  const refresh = useCallback(() => {
+    void notificationPermissionState().then(setPerm);
+  }, []);
+  useEffect(() => {
+    refresh();
+    // Re-check on foreground: the user may return from the system prompt,
+    // Screen Time's sheet, or the Settings toggle this card points at.
+    const sub = AppState.addEventListener('change', (s) => s === 'active' && refresh());
+    return () => sub.remove();
+  }, [refresh]);
+
+  if (!perm) return null;
+
+  if (perm.granted) {
+    return (
+      <View
+        style={[
+          styles.notifyDone,
+          { backgroundColor: withAlpha(theme.accent, 0.10), borderColor: theme.accent },
+        ]}
+      >
+        <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
+        <Text variant="bodyMedium" style={{ flex: 1, color: theme.accent }}>
+          {t('ob.notifyOn')}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.notifyCard, { backgroundColor: theme.fill, borderColor: theme.line }]}>
+      <View style={styles.notifyHead}>
+        <Ionicons name="notifications" size={18} color={theme.accent} />
+        <Text variant="bodyMedium" style={{ flex: 1 }}>
+          {t('ob.notifyTitle')}
+        </Text>
+      </View>
+      <Text variant="callout" color="inkSoft" style={{ marginTop: space.xs }}>
+        {t('ob.notifyBody')}
+      </Text>
+      <Button
+        label={perm.canAskAgain ? t('ob.notifyCta') : t('ob.notifySettings')}
+        variant="ghost"
+        full
+        style={{ marginTop: space.md }}
+        onPress={async () => {
+          if (perm.canAskAgain) {
+            await requestNotificationPermission();
+            refresh();
+          } else {
+            openSystemSettings();
+          }
+        }}
+      />
     </View>
   );
 }
@@ -881,6 +956,9 @@ export default function Onboarding() {
                 <View style={{ marginTop: space.xl }}>
                   <LockSetup apps={apps} onReady={setLockReady} />
                 </View>
+                <View style={{ marginTop: space.lg }}>
+                  <NotifyNudge />
+                </View>
               </Entrance>
             )}
           </View>
@@ -964,6 +1042,22 @@ const styles = StyleSheet.create({
     marginTop: space.xl,
   },
   howRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  notifyCard: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.lg,
+  },
+  notifyHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  notifyDone: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.lg,
+  },
   howIcon: {
     width: 40,
     height: 40,

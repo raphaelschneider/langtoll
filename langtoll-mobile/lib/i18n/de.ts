@@ -133,6 +133,12 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.lockSub': 'LangToll blockiert sie, bis du eine Session beendest. Genau darum geht es.',
   'ob.lockCta': 'Diese Apps sperren',
   'ob.lockCtaWait': 'Erst Apps wählen',
+  'ob.notifyTitle': 'Erlaube Mitteilungen — wirklich.',
+  'ob.notifyBody':
+    'Sie bringen dich von einer gesperrten App zurück zum Üben, liefern deine tägliche Erinnerung und warnen dich, bevor dein Pass abläuft.',
+  'ob.notifyCta': 'Mitteilungen erlauben',
+  'ob.notifyOn': 'Mitteilungen an — passt',
+  'ob.notifySettings': 'In den Einstellungen aktivieren',
 
   'lock.enable': 'Bildschirmzeit erlauben',
   'lock.authBody': 'Erlaube Bildschirmzeit, damit LangToll deine Apps sperren kann, und Mitteilungen, damit die Sperre dich zurückholen kann. Apple fragt nur einmal.',
