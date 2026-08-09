@@ -83,9 +83,6 @@ export function PassCard({
 
   const barcode = useMemo(() => BARCODE, []);
 
-  // (The gyroscope tilt that used to live here is gone — Tolly perches on the
-  // card from outside, so a card that leaned while he stayed put read as broken.)
-
   return (
     <Animated.View
       style={[
