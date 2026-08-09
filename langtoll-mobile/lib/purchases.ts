@@ -10,6 +10,16 @@
 // flow through automatically.
 import { Platform } from 'react-native';
 import { applyEntitlement } from './store';
+import { scheduleHoneymoonEndNotice } from './notify';
+
+// Every entitlement write goes through here: the plan change also re-evaluates
+// the day-6 honeymoon notice (a fresh Plus cancels it; a lapse re-arms it if
+// the window is somehow still open). Keeping the pair atomic at this seam
+// beats remembering it at six call sites.
+function applyPlan(plus: boolean): void {
+  applyEntitlement(plus);
+  scheduleHoneymoonEndNotice();
+}
 import { track } from './telemetry';
 import { PLUS_ENTITLEMENT, PRODUCT_IDS, FALLBACK_PRICES, TRIAL_DAYS, type Period } from './plans';
 
@@ -170,7 +180,7 @@ export async function configurePurchases(): Promise<void> {
     }
     Purchases.configure({ apiKey: RC_API_KEY });
     configured = true;
-    Purchases.addCustomerInfoUpdateListener((info: any) => applyEntitlement(isPlusActive(info)));
+    Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info)));
     await syncEntitlement();
   } catch {
     // bad key / pod not linked — stay on mock; rebuild to enable
@@ -181,7 +191,7 @@ export async function configurePurchases(): Promise<void> {
 export async function syncEntitlement(): Promise<void> {
   if (!purchasesEnabled()) return;
   try {
-    applyEntitlement(isPlusActive(await rc().getCustomerInfo()));
+    applyPlan(isPlusActive(await rc().getCustomerInfo()));
   } catch {
     // offline / not configured — keep last known plan
   }
@@ -315,12 +325,12 @@ export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
       track('purchase_unavailable');
       return 'error';
     }
-    applyEntitlement(true); // mock: grant Plus locally
+    applyPlan(true); // mock: grant Plus locally
     return 'purchased';
   }
   try {
     const { customerInfo } = await rc().purchasePackage(pkg.raw);
-    applyEntitlement(isPlusActive(customerInfo));
+    applyPlan(isPlusActive(customerInfo));
     if (isPlusActive(customerInfo)) {
       track('subscribed', { period: pkg.period });
       return 'purchased';
@@ -356,7 +366,7 @@ export async function restore(): Promise<boolean> {
   try {
     const info = await rc().restorePurchases();
     const active = isPlusActive(info);
-    applyEntitlement(active);
+    applyPlan(active);
     if (active) track('restored');
     return active;
   } catch {

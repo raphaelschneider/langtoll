@@ -101,6 +101,8 @@ export const fr: Partial<Record<StringKey, string>> = {
   'expiry.body': 'Le portique se ferme dans {mins} minutes — termine, ou recharge avec une session rapide.',
   'nudge.title': 'C’est d’habitude ton heure de scroll.',
   'nudge.body': 'Cinq exercices rapides te rachètent ton temps d’écran.',
+  'honeymoon.title': 'Demain, ta semaine gratuite se termine.',
+  'honeymoon.body': "La voix, les exercices écrits, les tarifs personnalisés et le mode strict repassent derrière Plus demain. Un geste et tu les gardes.",
   'ob.printOver': 'Un instant',
   'ob.printTitle': 'Construction de ton plan…',
   'ob.printTitleNamed': '{name}, on construit ton plan…',

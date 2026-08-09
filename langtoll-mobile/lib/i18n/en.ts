@@ -114,6 +114,8 @@ export const en = {
   'expiry.body': 'The gate closes in {mins} minutes — finish up, or top up with a quick session.',
   'nudge.title': 'This is usually your scroll hour.',
   'nudge.body': 'Five quick exercises buy your phone time back.',
+  'honeymoon.title': 'Tomorrow your free week ends.',
+  'honeymoon.body': 'The voice, typed practice, custom fares and strict mode go back behind Plus tomorrow. One tap keeps them.',
   'ob.printOver': 'One moment',
   'ob.printTitle': 'Building your plan…',
   'ob.printTitleNamed': 'Building your plan, {name}…',

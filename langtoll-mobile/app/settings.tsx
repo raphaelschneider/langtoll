@@ -24,6 +24,7 @@ import {
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus } from '@/lib/blocking';
 import { supportCode } from '@/lib/device';
+import { scheduleHoneymoonEndNotice } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
@@ -816,7 +817,7 @@ export default function Settings() {
               <Button
                 label={plus ? 'Downgrade to free (dev)' : 'Grant Plus (dev)'}
                 variant="ghost"
-                onPress={() => applyEntitlement(!plus)}
+                onPress={() => { applyEntitlement(!plus); scheduleHoneymoonEndNotice(); }}
               />
               <Button label={t('home.lockDev')} variant="ghost" onPress={lockNow} />
               <Button

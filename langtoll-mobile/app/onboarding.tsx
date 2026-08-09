@@ -30,6 +30,7 @@ import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
 import {
   scheduleDailyNudge,
+  scheduleHoneymoonEndNotice,
   requestNotificationPermission,
   notificationPermissionState,
   openSystemSettings,
@@ -524,6 +525,8 @@ export default function Onboarding() {
     // At the hour THEY named — permission was just granted (or denied) during
     // lock setup, and the scheduler quietly no-ops without it.
     void scheduleDailyNudge(nudgeHour);
+    // Launch-time scheduling ran before permission existed; now it might.
+    scheduleHoneymoonEndNotice();
     lockNow(); // shield the chosen apps immediately so home lands in the "locked" state
     track('onboarded', { language, level: derivedLevel, difficulty });
     router.replace('/');

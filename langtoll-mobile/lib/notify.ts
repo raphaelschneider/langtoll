@@ -7,6 +7,8 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { Linking } from 'react-native';
 import { t } from '@/lib/i18n';
+import { getState, isPlus } from '@/lib/store';
+import { HONEYMOON_DAYS } from '@/lib/plans';
 
 /**
  * Ask for notification permission. Called right after Screen Time authorization,
@@ -81,6 +83,7 @@ export function openSystemSettings(): void {
 
 const NUDGE_ID = 'daily-nudge';
 const EXPIRY_ID = 'pass-expiry';
+const HONEYMOON_ID = 'honeymoon-end';
 
 /** Resolve a bundled Tolly PNG into a notification attachment (best-effort). */
 async function tollyAttachment(
@@ -139,6 +142,42 @@ export function cancelPassExpiryNotice(): void {
  */
 export function clearDeliveredNotifications(): void {
   void Notifications.dismissAllNotificationsAsync().catch(() => {});
+}
+
+/**
+ * One-shot notice 24 hours before the honeymoon ends — exactly a day before
+ * the gates snap back, so "tomorrow" in the copy is literally true. Tapping
+ * opens the paywall. Replace-by-id and self-cancelling: called on every
+ * launch, after onboarding grants permission, and on entitlement changes, it
+ * re-evaluates from scratch — Plus, an expired window, or a past fire time
+ * all mean cancel. Fire-and-forget safe like every scheduler here.
+ */
+export function scheduleHoneymoonEndNotice(): void {
+  void (async () => {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(HONEYMOON_ID);
+      const s = getState();
+      if (isPlus(s)) return;
+      const started = s.firstLaunchAt ? Date.parse(s.firstLaunchAt) : NaN;
+      if (Number.isNaN(started)) return;
+      const fireAt = new Date(started + (HONEYMOON_DAYS - 1) * 24 * 60 * 60 * 1000);
+      if (fireAt <= new Date() || !(await notificationsGranted())) return;
+      // Sad Tolly: losing things is his department.
+      const attachments = await tollyAttachment(require('../assets/tolly/tolly-sad.png'));
+      await Notifications.scheduleNotificationAsync({
+        identifier: HONEYMOON_ID,
+        content: {
+          title: t('honeymoon.title'),
+          body: t('honeymoon.body'),
+          data: { url: 'langtoll://paywall' },
+          attachments,
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fireAt },
+      });
+    } catch {
+      // best-effort — conversion nudges must never break a launch
+    }
+  })();
 }
 
 /**
