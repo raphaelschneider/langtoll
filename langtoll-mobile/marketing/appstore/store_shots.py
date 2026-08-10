@@ -275,7 +275,7 @@ SHOTS = [
         "name": "05_wallet",
         "raw": "raw_wallet_fr.png",
         "kicker": "every unlock leaves words behind",
-        "headline": "Your wasted minutes,\nnow a French vocabulary",
+        "headline": "Your wasted minutes,\nnow a new vocabulary",
         "aurora": [(TEAL_DEEP, 0.1, 0.2, 0.6), (AMBER, 0.9, 0.8, 0.45), (TEAL, 0.3, 0.95, 0.4)],
         "device_w": 1080, "tilt": 3.0, "device_y": 545,
         # Bottom-left corner, over the already-faded next card — never over legible copy.
