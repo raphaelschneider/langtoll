@@ -146,10 +146,17 @@ def draw_text(canvas: Image.Image, kicker: str, headline: str,
 def strip(path: str, width: int, tilt: float = 0.0, radius: int = 46) -> Image.Image:
     """A wide capture (Dynamic-Island strip, lock-screen banner) as a floating
     card: rounded, shadowed, gently tilted. Same finish as device(), no bezel —
-    these are crops of a real phone surface, not full screens."""
-    raw = Image.open(path).convert("RGB")
-    img = raw.resize((width, int(raw.height * width / raw.width)), Image.LANCZOS)
-    card = rounded(img, radius=radius)
+    these are crops of a real phone surface, not full screens.
+
+    RGBA sources carry their own EXACT silhouette (alpha traced from the
+    capture's card contour) and are used as-is; RGB sources get the generic
+    rounding."""
+    raw = Image.open(path)
+    if raw.mode == "RGBA":
+        card = raw.resize((width, int(raw.height * width / raw.width)), Image.LANCZOS)
+    else:
+        img = raw.convert("RGB").resize((width, int(raw.height * width / raw.width)), Image.LANCZOS)
+        card = rounded(img, radius=radius)
     shadowed = with_shadow(card, blur=40, alpha=120, dy=24)
     if tilt:
         shadowed = shadowed.rotate(tilt, expand=True, resample=Image.BICUBIC)
@@ -234,15 +241,15 @@ SHOTS = [
         # self-labelling its course (DE/FR/ES/PT/IT in the ticket footer).
         # Pairs deliberately cross languages: source AND target vary.
         "strips": [
-            {"path": "raw/raw_island_goodbye_tchau_tight.jpg", "w": 620, "tilt": -5.0, "x": 90, "y": 660},
-            {"path": "raw/raw_lockscreen_tschuess_tight.jpg", "w": 900, "tilt": 3.0, "x": 290, "y": 820},
-            {"path": "raw/raw_lock_bonjour_buenosdias_tight.jpg", "w": 900, "tilt": -4.0, "x": 40, "y": 1160},
-            {"path": "raw/raw_island_buongiorno_tight.jpg", "w": 600, "tilt": 5.0, "x": 530, "y": 1510},
-            {"path": "raw/raw_lock_hola_ciao_tight.jpg", "w": 900, "tilt": -3.0, "x": 300, "y": 1660},
-            {"path": "raw/raw_lock_porfavor_perfavore_tight.jpg", "w": 900, "tilt": 4.0, "x": 40, "y": 2000},
-            {"path": "raw/raw_lock_prego_denada_tight.jpg", "w": 900, "tilt": -5.0, "x": 300, "y": 2340},
+            {"path": "raw/raw_lockscreen_tschuess_exact.png", "w": 1150, "tilt": 2.5, "x": -100, "y": 520},
+            {"path": "raw/raw_island_goodbye_tchau_full.jpg", "w": 900, "tilt": -4.0, "x": 330, "y": 910},
+            {"path": "raw/raw_lock_bonjour_buenosdias_exact.png", "w": 1150, "tilt": -3.0, "x": 20, "y": 1060},
+            {"path": "raw/raw_lock_hola_ciao_exact.png", "w": 1150, "tilt": 2.5, "x": -100, "y": 1440},
+            {"path": "raw/raw_island_buongiorno_full.jpg", "w": 900, "tilt": 4.0, "x": -70, "y": 1830},
+            {"path": "raw/raw_lock_porfavor_perfavore_exact.png", "w": 1150, "tilt": -2.5, "x": 15, "y": 1975},
+            {"path": "raw/raw_lock_prego_denada_exact.png", "w": 1150, "tilt": 3.0, "x": -90, "y": 2350},
         ],
-        "tollys": [{"name": "tolly-celebrate", "w": 360, "x": 0, "y": 2620, "tilt": -4.0}],
+        "tollys": [{"name": "tolly-celebrate", "w": 640, "x": 640, "y": 2270, "tilt": 3.0}],
     },
     {
         # The fare: a rep is BUILDING a real sentence from word tiles — not matching\n        # a word to its translation. The caption must never promise more than the\n        # screen proves (an early cut said "order dinner" over a "the coffee" drill).
