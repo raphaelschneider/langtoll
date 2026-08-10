@@ -265,7 +265,7 @@ SHOTS = [
         # scroll. The screen's "Desbloqueado!" is the pt pack's own flavor word.
         "name": "04_pass",
         "raw": "raw_pass_pt.png",
-        "kicker": "paid in portuguese — 30 minutes of phone",
+        "kicker": "fare paid — 30 minutes of phone",
         "headline": "Scroll guilt-free.\nYou earned it.",
         "aurora": [(MINT, 0.18, 0.25, 0.55), (TEAL, 0.9, 0.75, 0.5), (TEAL_DEEP, 0.4, 0.0, 0.4)],
         "device_w": 1100, "tilt": -2.5, "device_y": 545,
@@ -285,7 +285,7 @@ SHOTS = [
         # The promise, in the app's own voice. No willpower story — inevitability.
         "name": "06_hook",
         "raw": "raw_hook_it.png",
-        "kicker": "italian, without the willpower",
+        "kicker": "a new language, without the willpower",
         "headline": "Fluency you can't\nprocrastinate",
         "aurora": [(CORAL, 0.15, 0.2, 0.5), (TEAL, 0.88, 0.65, 0.55), (TEAL_DEEP, 0.4, 1.0, 0.45)],
         "device_w": 1100, "tilt": -2.5, "device_y": 545,
