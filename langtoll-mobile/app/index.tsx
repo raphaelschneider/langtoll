@@ -9,7 +9,8 @@ import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { PassCard } from '@/components/pass/PassCard';
 import { Entrance } from '@/components/ui/Entrance';
 import { Tolly } from '@/components/ui/Tolly';
-import { endPassActivity } from '@/modules/langtoll-activity/src';
+import { endPassActivity, activitySupported, areActivitiesEnabled } from '@/modules/langtoll-activity/src';
+import { openSystemSettings } from '@/lib/notify';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -18,6 +19,7 @@ import { Logo } from '@/components/ui/Logo';
 import { FareGate, type FareGateTrigger } from '@/components/pass/FareGate';
 import { JourneyLine } from '@/components/home/JourneyLine';
 import { useTheme, space, radius, font } from '@/design/theme';
+import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
 import { useT, type StringKey } from '@/lib/i18n';
@@ -131,6 +133,28 @@ export default function Home() {
             </View>
           </Entrance>
 
+          {/* A pass is running but iOS won't show its countdown: the user hit
+              "Turn Off" while clearing the Live Activity (one swipe away from
+              "Clear" — easy to hit by mistake, founder did it too). The app
+              cannot re-enable it; this row explains and jumps straight to
+              LangToll's settings page. Renders only where the feature exists
+              (real build), and self-clears on the next countdown tick after
+              they flip it back. */}
+          {unlocked && activitySupported() && !areActivitiesEnabled() && (
+            <Entrance delay={180}>
+              <PressableScale
+                onPress={openSystemSettings}
+                style={[styles.activityOff, { borderColor: theme.amber, backgroundColor: withAlpha(theme.amber, 0.08) }]}
+              >
+                <Ionicons name="notifications-off-outline" size={18} color={theme.amber} />
+                <Text variant="caption" style={{ flex: 1, color: theme.amber }}>
+                  {t('home.activityOff')}
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={theme.amber} />
+              </PressableScale>
+            </Entrance>
+          )}
+
           <Entrance delay={220}>
             <Button
               label={unlocked ? t('home.topUp', { min: effectiveUnlockMinutes() }) : t('home.practice')}
@@ -174,6 +198,16 @@ export default function Home() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
+  activityOff: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    marginTop: space.md,
+  },
   content: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.lg },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brandRight: { flexDirection: 'row', alignItems: 'center', gap: space.sm },

@@ -28,8 +28,16 @@ if (Platform.OS === 'ios') {
   }
 }
 
+/** Whether the native module is present at all (real build, not Expo Go /
+ *  simulator stub) — gate any "activities are off" UI on this so a platform
+ *  that never had the feature doesn't warn about it. */
+export function activitySupported(): boolean {
+  return native != null;
+}
+
 /** Whether iOS currently allows this app to start Live Activities (the
- *  Settings → LangToll → Live Activities toggle, surfaced for diagnostics). */
+ *  Settings → Apps → LangToll → Live Activities toggle, surfaced for both
+ *  the dev rig and the user-facing re-enable hint). */
 export function areActivitiesEnabled(): boolean {
   try {
     return native?.areActivitiesEnabled() ?? false;

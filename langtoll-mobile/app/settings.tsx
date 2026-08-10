@@ -2,7 +2,7 @@
 // course (level + difficulty), fare, voice, app language, blocked apps, and
 // the AI topic pack generator (lib/ai/topics behind a demo-mode fallback).
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, ScrollView, Switch, Alert } from 'react-native';
+import { View, StyleSheet, TextInput, ScrollView, Switch, Alert, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -25,7 +25,7 @@ import {
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus, grantUnlock } from '@/lib/blocking';
 import { supportCode } from '@/lib/device';
-import { scheduleHoneymoonEndNotice } from '@/lib/notify';
+import { scheduleHoneymoonEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
@@ -56,7 +56,7 @@ import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speec
 import { activePack } from '@/lib/pack';
 import { availableLanguages } from '@/content';
 import { syncPassActivity } from '@/lib/pass-activity';
-import { areActivitiesEnabled } from '@/modules/langtoll-activity/src';
+import { areActivitiesEnabled, activitySupported } from '@/modules/langtoll-activity/src';
 import type { Level } from '@/content/german';
 
 // Dev levers are normally __DEV__-only, which strips them from Release builds.
@@ -319,6 +319,44 @@ function VoiceLab() {
         {`Sessions use: ${voice ?? 'auto-selected (best rank)'} · rate ${rate.toFixed(2)} · pitch ${pitch.toFixed(2)}`}
       </Text>
     </Section>
+  );
+}
+
+// Live Activities status: iOS offers "Turn Off" right next to "Clear" when
+// dismissing the lock-screen countdown, so users kill the feature by accident
+// and the app can't turn it back on. This row says which state they're in and,
+// when off, opens LangToll's page in the Settings app (the toggle lives under
+// Settings → Apps → LangToll → Live Activities). Re-checks on foreground so it
+// updates the moment they come back.
+function LiveActivityStatus() {
+  const theme = useTheme();
+  const t = useT();
+  const [enabled, setEnabled] = useState(() => areActivitiesEnabled());
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') setEnabled(areActivitiesEnabled());
+    });
+    return () => sub.remove();
+  }, []);
+
+  if (enabled) {
+    return (
+      <View style={styles.switchRow}>
+        <Ionicons name="checkmark-circle" size={20} color={theme.accent} />
+        <Text variant="callout" color="inkSoft" style={{ flex: 1 }}>
+          {t('settings.laEnabled')}
+        </Text>
+      </View>
+    );
+  }
+  return (
+    <PressableScale onPress={openSystemSettings} style={styles.switchRow}>
+      <Ionicons name="notifications-off-outline" size={20} color={theme.amber} />
+      <Text variant="callout" style={{ flex: 1, color: theme.amber }}>
+        {t('settings.laOff')}
+      </Text>
+      <Ionicons name="chevron-forward" size={16} color={theme.amber} />
+    </PressableScale>
   );
 }
 
@@ -604,6 +642,13 @@ export default function Settings() {
             </View>
           </Section>
 
+          {/* lock-screen countdown (Live Activity) — status + recovery */}
+          {activitySupported() && (
+            <Section title={t('settings.liveActivities')}>
+              <LiveActivityStatus />
+            </Section>
+          )}
+
           {/* voice */}
           <Section title={t('settings.voice')}>
             <View style={styles.switchRow}>
@@ -852,7 +897,7 @@ export default function Settings() {
                     'Pass issued',
                     started
                       ? 'Live Activity started — check the island and lock screen.'
-                      : `Live Activity did NOT start.\nSystem allows activities: ${areActivitiesEnabled() ? 'yes' : 'NO — check iPhone Settings → LangToll → Live Activities'}`
+                      : `Live Activity did NOT start.\nSystem allows activities: ${areActivitiesEnabled() ? 'yes' : 'NO — check Settings → Apps → LangToll → Live Activities'}`
                   );
                 }}
               />
