@@ -2,7 +2,7 @@
 // course (level + difficulty), fare, voice, app language, blocked apps, and
 // the AI topic pack generator (lib/ai/topics behind a demo-mode fallback).
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, ScrollView, Switch } from 'react-native';
+import { View, StyleSheet, TextInput, ScrollView, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -56,6 +56,7 @@ import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speec
 import { activePack } from '@/lib/pack';
 import { availableLanguages } from '@/content';
 import { syncPassActivity } from '@/lib/pass-activity';
+import { areActivitiesEnabled } from '@/modules/langtoll-activity/src';
 import type { Level } from '@/content/german';
 
 // Dev levers are normally __DEV__-only, which strips them from Release builds.
@@ -844,7 +845,15 @@ export default function Settings() {
                 onPress={() => {
                   completeSession(effectiveUnlockMinutes());
                   grantUnlock(effectiveUnlockMinutes());
-                  syncPassActivity();
+                  const started = syncPassActivity();
+                  // The start result vanished silently before; a capture rig
+                  // needs to say WHY the island didn't appear.
+                  Alert.alert(
+                    'Pass issued',
+                    started
+                      ? 'Live Activity started — check the island and lock screen.'
+                      : `Live Activity did NOT start.\nSystem allows activities: ${areActivitiesEnabled() ? 'yes' : 'NO — check iPhone Settings → LangToll → Live Activities'}`
+                  );
                 }}
               />
               <Button

@@ -8,9 +8,11 @@ import { activePack } from '@/lib/pack';
 import { startPassActivity, setWordRotation } from '@/modules/langtoll-activity/src';
 import { pickRotationDeck } from '@/lib/word-rotation';
 
-export function syncPassActivity(): void {
+/** Returns whether the Live Activity actually started — callers that only
+ *  fire-and-forget can ignore it; the dev rig surfaces it for diagnosis. */
+export function syncPassActivity(): boolean {
   const s = getState();
-  if (!isUnlocked(s) || !s.unlockExpiresAt) return;
+  if (!isUnlocked(s) || !s.unlockExpiresAt) return false;
   const pack = activePack();
 
   // The island's vocabulary rotation: the activity launches showing card 0 and
@@ -21,7 +23,7 @@ export function syncPassActivity(): void {
   setWordRotation(deck);
   const first = deck[0] ?? null;
 
-  startPassActivity(
+  return startPassActivity(
     s.unlockExpiresAt,
     (s.name ?? 'PASSENGER').toUpperCase(),
     `${pack.language.toUpperCase()} · ${pack.level}`,

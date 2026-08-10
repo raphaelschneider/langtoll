@@ -28,6 +28,16 @@ if (Platform.OS === 'ios') {
   }
 }
 
+/** Whether iOS currently allows this app to start Live Activities (the
+ *  Settings → LangToll → Live Activities toggle, surfaced for diagnostics). */
+export function areActivitiesEnabled(): boolean {
+  try {
+    return native?.areActivitiesEnabled() ?? false;
+  } catch {
+    return false;
+  }
+}
+
 /** Start (or replace) the pass countdown Live Activity. */
 export function startPassActivity(
   expiresAtMs: number,
