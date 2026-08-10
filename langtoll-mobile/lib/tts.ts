@@ -39,11 +39,12 @@ const SPEECH_RATE = 0.7;
 
 /**
  * What "Normal" means for the pre-rendered studio files, which are recorded at
- * a natural pace: 1.0 was too fast to shadow, 0.7 (the raw TTS scale) dragged.
- * 0.8 chosen by ear on device (founder call, 2026-08-09). Pitch correction in
- * the player keeps the voice's pitch natural at any rate.
+ * a natural pace: 1.0 was too fast to shadow, 0.7 (the raw TTS scale) dragged,
+ * 0.8 still dragged after a day of real sessions. 0.9 by ear on device
+ * (founder call, 2026-08-10). Pitch correction in the player keeps the
+ * voice's pitch natural at any rate.
  */
-const FILE_RATE_NORMAL = 0.8;
+const FILE_RATE_NORMAL = 0.9;
 
 let voices: Speech.Voice[] | null = null;
 let loading: Promise<void> | null = null;
