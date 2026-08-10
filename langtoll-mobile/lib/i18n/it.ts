@@ -164,6 +164,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'home.activityOff': 'Conto alla rovescia e vocaboli dell’isola spariti: le Attività in tempo reale sono disattivate. Tocca per riattivarle.',
   'settings.liveActivities': 'Schermata di blocco e Dynamic Island',
   'settings.laEnabled': 'Attive — conto alla rovescia nella schermata di blocco, vocaboli nella Dynamic Island',
+  'settings.laIdle': 'Attive — compaiono nella schermata di blocco e nella Dynamic Island finché un pass è attivo',
   'settings.laOff': 'Disattivate — tocca qui e riattiva le Attività in tempo reale in Impostazioni → App → LangToll.',
   'settings.voice': 'Voce',
   'settings.speechSpeed': 'Velocità della voce',

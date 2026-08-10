@@ -164,6 +164,7 @@ export const pt: Partial<Record<StringKey, string>> = {
   'home.activityOff': 'A contagem e o vocabulário da ilha sumiram — as Atividades ao Vivo estão desativadas. Toque para reativar.',
   'settings.liveActivities': 'Tela de bloqueio e Dynamic Island',
   'settings.laEnabled': 'Ativadas — contagem na tela de bloqueio, vocabulário na Dynamic Island',
+  'settings.laIdle': 'Ativadas — aparecem na tela de bloqueio e na Dynamic Island enquanto um passe está ativo',
   'settings.laOff': 'Desativadas — toque aqui e reative as Atividades ao Vivo em Ajustes → Apps → LangToll.',
   'settings.voice': 'Voz',
   'settings.speechSpeed': 'Velocidade da fala',

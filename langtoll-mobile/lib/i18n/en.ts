@@ -179,6 +179,7 @@ export const en = {
   'home.activityOff': 'Your countdown and island vocabulary are gone — Live Activities are off. Tap to turn them back on.',
   'settings.liveActivities': 'Lock Screen & Dynamic Island',
   'settings.laEnabled': 'Enabled — countdown on the Lock Screen, vocabulary on the Dynamic Island',
+  'settings.laIdle': 'Enabled — appears on the Lock Screen and Dynamic Island while a pass is running',
   'settings.laOff': 'Off — tap here, then turn on Live Activities under Settings → Apps → LangToll.',
   'settings.voice': 'Voice',
   'settings.speechSpeed': 'Speech speed',

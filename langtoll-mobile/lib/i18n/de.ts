@@ -164,6 +164,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'home.activityOff': 'Countdown und Insel-Vokabeln sind weg — Live-Aktivitäten sind aus. Tippe, um sie wieder einzuschalten.',
   'settings.liveActivities': 'Sperrbildschirm & Dynamic Island',
   'settings.laEnabled': 'Aktiviert — Countdown auf dem Sperrbildschirm, Vokabeln auf der Dynamic Island',
+  'settings.laIdle': 'Aktiviert — erscheint auf Sperrbildschirm und Dynamic Island, solange ein Pass läuft',
   'settings.laOff': 'Aus — tippe hier und aktiviere Live-Aktivitäten unter Einstellungen → Apps → LangToll.',
   'settings.voice': 'Stimme',
   'settings.speechSpeed': 'Sprechtempo',

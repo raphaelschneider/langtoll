@@ -20,6 +20,7 @@ import {
   completeSession,
   lockNow,
   isPlus,
+  isUnlocked,
   applyEntitlement,
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
@@ -331,7 +332,12 @@ function VoiceLab() {
 function LiveActivityStatus() {
   const theme = useTheme();
   const t = useT();
+  const appState = useAppState();
   const [enabled, setEnabled] = useState(() => areActivitiesEnabled());
+  // Permission and presence are different facts: "enabled" without a running
+  // pass means nothing is on screen NOW — saying only "enabled" read as "you
+  // should be seeing it", which is exactly how it confused its first user.
+  const passRunning = isUnlocked(appState);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (st) => {
       if (st === 'active') setEnabled(areActivitiesEnabled());
@@ -344,7 +350,7 @@ function LiveActivityStatus() {
       <View style={styles.switchRow}>
         <Ionicons name="checkmark-circle" size={20} color={theme.accent} />
         <Text variant="callout" color="inkSoft" style={{ flex: 1 }}>
-          {t('settings.laEnabled')}
+          {t(passRunning ? 'settings.laEnabled' : 'settings.laIdle')}
         </Text>
       </View>
     );
