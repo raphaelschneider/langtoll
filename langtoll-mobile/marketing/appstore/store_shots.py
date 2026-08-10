@@ -205,8 +205,10 @@ def build_shot(spec: dict, raw_dir: str) -> Image.Image:
 # and a full-navy set stands out in a sea of white screenshots.
 #
 # One language per shot — the set itself demonstrates the catalogue:
-# 01 German (home) · 02 Spanish (practice) · 03 Portuguese (ceremony) ·
-# 04 French (wallet) · 05 Italian (onboarding hook) · 06 all five (overline).
+# 01 German (home) · 02 the island/lock-screen closer promoted to the front
+# (founder call 2026-08-10: best feature in the first three) · 03 Spanish
+# (practice) · 04 Portuguese (ceremony) · 05 French (wallet) · 06 Italian
+# (onboarding hook).
 SHOTS = [
     {
         # Ralph's register, verbatim: name the transformation, not the mechanism.
@@ -219,8 +221,32 @@ SHOTS = [
         "device_w": 1100, "tilt": -3.0, "device_y": 545,
     },
     {
+        # The closer: LangToll off-app — Tolly keeping the meter running on the
+        # lock screen and up top all day. Real device crops, no bezel needed.
+        # The overline is the catalogue itself. (Never name the island feature.)
+        "name": "02_watch",
+        "kicker": "german·spanish·french·italian·portuguese",
+        "headline": "He watches the clock\nso you don't have to",
+        "aurora": [(TEAL, 0.85, 0.2, 0.5), (TEAL_DEEP, 0.15, 0.8, 0.55), (AMBER, 0.2, 0.05, 0.3)],
+        # The catalogue, scattered (founder direction 2026-08-10): every course
+        # language rains down the canvas as real device captures — island pills
+        # between lock-screen banners, each gently crooked, each banner
+        # self-labelling its course (DE/FR/ES/PT/IT in the ticket footer).
+        # Pairs deliberately cross languages: source AND target vary.
+        "strips": [
+            {"path": "raw/raw_island_goodbye_tchau_tight.jpg", "w": 620, "tilt": -5.0, "x": 90, "y": 660},
+            {"path": "raw/raw_lockscreen_tschuess_tight.jpg", "w": 900, "tilt": 3.0, "x": 290, "y": 820},
+            {"path": "raw/raw_lock_bonjour_buenosdias_tight.jpg", "w": 900, "tilt": -4.0, "x": 40, "y": 1160},
+            {"path": "raw/raw_island_buongiorno_tight.jpg", "w": 600, "tilt": 5.0, "x": 530, "y": 1510},
+            {"path": "raw/raw_lock_hola_ciao_tight.jpg", "w": 900, "tilt": -3.0, "x": 300, "y": 1660},
+            {"path": "raw/raw_lock_porfavor_perfavore_tight.jpg", "w": 900, "tilt": 4.0, "x": 40, "y": 2000},
+            {"path": "raw/raw_lock_prego_denada_tight.jpg", "w": 900, "tilt": -5.0, "x": 300, "y": 2340},
+        ],
+        "tollys": [{"name": "tolly-celebrate", "w": 360, "x": 0, "y": 2620, "tilt": -4.0}],
+    },
+    {
         # The fare: a rep is BUILDING a real sentence from word tiles — not matching\n        # a word to its translation. The caption must never promise more than the\n        # screen proves (an early cut said "order dinner" over a "the coffee" drill).
-        "name": "02_practice",
+        "name": "03_practice",
         "raw": "raw_practice_es.png",
         "kicker": "whole sentences, from day one",
         "headline": "Speak in sentences,\nnot in single words",
@@ -230,7 +256,7 @@ SHOTS = [
     {
         # The payoff — PAID stamp, Tolly celebrating. Permission to enjoy the
         # scroll. The screen's "Desbloqueado!" is the pt pack's own flavor word.
-        "name": "03_pass",
+        "name": "04_pass",
         "raw": "raw_pass_pt.png",
         "kicker": "paid in portuguese — 30 minutes of phone",
         "headline": "Scroll guilt-free.\nYou earned it.",
@@ -239,7 +265,7 @@ SHOTS = [
     },
     {
         # What accrues while you "waste time": the wallet. Tolly peeks over the edge.
-        "name": "04_wallet",
+        "name": "05_wallet",
         "raw": "raw_wallet_fr.png",
         "kicker": "every unlock leaves words behind",
         "headline": "Your wasted minutes,\nnow a French vocabulary",
@@ -250,26 +276,12 @@ SHOTS = [
     },
     {
         # The promise, in the app's own voice. No willpower story — inevitability.
-        "name": "05_hook",
+        "name": "06_hook",
         "raw": "raw_hook_it.png",
         "kicker": "italian, without the willpower",
         "headline": "Fluency you can't\nprocrastinate",
         "aurora": [(CORAL, 0.15, 0.2, 0.5), (TEAL, 0.88, 0.65, 0.55), (TEAL_DEEP, 0.4, 1.0, 0.45)],
         "device_w": 1100, "tilt": -2.5, "device_y": 545,
-    },
-    {
-        # The closer: LangToll off-app — Tolly keeping the meter running on the
-        # lock screen and up top all day. Real device crops, no bezel needed.
-        # The overline is the catalogue itself. (Never name the island feature.)
-        "name": "06_watch",
-        "kicker": "german·spanish·french·italian·portuguese",
-        "headline": "He watches the clock\nso you don't have to",
-        "aurora": [(TEAL, 0.85, 0.2, 0.5), (TEAL_DEEP, 0.15, 0.8, 0.55), (AMBER, 0.2, 0.05, 0.3)],
-        "strips": [
-            {"path": "../../../langtoll-web/public/tolly/island.png", "w": 1180, "tilt": -2.0, "y": 800},
-            {"path": "../../../langtoll-web/public/tolly/lockscreen.png", "w": 1180, "tilt": 2.0, "y": 1160},
-        ],
-        "tollys": [{"name": "tolly-celebrate", "w": 700, "x": 310, "y": 1850, "tilt": 0.0}],
     },
     {
         # The paywall closer Ralph may still prefer — kept out of the contact
