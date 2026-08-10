@@ -232,8 +232,8 @@ SHOTS = [
         # lock screen and up top all day. Real device crops, no bezel needed.
         # The overline is the catalogue itself. (Never name the island feature.)
         "name": "02_watch",
-        "kicker": "german·spanish·french·italian·portuguese",
-        "headline": "He watches the clock\nso you don't have to",
+        "kicker": "word · translation · always on your screen",
+        "headline": "He watches the clock.\nYou soak up the words.",
         "aurora": [(TEAL, 0.85, 0.2, 0.5), (TEAL_DEEP, 0.15, 0.8, 0.55), (AMBER, 0.2, 0.05, 0.3)],
         # The catalogue, scattered (founder direction 2026-08-10): every course
         # language rains down the canvas as real device captures — island pills
@@ -247,7 +247,7 @@ SHOTS = [
             {"path": "raw/raw_lock_hola_ciao_exact.png", "w": 1150, "tilt": 2.5, "x": -100, "y": 1390},
             {"path": "raw/raw_lock_porfavor_perfavore_exact.png", "w": 1150, "tilt": -2.5, "x": 15, "y": 1945},
             {"path": "raw/raw_lock_prego_denada_exact.png", "w": 1150, "tilt": 3.0, "x": -90, "y": 2350},
-            {"path": "raw/raw_island_buongiorno_full.jpg", "w": 900, "tilt": 0.0, "y": 1860},
+            {"path": "raw/raw_island_buongiorno_full.jpg", "w": 900, "tilt": 0.0, "y": 1825},
         ],
         "tollys": [{"name": "tolly-celebrate", "w": 640, "x": 640, "y": 2120, "tilt": 3.0}],
     },
