@@ -245,11 +245,11 @@ SHOTS = [
             {"path": "raw/raw_island_goodbye_tchau_full.jpg", "w": 900, "tilt": -4.0, "x": 330, "y": 910},
             {"path": "raw/raw_lock_bonjour_buenosdias_exact.png", "w": 1150, "tilt": -3.0, "x": 20, "y": 1060},
             {"path": "raw/raw_lock_hola_ciao_exact.png", "w": 1150, "tilt": 2.5, "x": -100, "y": 1440},
-            {"path": "raw/raw_island_buongiorno_full.jpg", "w": 900, "tilt": 4.0, "x": -70, "y": 1830},
             {"path": "raw/raw_lock_porfavor_perfavore_exact.png", "w": 1150, "tilt": -2.5, "x": 15, "y": 1975},
             {"path": "raw/raw_lock_prego_denada_exact.png", "w": 1150, "tilt": 3.0, "x": -90, "y": 2350},
+            {"path": "raw/raw_island_buongiorno_full.jpg", "w": 900, "tilt": 1.5, "x": -70, "y": 1830},
         ],
-        "tollys": [{"name": "tolly-celebrate", "w": 640, "x": 640, "y": 2270, "tilt": 3.0}],
+        "tollys": [{"name": "tolly-celebrate", "w": 640, "x": 640, "y": 2140, "tilt": 3.0}],
     },
     {
         # The fare: a rep is BUILDING a real sentence from word tiles — not matching\n        # a word to its translation. The caption must never promise more than the\n        # screen proves (an early cut said "order dinner" over a "the coffee" drill).
