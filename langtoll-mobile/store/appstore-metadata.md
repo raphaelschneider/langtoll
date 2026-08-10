@@ -89,8 +89,9 @@ side, translation on the other — and your lock screen carries the countdown
 with the word of the moment. He watches the clock. You soak up the words. Even
 the scrolling you paid for keeps teaching.
 
-FIVE LANGUAGES, A REAL CURRICULUM
-German, Spanish, French, Italian and Portuguese — each from A1 to B2. Not a
+SIX LANGUAGES, A REAL CURRICULUM
+German, Spanish, French, Italian, Portuguese and English — each from A1 to
+B2. Not a
 phrasebook: multiple choice, typed answers with accent-forgiving grading, cloze,
 sentence building, listening, and article drills where your language has them.
 
