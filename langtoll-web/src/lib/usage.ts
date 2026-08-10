@@ -25,26 +25,31 @@ export async function logUsage(
 }
 
 // Rough public USD prices for a back-of-envelope estimate. Update as model pricing changes.
+// LangToll's two real kinds: 'topics' (pack generation, token-priced) and 'tts'
+// (JIT audio, priced per character — logUsage stores the character count in
+// tokens_in for tts rows, so the aggregates must keep the two apart or audio
+// characters get priced as chat tokens).
 export const COST = {
-  imageUSD: 0.04, // gpt-image-1, medium quality 1024×1024 (approx)
   chatInPer1k: 0.0025, // gpt-4o input ≈ $2.50 / 1M tokens
   chatOutPer1k: 0.01, // gpt-4o output ≈ $10 / 1M tokens
+  ttsPer1kChars: 0.015, // tts ≈ $15 / 1M characters
 };
 
-export function estimateCostUSD(d: { images: number; tokensIn: number; tokensOut: number }): number {
+export function estimateCostUSD(d: { tokensIn: number; tokensOut: number; ttsChars: number }): number {
   return (
-    d.images * COST.imageUSD +
     (d.tokensIn / 1000) * COST.chatInPer1k +
-    (d.tokensOut / 1000) * COST.chatOutPer1k
+    (d.tokensOut / 1000) * COST.chatOutPer1k +
+    (d.ttsChars / 1000) * COST.ttsPer1kChars
   );
 }
 
 export interface UsageDay {
   day: string;
-  images: number;
-  chats: number;
+  topics: number;
+  tts: number;
   tokensIn: number;
   tokensOut: number;
+  ttsChars: number;
 }
 
 // ── Global spend cap ──────────────────────────────────────────────────────────────────────────
@@ -73,18 +78,18 @@ export async function isOverBudget(): Promise<boolean> {
   try {
     const rows = await query(
       `SELECT
-         COALESCE(SUM(kind = 'image' AND created_at >= CURDATE()), 0)                      AS d_img,
-         COALESCE(SUM(IF(created_at >= CURDATE(), tokens_in, 0)), 0)                       AS d_tin,
-         COALESCE(SUM(IF(created_at >= CURDATE(), tokens_out, 0)), 0)                      AS d_tout,
-         COALESCE(SUM(kind = 'image'), 0)                                                  AS m_img,
-         COALESCE(SUM(tokens_in), 0)                                                       AS m_tin,
-         COALESCE(SUM(tokens_out), 0)                                                      AS m_tout
+         COALESCE(SUM(IF(kind <> 'tts' AND created_at >= CURDATE(), tokens_in, 0)), 0)     AS d_tin,
+         COALESCE(SUM(IF(kind <> 'tts' AND created_at >= CURDATE(), tokens_out, 0)), 0)    AS d_tout,
+         COALESCE(SUM(IF(kind = 'tts' AND created_at >= CURDATE(), tokens_in, 0)), 0)      AS d_tchars,
+         COALESCE(SUM(IF(kind <> 'tts', tokens_in, 0)), 0)                                 AS m_tin,
+         COALESCE(SUM(IF(kind <> 'tts', tokens_out, 0)), 0)                                AS m_tout,
+         COALESCE(SUM(IF(kind = 'tts', tokens_in, 0)), 0)                                  AS m_tchars
        FROM usage_log
        WHERE created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')`
     );
     const r = (Array.isArray(rows) ? rows[0] : {}) ?? {};
-    const day = estimateCostUSD({ images: Number(r.d_img || 0), tokensIn: Number(r.d_tin || 0), tokensOut: Number(r.d_tout || 0) });
-    const month = estimateCostUSD({ images: Number(r.m_img || 0), tokensIn: Number(r.m_tin || 0), tokensOut: Number(r.m_tout || 0) });
+    const day = estimateCostUSD({ tokensIn: Number(r.d_tin || 0), tokensOut: Number(r.d_tout || 0), ttsChars: Number(r.d_tchars || 0) });
+    const month = estimateCostUSD({ tokensIn: Number(r.m_tin || 0), tokensOut: Number(r.m_tout || 0), ttsChars: Number(r.m_tchars || 0) });
     const over = (DAILY_CAP > 0 && day >= DAILY_CAP) || (MONTHLY_CAP > 0 && month >= MONTHLY_CAP);
     budgetCache = { over, at: Date.now() };
     if (over) {
@@ -108,10 +113,11 @@ export async function getUsageByDay(days = 30): Promise<UsageDay[]> {
   try {
     const rows = await query(
       `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS day,
-              SUM(kind = 'image') AS images,
-              SUM(kind IN ('chat', 'topics')) AS chats,
-              COALESCE(SUM(tokens_in), 0)  AS tin,
-              COALESCE(SUM(tokens_out), 0) AS tout
+              SUM(kind IN ('chat', 'topics')) AS topics,
+              SUM(kind = 'tts') AS tts,
+              COALESCE(SUM(IF(kind <> 'tts', tokens_in, 0)), 0)  AS tin,
+              COALESCE(SUM(IF(kind <> 'tts', tokens_out, 0)), 0) AS tout,
+              COALESCE(SUM(IF(kind = 'tts', tokens_in, 0)), 0)   AS tchars
        FROM usage_log
        WHERE created_at >= NOW() - INTERVAL ? DAY
        GROUP BY day ORDER BY day`,
@@ -119,10 +125,11 @@ export async function getUsageByDay(days = 30): Promise<UsageDay[]> {
     );
     return rows.map((r: any) => ({
       day: r.day,
-      images: Number(r.images ?? 0),
-      chats: Number(r.chats ?? 0),
+      topics: Number(r.topics ?? 0),
+      tts: Number(r.tts ?? 0),
       tokensIn: Number(r.tin ?? 0),
       tokensOut: Number(r.tout ?? 0),
+      ttsChars: Number(r.tchars ?? 0),
     }));
   } catch {
     return [];

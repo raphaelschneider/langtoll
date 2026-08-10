@@ -3,7 +3,7 @@
 import { query } from '@/lib/db';
 import { getPricing, fmtPrice } from '@/lib/settings';
 import { getUsageByDay, estimateCostUSD } from '@/lib/usage';
-import { updatePricing } from './actions';
+import { updatePricing, deleteDevice } from './actions';
 import { BarChart } from './Charts';
 
 export const dynamic = 'force-dynamic';
@@ -159,16 +159,16 @@ async function DashboardTab() {
 
   // AI usage + rough cost (images + chat turns). See lib/usage COST constants.
   const todayKey = new Date().toISOString().slice(0, 10);
-  const todayUsage = usage.find((u) => u.day === todayKey) ?? { images: 0, chats: 0, tokensIn: 0, tokensOut: 0 };
+  const todayUsage = usage.find((u) => u.day === todayKey) ?? { topics: 0, tts: 0, tokensIn: 0, tokensOut: 0, ttsChars: 0 };
   const usage7 = usage.filter((u) => u.day >= new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10));
   const sum7 = usage7.reduce(
-    (a, u) => ({ images: a.images + u.images, chats: a.chats + u.chats, tokensIn: a.tokensIn + u.tokensIn, tokensOut: a.tokensOut + u.tokensOut }),
-    { images: 0, chats: 0, tokensIn: 0, tokensOut: 0 }
+    (a, u) => ({ topics: a.topics + u.topics, tts: a.tts + u.tts, tokensIn: a.tokensIn + u.tokensIn, tokensOut: a.tokensOut + u.tokensOut, ttsChars: a.ttsChars + u.ttsChars }),
+    { topics: 0, tts: 0, tokensIn: 0, tokensOut: 0, ttsChars: 0 }
   );
   const costToday = estimateCostUSD(todayUsage);
   const costPerDay7 = usage7.length ? estimateCostUSD(sum7) / 7 : 0;
-  const imageDays: DayCount[] = usage.map((u) => ({ day: u.day, n: u.images }));
-  const chatDays: DayCount[] = usage.map((u) => ({ day: u.day, n: u.chats }));
+  const topicsDays: DayCount[] = usage.map((u) => ({ day: u.day, n: u.topics }));
+  const ttsDays: DayCount[] = usage.map((u) => ({ day: u.day, n: u.tts }));
 
   const monthly = Number(subs.find((s: any) => s.period === 'monthly')?.n ?? 0);
   const yearly = Number(subs.find((s: any) => s.period === 'yearly')?.n ?? 0);
@@ -227,18 +227,18 @@ async function DashboardTab() {
         {/* AI usage & cost */}
         <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 24, margin: '36px 0 12px' }}>AI usage &amp; cost</h2>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <Stat label="Images today" value={String(todayUsage.images)} sub={`${sum7.images} in 7 days`} tint={BRAND.amber} hint={`${todayUsage.images} today · ${sum7.images} over the last 7 days`} />
-          <Stat label="Chats today" value={String(todayUsage.chats)} sub={`${sum7.chats} in 7 days`} tint={BRAND.pine} hint={`${todayUsage.chats} today · ${sum7.chats} over the last 7 days`} />
-          <Stat label="Est. cost today" value={`$${costToday.toFixed(2)}`} sub="images + chat tokens" tint={BRAND.accent} hint={`${todayUsage.images} images + ${(todayUsage.tokensIn + todayUsage.tokensOut).toLocaleString()} tokens ≈ $${costToday.toFixed(4)}`} />
+          <Stat label="AI packs today" value={String(todayUsage.topics)} sub={`${sum7.topics} in 7 days`} tint={BRAND.amber} hint={`${todayUsage.topics} pack generations today · ${sum7.topics} over the last 7 days`} />
+          <Stat label="Audio renders today" value={String(todayUsage.tts)} sub={`${sum7.tts} in 7 days`} tint={BRAND.pine} hint={`${todayUsage.tts} JIT tts files today · ${sum7.tts} over the last 7 days`} />
+          <Stat label="Est. cost today" value={`$${costToday.toFixed(2)}`} sub="pack tokens + tts characters" tint={BRAND.accent} hint={`${(todayUsage.tokensIn + todayUsage.tokensOut).toLocaleString()} tokens + ${todayUsage.ttsChars.toLocaleString()} tts chars ≈ $${costToday.toFixed(4)}`} />
           <Stat label="Est. $/day" value={`$${costPerDay7.toFixed(2)}`} sub="7-day average" hint={`$${estimateCostUSD(sum7).toFixed(2)} over 7 days ≈ $${costPerDay7.toFixed(4)}/day`} />
           <Stat label="Chat tokens (7d)" value={`${Math.round((sum7.tokensIn + sum7.tokensOut) / 1000)}k`} sub={`${Math.round(sum7.tokensIn / 1000)}k in · ${Math.round(sum7.tokensOut / 1000)}k out`} hint={`${(sum7.tokensIn + sum7.tokensOut).toLocaleString()} tokens · ${sum7.tokensIn.toLocaleString()} in / ${sum7.tokensOut.toLocaleString()} out`} />
         </div>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16 }}>
-          <BarChart data={imageDays} color={BRAND.amber} title="Images generated · last 30 days" />
-          <BarChart data={chatDays} color={BRAND.pine} title="Chat turns · last 30 days" />
+          <BarChart data={topicsDays} color={BRAND.amber} title="AI packs generated · last 30 days" />
+          <BarChart data={ttsDays} color={BRAND.pine} title="Audio files rendered · last 30 days" />
         </div>
         <div style={{ fontSize: 12, color: BRAND.inkSoft, marginTop: 8 }}>
-          Rough estimate from public model prices (image ≈ $0.04, gpt-4o ≈ $2.50/$10 per 1M in/out tokens). Cached images aren’t billed. Plan-build &amp; swap calls aren’t counted yet.
+          Rough estimate from public model prices (gpt-4o ≈ $2.50/$10 per 1M in/out tokens, tts ≈ $15 per 1M characters). Cached packs and already-rendered audio aren’t billed — this counts actual OpenAI calls only.
         </div>
 
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16, alignItems: 'flex-start' }}>
@@ -478,12 +478,28 @@ async function SupportTab(rawCode?: string) {
                 <td style={cell}>{String(ev.at)}</td>
                 <td style={cell}><strong>{String(ev.event)}</strong></td>
                 <td style={{ ...cell, color: BRAND.inkSoft, fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>
-                  {ev.data ? String(ev.data).slice(0, 90) : ''}
+                  {ev.data ? (typeof ev.data === 'string' ? ev.data : JSON.stringify(ev.data)).slice(0, 90) : ''}
                 </td>
               </tr>
             ))}
             {(timeline as unknown[]).length === 0 ? <tr><td style={cell}>no events recorded for this device</td></tr> : null}
           </tbody></table>
+
+          {/* Forget this install: events, subscription mirror, attest keys, user
+              row. The app re-registers on its next event, so this is a server-side
+              memory wipe, not a remote uninstall. */}
+          <form action={deleteDevice} style={{ marginTop: 24 }}>
+            <input type="hidden" name="deviceId" value={deviceId} />
+            <button
+              type="submit"
+              style={{
+                padding: '8px 16px', borderRadius: 8, border: '1px solid #c33',
+                background: 'transparent', color: '#c33', cursor: 'pointer', fontSize: 13,
+              }}
+            >
+              Delete this device (events, keys, subscription)
+            </button>
+          </form>
         </div>
       );
     }
