@@ -17,12 +17,13 @@ import {
   useAppState,
   updateProfile,
   resetProfile,
+  completeSession,
   lockNow,
   isPlus,
   applyEntitlement,
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
-import { isNativeAvailable, relockStatus } from '@/lib/blocking';
+import { isNativeAvailable, relockStatus, grantUnlock } from '@/lib/blocking';
 import { supportCode } from '@/lib/device';
 import { scheduleHoneymoonEndNotice } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
@@ -53,6 +54,8 @@ import {
 } from '@/lib/tts';
 import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speech/src';
 import { activePack } from '@/lib/pack';
+import { availableLanguages } from '@/content';
+import { syncPassActivity } from '@/lib/pass-activity';
 import type { Level } from '@/content/german';
 
 // Dev levers are normally __DEV__-only, which strips them from Release builds.
@@ -814,6 +817,36 @@ export default function Settings() {
                   return r ? `Relock monitor @ ${r.at}: ${r.detail}` : 'Relock monitor: no unlock this launch yet';
                 })()}
               </Text>
+              {/* Store-capture rig: jump the course language and mint a pass so
+                  the Dynamic Island + lock-screen Live Activity re-render in the
+                  target language without replaying onboarding or a session per
+                  shot. syncPassActivity rebuilds the deck, the pack label and
+                  the activity from whatever the store now says. */}
+              <Text variant="caption" color="inkFaint">
+                Course language (dev)
+              </Text>
+              <View style={styles.chipRow}>
+                {availableLanguages().map((l) => (
+                  <Chip
+                    key={l}
+                    label={l.toUpperCase()}
+                    selected={state.learningLanguage === l}
+                    onPress={() => {
+                      updateProfile({ learningLanguage: l });
+                      syncPassActivity();
+                    }}
+                  />
+                ))}
+              </View>
+              <Button
+                label="Issue pass (dev)"
+                variant="ghost"
+                onPress={() => {
+                  completeSession(effectiveUnlockMinutes());
+                  grantUnlock(effectiveUnlockMinutes());
+                  syncPassActivity();
+                }}
+              />
               <Button
                 label={plus ? 'Downgrade to free (dev)' : 'Grant Plus (dev)'}
                 variant="ghost"

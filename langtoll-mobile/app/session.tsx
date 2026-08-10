@@ -234,7 +234,7 @@ export default function Session() {
   function next() {
     if (idx + 1 >= total) {
       const bonus = collectedCount.current * COLLECT_BONUS_MIN; // +5 min per word mastered this session
-      completeSession(bonus);
+      completeSession(effectiveUnlockMinutes() + bonus);
       // Coarse dims only (language + CEFR level) — the words themselves never leave the phone.
       const st = getState();
       track('session_completed', { language: st.learningLanguage, level: st.level });

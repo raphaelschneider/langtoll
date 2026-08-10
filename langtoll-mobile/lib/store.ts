@@ -253,8 +253,14 @@ export function recordAnswer(itemId: string, correct: boolean): void {
   });
 }
 
-/** Completing a session grants phone time and advances the day streak. */
-export function completeSession(bonusMinutes = 0): void {
+/**
+ * Completing a session grants phone time and advances the day streak. The
+ * caller passes the TOTAL minutes (effective fare + any collect bonus) — the
+ * store can't compute the effective fare itself without importing plans and
+ * creating a cycle, and reading state.unlockMinutes raw here would bypass the
+ * free-tier fare gate.
+ */
+export function completeSession(totalMinutes: number): void {
   const today = todayISO();
   let { streak } = state;
   if (state.lastPassDate !== today) {
@@ -263,8 +269,7 @@ export function completeSession(bonusMinutes = 0): void {
   }
   setState({
     sessionsCompleted: state.sessionsCompleted + 1,
-    // base pass time + bonus earned by mastering words this session (+5 min each)
-    unlockExpiresAt: Date.now() + (state.unlockMinutes + bonusMinutes) * 60_000,
+    unlockExpiresAt: Date.now() + totalMinutes * 60_000,
     streak,
     lastPassDate: today,
   });
