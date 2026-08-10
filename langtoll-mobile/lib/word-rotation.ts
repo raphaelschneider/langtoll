@@ -14,6 +14,8 @@ import { getState } from '@/lib/store';
 import { activePack } from '@/lib/pack';
 
 export const ROTATION_DECK_SIZE = 12;
+// Keep in sync with the 80pt compact-slot cap in PassActivityWidget.swift.
+export const MAX_ISLAND_CHARS = 18;
 
 /** [targetWord, translation] pairs, priority-ordered. May be empty (fresh install). */
 export function pickRotationDeck(): [string, string][] {
@@ -36,7 +38,15 @@ export function pickRotationDeck(): [string, string][] {
 
   const unseen = vocab.filter((v) => !progress[v.id]);
 
+  // Longest pair the compact island renders with dignity: the 80pt slots
+  // shrink text to fit, and past ~18 characters a side the shrink crosses
+  // from "small" to "dust". Over-long pairs stay in the lessons — they just
+  // don't ride the island; the deck has alternates to spare.
+  const fitsIsland = (v: (typeof vocab)[number]) =>
+    v.de.length <= MAX_ISLAND_CHARS && (v.en[0]?.length ?? 0) <= MAX_ISLAND_CHARS;
+
   return [...struggling, ...unseen]
+    .filter(fitsIsland)
     .slice(0, ROTATION_DECK_SIZE)
     .map((v) => [v.de, v.en[0]] as [string, string]);
 }

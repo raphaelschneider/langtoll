@@ -239,13 +239,15 @@ struct PassActivityWidget: Widget {
         // to fit its content and evicts status-bar items as it does — a long
         // pair like "buenos días · good morning" cost the user the CLOCK and
         // battery all day. 80pt/side keeps the system clock alive on every
-        // word we ship; the text shrinks (to 0.5x) inside the cap instead.
+        // word we ship; the text shrinks (floor 0.65x) inside the cap, and
+        // word-rotation.ts filters out pairs longer than MAX_ISLAND_CHARS so
+        // nothing ever needs more shrink than that.
         if let word = context.state.word, !context.isStale {
           Text(word)
             .font(.system(size: 13, weight: .semibold))
             .foregroundColor(.ticketCream)
             .lineLimit(1)
-            .minimumScaleFactor(0.5)
+            .minimumScaleFactor(0.65)
             .frame(maxWidth: 80)
         } else {
           TollyFace(stale: context.isStale, height: 21)
@@ -257,7 +259,7 @@ struct PassActivityWidget: Widget {
               .font(.system(size: 13))
               .foregroundColor(.railTeal)
               .lineLimit(1)
-              .minimumScaleFactor(0.5)
+              .minimumScaleFactor(0.65)
               .frame(maxWidth: 80)
           }
         } else {

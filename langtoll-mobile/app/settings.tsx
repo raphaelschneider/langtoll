@@ -56,7 +56,7 @@ import { getDiagnostics, type SpeechDiagnostics } from '@/modules/langtoll-speec
 import { activePack } from '@/lib/pack';
 import { availableLanguages } from '@/content';
 import { syncPassActivity } from '@/lib/pass-activity';
-import { areActivitiesEnabled, activitySupported } from '@/modules/langtoll-activity/src';
+import { areActivitiesEnabled, activitySupported, setWordRotation, advanceWordRotation } from '@/modules/langtoll-activity/src';
 import type { Level } from '@/content/german';
 
 // Dev levers are normally __DEV__-only, which strips them from Release builds.
@@ -899,6 +899,19 @@ export default function Settings() {
                       ? 'Live Activity started — check the island and lock screen.'
                       : `Live Activity did NOT start.\nSystem allows activities: ${areActivitiesEnabled() ? 'yes' : 'NO — check Settings → Apps → LangToll → Live Activities'}`
                   );
+                }}
+              />
+              <Button
+                label="Island stress test (dev)"
+                variant="ghost"
+                onPress={() => {
+                  // Deliberately past MAX_ISLAND_CHARS on BOTH sides — the deck
+                  // filter would never ship this pair; this button exists to see
+                  // the compact slots' worst case (cap + shrink floor) on the
+                  // real island. Needs a running pass.
+                  const big: [string, string] = ['die Krankenversicherung', 'the health insurance policy'];
+                  setWordRotation([big, big, big]);
+                  advanceWordRotation();
                 }}
               />
               <Button
