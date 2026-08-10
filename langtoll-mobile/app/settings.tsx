@@ -905,11 +905,11 @@ export default function Settings() {
                 label="Island stress test (dev)"
                 variant="ghost"
                 onPress={() => {
-                  // Deliberately past MAX_ISLAND_CHARS on BOTH sides — the deck
-                  // filter would never ship this pair; this button exists to see
-                  // the compact slots' worst case (cap + shrink floor) on the
-                  // real island. Needs a running pass.
-                  const big: [string, string] = ['die Krankenversicherung', 'the health insurance policy'];
+                  // Exactly AT the MAX_ISLAND_CHARS limit on both sides — the
+                  // worst case the deck filter lets ship. If this pair renders
+                  // whole (no ellipsis) on the real island, every shippable
+                  // pair does. Needs a running pass.
+                  const big: [string, string] = ['die Übersetzung', 'the translation'];
                   setWordRotation([big, big, big]);
                   advanceWordRotation();
                 }}
