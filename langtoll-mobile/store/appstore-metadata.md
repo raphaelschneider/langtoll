@@ -66,9 +66,9 @@ Your vocabulary rides the Dynamic Island all day — word and translation, alway
 Your doomscroll is about to teach you a language.
 
 LangToll puts the apps that eat your evenings behind a toll gate. Want TikTok,
-Instagram, YouTube? Pay the fare first: five quick exercises, sixty seconds, and
-your pass is issued. Thirty minutes of phone time, earned. Then the gate closes
-again.
+Instagram, YouTube? Pay the fare first: a quick round of exercises, about a
+minute, and your pass is issued. A stretch of phone time, earned. Then the gate
+closes again.
 
 No streak guilt. No willpower required. You will learn — because you can't not.
 
@@ -79,8 +79,8 @@ anyway become the reason you can.
 
 HOW THE TOLL WORKS
 • Choose the apps that steal your time — they go behind the gate
-• Practice five exercises to earn your pass
-• Your pass buys thirty minutes, then the apps lock again
+• Practice a short session to earn your pass
+• Your pass buys a stretch of phone time, then the apps lock again
 • Miss the toll and Tolly, the operator, keeps the gate shut
 
 THE WORDS NEVER LEAVE YOUR SCREEN
