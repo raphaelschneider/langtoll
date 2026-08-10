@@ -38,6 +38,8 @@ export type TelemetryEvent =
   // Worth counting: if it is common, listening exercises are being planned for
   // people who cannot use them, and the default belongs somewhere else.
   | 'listen_fallback_used'
+  // Funnel step views: one per onboarding screen seen (step: 'hook'…'lock').
+  | 'onboarding_step'
   | 'paywall_viewed'
   | 'purchase_tapped'
   | 'purchase_cancelled'

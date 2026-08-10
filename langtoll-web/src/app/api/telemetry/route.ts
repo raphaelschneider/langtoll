@@ -20,6 +20,7 @@ const KNOWN_EVENTS = new Set([
   'locked',
   'unlocked',
   'badge_earned',
+  'onboarding_step',
   'paywall_viewed',
   'purchase_tapped',
   'purchase_cancelled',

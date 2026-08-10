@@ -415,6 +415,13 @@ export default function Onboarding() {
     ? STEPS
     : STEPS.filter((x) => x !== 'forms')) as readonly Step[];
   const step: Step = steps[stepIdx];
+
+  // Funnel visibility (relift's capture_step pattern): one event per screen
+  // actually SEEN, including the initial hook — this is how we learn where
+  // people stop instead of guessing. Early on, every lost step matters.
+  useEffect(() => {
+    track('onboarding_step', { step });
+  }, [step]);
   const [difficulty, setDifficulty] = useState(3);
   const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(null);
