@@ -58,7 +58,7 @@ german,spanish,french,italian,portuguese,vocabulary,screen,time,blocker,focus,ha
 
 **Promotional text** (≤170, editable any time without review)
 ```
-Five languages, one rule: the apps that eat your evenings stay locked until you practice. Tolly is at the gate.
+Your vocabulary rides the Dynamic Island all day — word and translation, always in sight. And the apps that eat your evenings stay locked until you practice.
 ```
 
 **Description** (≤4000) — sells the transformation, not the feature list
@@ -83,6 +83,12 @@ HOW THE TOLL WORKS
 • Your pass buys thirty minutes, then the apps lock again
 • Miss the toll and Tolly, the operator, keeps the gate shut
 
+THE WORDS NEVER LEAVE YOUR SCREEN
+While your pass runs, your vocabulary rides the Dynamic Island — word on one
+side, translation on the other — and your lock screen carries the countdown
+with the word of the moment. He watches the clock. You soak up the words. Even
+the scrolling you paid for keeps teaching.
+
 FIVE LANGUAGES, A REAL CURRICULUM
 German, Spanish, French, Italian and Portuguese — each from A1 to B2. Not a
 phrasebook: multiple choice, typed answers with accent-forgiving grading, cloze,
@@ -90,15 +96,17 @@ sentence building, listening, and article drills where your language has them.
 
 BUILT FOR REAL LIFE
 • Every lesson through B1 ships inside the app — works with no signal
-• Words you master collect in your wallet like ticket stubs
-• Spoken aloud on-device in the language you're learning
-• A live countdown on your lock screen while your pass is valid
+• Words you master collect in your wallet like ticket stubs — and each one you
+  master mid-session buys you five extra minutes
+• Every word and sentence read aloud in a studio-tuned native voice
 • Nothing to sign up for. No account, no email, no password.
 
 LANGTOLL PLUS
-The lock is free forever. Plus adds unlimited apps and whole categories behind
-the gate, custom fares, strict mode, AI topic packs for your world, and every
-language we add. 7-day free trial on monthly and yearly.
+The lock is free forever, and your first week is the full experience — every
+lever open. Plus keeps them open: unlimited apps and whole categories behind
+the gate, custom fares, strict mode with zero grace, AI packs for your world
+and your goal — say "pass the B1 exam" and every session carries exam
+material — and every language we add. 7-day free trial on monthly and yearly.
 
 Your worst habit becomes your study schedule.
 ```
