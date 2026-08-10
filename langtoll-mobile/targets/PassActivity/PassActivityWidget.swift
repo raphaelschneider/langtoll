@@ -233,15 +233,20 @@ struct PassActivityWidget: Widget {
         // floats above the unlocked apps. Mid-rotation the word takes the
         // leading slot and its translation the trailing one — both sides of
         // the cutout, because one side alone cannot fit "die Entschuldigung".
-        // Tolly cedes compact to the vocabulary and keeps minimal + expanded;
-        // no artificial width caps — iOS already bounds these regions, and a
-        // hard 72pt cap was throwing away space the island had free.
+        // Tolly cedes compact to the vocabulary and keeps minimal + expanded.
+        //
+        // The slots ARE capped (founder call, 2026-08-10): iOS grows the pill
+        // to fit its content and evicts status-bar items as it does — a long
+        // pair like "buenos días · good morning" cost the user the CLOCK and
+        // battery all day. 80pt/side keeps the system clock alive on every
+        // word we ship; the text shrinks (to 0.5x) inside the cap instead.
         if let word = context.state.word, !context.isStale {
           Text(word)
             .font(.system(size: 13, weight: .semibold))
             .foregroundColor(.ticketCream)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
+            .frame(maxWidth: 80)
         } else {
           TollyFace(stale: context.isStale, height: 21)
         }
@@ -253,6 +258,7 @@ struct PassActivityWidget: Widget {
               .foregroundColor(.railTeal)
               .lineLimit(1)
               .minimumScaleFactor(0.5)
+              .frame(maxWidth: 80)
           }
         } else {
           CountdownText(
