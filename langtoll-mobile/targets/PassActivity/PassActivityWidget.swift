@@ -7,7 +7,22 @@
 // the two definitions must stay byte-for-byte identical.
 import ActivityKit
 import SwiftUI
+import UIKit
 import WidgetKit
+
+/// Width a compact-island slot should take: the text's own measured width,
+/// capped. A bare `.frame(maxWidth:)` is GREEDY — it claims the cap even for
+/// "bonjour", which is how every pill briefly rendered at max width and
+/// evicted the system clock unconditionally. Measuring gives min(ideal, cap):
+/// short words hug, long words pin at the cap and scale down inside it.
+/// 64pt/side chosen from real captures: ~75pt sides already cost the clock.
+let COMPACT_SLOT_CAP: CGFloat = 64
+
+func compactSlotWidth(_ text: String, size: CGFloat, weight: UIFont.Weight) -> CGFloat {
+  let font = UIFont.systemFont(ofSize: size, weight: weight)
+  let ideal = (text as NSString).size(withAttributes: [.font: font]).width
+  return min(ceil(ideal) + 1, COMPACT_SLOT_CAP)
+}
 
 struct PassActivityAttributes: ActivityAttributes {
   public struct ContentState: Codable, Hashable {
@@ -238,17 +253,16 @@ struct PassActivityWidget: Widget {
         // The slots ARE capped (founder call, 2026-08-10): iOS grows the pill
         // to fit its content and evicts status-bar items as it does — a long
         // pair like "buenos días · good morning" cost the user the CLOCK and
-        // battery all day. 80pt/side keeps the system clock alive on every
-        // word we ship; the text shrinks (floor 0.65x) inside the cap, and
-        // word-rotation.ts filters out pairs longer than MAX_ISLAND_CHARS so
-        // nothing ever needs more shrink than that.
+        // battery all day. compactSlotWidth = min(measured, cap), so short
+        // words hug while long ones pin at the cap and shrink inside it;
+        // word-rotation.ts additionally filters pairs past MAX_ISLAND_CHARS.
         if let word = context.state.word, !context.isStale {
           Text(word)
             .font(.system(size: 13, weight: .semibold))
             .foregroundColor(.ticketCream)
             .lineLimit(1)
-            .minimumScaleFactor(0.65)
-            .frame(maxWidth: 80)
+            .minimumScaleFactor(0.6)
+            .frame(width: compactSlotWidth(word, size: 13, weight: .semibold))
         } else {
           TollyFace(stale: context.isStale, height: 21)
         }
@@ -259,8 +273,8 @@ struct PassActivityWidget: Widget {
               .font(.system(size: 13))
               .foregroundColor(.railTeal)
               .lineLimit(1)
-              .minimumScaleFactor(0.65)
-              .frame(maxWidth: 80)
+              .minimumScaleFactor(0.6)
+              .frame(width: compactSlotWidth(translation, size: 13, weight: .regular))
           }
         } else {
           CountdownText(
