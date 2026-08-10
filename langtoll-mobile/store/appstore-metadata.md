@@ -114,7 +114,7 @@ Your worst habit becomes your study schedule.
 
 **What's New** (first version)
 ```
-First stop. Five languages, one toll gate, and Tolly at the window.
+First stop. Six languages, one toll gate, and Tolly at the window.
 ```
 
 ---
