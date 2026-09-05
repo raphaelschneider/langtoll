@@ -1,43 +1,41 @@
-No account or login is required. LangToll has no sign-in of any kind — there is no username, email, or password to provide. The app works immediately on launch. Users are identified only by an anonymous per-device identifier.
+No account or login is required. There is no sign-in of any kind; the app works immediately on launch. Users are identified only by an anonymous per-device identifier.
 
 WHY THIS APP USES FAMILY CONTROLS (SCREEN TIME)
 
-LangToll is a self-control tool. Its single purpose is to let a user put their own distracting apps behind a language-learning exercise: to reopen an app they chose to block, they must first complete a short practice session. The Screen Time shield is the core mechanism of the product, not an ancillary feature.
+LangToll is a self-control tool: the user puts their own distracting apps behind a language exercise, and must complete a short practice session to reopen them. The Screen Time shield is the core mechanism of the product.
 
-Specifically:
+- Authorization is requested as .individual: an adult restricting their own device. This is not a parental-control product and never manages another person's device.
+- The user picks the apps to block in Apple's own FamilyActivityPicker. We never see or store which apps were chosen; the selection is opaque to us by design. We only read the COUNT of selected items to apply the free tier's one-app limit.
+- No app-usage or selection data leaves the device.
+- The shield can be removed at any time by clearing the selection in Settings, revoking Screen Time authorization in iOS Settings, or deleting the app.
 
-- Authorization is requested as .individual — this is an adult applying a restriction to their own device. It is not a parental-control or child-supervision product, and it never manages another person's device.
-- The user selects which apps to block themselves, using Apple's own FamilyActivityPicker. We never see, request, or store the identity of the selected apps — Family Controls keeps that selection opaque to us by design, and we only ever read the COUNT of selected items in order to apply the free tier's one-app limit.
-- No information about the user's app usage or selections leaves the device.
-- The user can remove the shield at any time by clearing their selection in Settings, revoking Screen Time authorization in iOS Settings, or deleting the app.
+HOW TO REPRODUCE (PHYSICAL DEVICE REQUIRED)
 
-HOW TO REPRODUCE THE CORE FLOW (PHYSICAL DEVICE REQUIRED)
+1. Launch and complete onboarding (under a minute; every step can be skipped). The paywall is the last step; Skip is top-right.
+2. At the lock step, grant Screen Time authorization and select at least one app. A notification permission prompt follows.
+3. Finish onboarding. Home shows an expired pass.
+4. Tap "Practice to unlock" and complete the session (5 multiple-choice exercises by default).
+5. The pass is issued and the selected apps unlock for 30 minutes. Opening a locked app before that shows the Screen Time shield.
+6. After 30 minutes the apps re-lock automatically.
 
-1. Launch the app and complete onboarding (name, language, level, fare). Every step can be skipped; the whole flow takes under a minute. The paywall is the last step — "Skip" is in the top-right corner.
-2. At the "lock" step, grant Screen Time authorization when prompted and select at least one app in the picker. A notification permission prompt follows (see "Notifications" below).
-3. Finish onboarding. The home screen shows an expired pass.
-4. Tap Practice to unlock. Complete the short session (5 multiple-choice exercises by default).
-5. On completion the pass is issued and the selected apps unlock for 30 minutes. Opening a locked app before this point shows the Screen Time shield.
-6. After 30 minutes the apps re-lock automatically, without the user needing to reopen LangToll.
+The shield cannot function in the iOS Simulator; Family Controls only works on physical hardware.
 
-Please note: the Screen Time shield cannot function in the iOS Simulator — Family Controls is only active on physical hardware.
+NOTIFICATIONS
 
-NOTIFICATIONS AND THE SHIELD BUTTON
-
-The Screen Time shield shows a "Practice now" button. A shield extension cannot open its app, so that button posts a local notification which, when tapped, opens LangToll — this is why notification permission is requested during onboarding. Other local notifications: an optional daily reminder at the hour the user chose in onboarding, a notice when a pass expires, and a one-time notice the day before a cancelled trial ends if the user's fare would change. No remote push is used.
+The shield's "Practice now" button cannot open the app directly (extension limitation), so it posts a local notification that opens LangToll when tapped. This is why notification permission is requested. Other local notifications: an optional daily reminder at the user's chosen hour, a pass-expiry notice, and a one-time notice the day before a cancelled trial ends. No remote push.
 
 LIVE ACTIVITIES
 
-While a pass is active, a Live Activity shows the remaining time on the Lock Screen and rotates vocabulary (word and translation) in the Dynamic Island. It ends automatically when the pass expires.
+While a pass is active, a Live Activity shows the remaining time on the Lock Screen and rotates vocabulary in the Dynamic Island. It ends when the pass expires.
 
 IN-APP PURCHASES
 
-LangToll Plus is an auto-renewing subscription, offered weekly, monthly or yearly. The monthly and yearly plans include a 7-day free trial; the weekly plan does not. The free tier is fully functional: the lock, practice sessions and all six language courses work without paying. Free locks a single app, trains with multiple-choice exercises, and chooses between the stricter fares (5 or 8 exercises for 15 or 30 minutes). Plus adds: unlimited apps, whole categories and websites; any fare (down to 3 exercises, up to 60 minutes); strict mode; typed, sentence-building and listening exercises; spoken audio in a native voice; and AI-generated topic packs. Purchases go through StoreKit via RevenueCat; Restore Purchases is on the same screen.
+LangToll Plus is an auto-renewing subscription (weekly, monthly, yearly). Monthly and yearly include a 7-day free trial; weekly does not. The free tier is fully functional: the lock, practice sessions and all six language courses work without paying. Free locks one app, trains with multiple choice, and chooses between the stricter fares (5 or 8 exercises for 15 or 30 minutes). Plus adds unlimited apps, categories and websites; any fare; strict mode; typed, sentence-building and listening exercises; spoken audio; and AI topic packs. Purchases use StoreKit via RevenueCat; Restore Purchases is on the same screen.
 
 AI TOPIC PACKS (PLUS)
 
-The user types a topic (e.g. "ordering brunch") and the app requests a set of vocabulary and example sentences for it from our server. Output is language-learning content only (words, translations, sentences) and is reviewed by the app for format before use. No personal data is sent — only the topic text, the course language and the CEFR level.
+The user types a topic and the app requests vocabulary and example sentences for it from our server. Output is language-learning content only. Nothing personal is sent: only the topic text, course language and CEFR level.
 
 LANGUAGES
 
-The app teaches English, German, Spanish, French, Italian and Portuguese, with the interface available in all six.
+Teaches English, German, Spanish, French, Italian and Portuguese; interface available in all six.
