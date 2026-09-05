@@ -247,6 +247,20 @@ export const en = {
   'plus.locked': 'Plus feature',
   'plus.lockedCta': 'This is part of LangToll Plus.',
 
+  // paywall feature bullets (order = lib/plans PLUS_FEATURES)
+  'plus.f1Title': 'Lock your whole world',
+  'plus.f1Detail': 'Block unlimited apps, entire categories, and websites — free locks a single app',
+  'plus.f2Title': 'Your lock, your rules',
+  'plus.f2Detail': 'Set any fare — fewer exercises, longer unlocks, your call. Free keeps the stricter fares',
+  'plus.f3Title': 'Strict mode',
+  'plus.f3Detail': 'Zero grace: the shield lands the instant your pass expires',
+  'plus.f4Title': 'The full curriculum',
+  'plus.f4Detail': 'Typed answers, sentence building, listening and harder levels — free trains multiple choice',
+  'plus.f5Title': 'AI topic packs',
+  'plus.f5Detail': 'Generate vocabulary for your world — brunch orders, match-day slang, anything',
+  'plus.f6Title': 'The voice',
+  'plus.f6Detail': 'Hear every word and sentence in a studio-tuned native voice — free practises in text',
+
   // trial-end downgrade warning
   'trial.title': 'Your trial ends tomorrow.',
   'trial.body': 'Unless you keep Plus, your fare goes back to {ex} exercises for {min} min.',

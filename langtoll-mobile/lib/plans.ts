@@ -24,16 +24,22 @@ export const PRODUCT_IDS = {
   yearly: 'langtoll_plus_yearly',
 } as const;
 
+/**
+ * The paywall's feature bullets. Copy lives in lib/i18n as plus.fNTitle /
+ * plus.fNDetail — the list used to be English in every locale, on the one
+ * screen that has to sell. Order here is the order on the paywall.
+ *
+ * f6 sells canUseAudio(), which is a real gate. The bullet once promised early
+ * access to new languages — but all six packs ship to everyone and there is
+ * no language gate anywhere, so Plus could not deliver it.
+ */
 export const PLUS_FEATURES = [
-  { icon: 'apps-outline', title: 'Lock your whole world', detail: 'Block unlimited apps, entire categories, and websites — free locks a single app' },
-  { icon: 'options-outline', title: 'Your lock, your rules', detail: 'Set any fare — fewer exercises, longer unlocks, your call. Free keeps the stricter fares' },
-  { icon: 'flame-outline', title: 'Strict mode', detail: 'Zero grace: the shield lands the instant your pass expires' },
-  { icon: 'school-outline', title: 'The full curriculum', detail: 'Typed answers, sentence building, listening and harder levels — free trains multiple choice' },
-  { icon: 'sparkles-outline', title: 'AI topic packs', detail: 'Generate vocabulary for your world — brunch orders, match-day slang, anything' },
-  // Sells canUseAudio(), which is a real gate. The bullet here used to promise
-  // early access to new languages — but all six packs ship to everyone and there
-  // is no language gate anywhere, so Plus could not deliver it.
-  { icon: 'volume-high-outline', title: 'The voice', detail: 'Hear every word and sentence in a studio-tuned native voice — free practises in text' },
+  { icon: 'apps-outline', title: 'plus.f1Title', detail: 'plus.f1Detail' },
+  { icon: 'options-outline', title: 'plus.f2Title', detail: 'plus.f2Detail' },
+  { icon: 'flame-outline', title: 'plus.f3Title', detail: 'plus.f3Detail' },
+  { icon: 'school-outline', title: 'plus.f4Title', detail: 'plus.f4Detail' },
+  { icon: 'sparkles-outline', title: 'plus.f5Title', detail: 'plus.f5Detail' },
+  { icon: 'volume-high-outline', title: 'plus.f6Title', detail: 'plus.f6Detail' },
 ] as const;
 
 // Fallback prices shown only until RevenueCat loads the real localized store price.

@@ -237,6 +237,20 @@ export const de: Partial<Record<StringKey, string>> = {
   'plus.locked': 'Plus-Funktion',
   'plus.lockedCta': 'Das gehört zu LangToll Plus.',
 
+  // paywall feature bullets (order = lib/plans PLUS_FEATURES)
+  'plus.f1Title': 'Sperr deine ganze Welt',
+  'plus.f1Detail': 'Unbegrenzt Apps, ganze Kategorien und Websites sperren — gratis sperrt eine einzige App',
+  'plus.f2Title': 'Deine Sperre, deine Regeln',
+  'plus.f2Detail': 'Jeder Tarif — weniger Übungen, längere Freigaben, wie du willst. Gratis behält die strengeren Tarife',
+  'plus.f3Title': 'Strikter Modus',
+  'plus.f3Detail': 'Null Gnade: die Sperre fällt in dem Moment, in dem dein Pass abläuft',
+  'plus.f4Title': 'Der ganze Lehrplan',
+  'plus.f4Detail': 'Tipp-Antworten, Satzbau, Hörübungen und höhere Stufen — gratis übt Multiple Choice',
+  'plus.f5Title': 'KI-Themenpakete',
+  'plus.f5Detail': 'Vokabeln für deine Welt — Brunch-Bestellungen, Stadion-Slang, alles',
+  'plus.f6Title': 'Die Stimme',
+  'plus.f6Detail': 'Jedes Wort und jeden Satz in einer studioabgestimmten Muttersprachler-Stimme hören — gratis übt in Text',
+
   // trial-end downgrade warning
   'trial.title': 'Morgen endet deine Testphase.',
   'trial.body': 'Ohne Plus geht dein Tarif zurück auf {ex} Übungen für {min} Min.',

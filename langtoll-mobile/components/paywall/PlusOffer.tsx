@@ -111,7 +111,7 @@ export function PlusOffer({ onDone, source }: { onDone: () => void; source: Payw
     >
       <View style={{ gap: space.sm }}>
         {PLUS_FEATURES.slice(0, 3).map((f) => (
-          <HowRow key={f.title} icon={f.icon} title={f.title} detail={f.detail} />
+          <HowRow key={f.title} icon={f.icon} title={t(f.title)} detail={t(f.detail)} />
         ))}
       </View>
 

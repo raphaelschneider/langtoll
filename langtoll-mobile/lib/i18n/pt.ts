@@ -237,6 +237,20 @@ export const pt: Partial<Record<StringKey, string>> = {
   'plus.locked': 'Recurso Plus',
   'plus.lockedCta': 'Isso faz parte do LangToll Plus.',
 
+  // paywall feature bullets (order = lib/plans PLUS_FEATURES)
+  'plus.f1Title': 'Bloqueie o seu mundo inteiro',
+  'plus.f1Detail': 'Bloqueie apps sem limite, categorias inteiras e sites — o grátis bloqueia um único app',
+  'plus.f2Title': 'Seu bloqueio, suas regras',
+  'plus.f2Detail': 'Qualquer tarifa — menos exercícios, desbloqueios mais longos, você decide. O grátis fica com as tarifas mais rígidas',
+  'plus.f3Title': 'Modo estrito',
+  'plus.f3Detail': 'Zero tolerância: o escudo cai no instante em que seu passe expira',
+  'plus.f4Title': 'O currículo completo',
+  'plus.f4Detail': 'Respostas digitadas, montar frases, escuta e níveis mais altos — o grátis treina com múltipla escolha',
+  'plus.f5Title': 'Pacotes de temas com IA',
+  'plus.f5Detail': 'Vocabulário para o seu mundo — pedir um brunch, gíria de jogo, o que for',
+  'plus.f6Title': 'A voz',
+  'plus.f6Detail': 'Ouça cada palavra e frase numa voz nativa ajustada em estúdio — o grátis pratica em texto',
+
   // trial-end downgrade warning
   'trial.title': 'Seu teste termina amanhã.',
   'trial.body': 'Sem o Plus, sua tarifa volta para {ex} exercícios por {min} min.',
