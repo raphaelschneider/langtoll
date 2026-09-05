@@ -7,6 +7,7 @@ export const en = {
   // common
   'common.continue': 'Continue',
   'common.skip': 'Skip',
+  'common.close': 'Close',
 
   // language names (referenced by pack.language)
   'lang.en': 'English',
@@ -39,6 +40,12 @@ export const en = {
   'wallet.empty': 'Master words to collect their tickets.',
   'wallet.collected': 'Collected',
   'wallet.bonus': '+{min} min',
+  'home.wallet': 'Open wallet',
+  'home.route': 'Your route',
+  'home.nextStop': 'Next stop {level} · {n} words',
+  'wallet.sectionCollected': 'Collected',
+  'wallet.sectionProgress': 'In progress',
+  'wallet.tapHint': 'Tap a ticket to hear it',
 
   // session
   'session.cloze': 'Complete the sentence',

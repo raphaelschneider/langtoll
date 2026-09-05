@@ -2,7 +2,7 @@
 // (The lock itself lives in lib/blocking: real Screen Time shielding on a
 // physical device, simulated via the store's timestamp in the simulator.)
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Redirect } from 'expo-router';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
@@ -17,8 +17,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Logo } from '@/components/ui/Logo';
 import { FareGate, type FareGateTrigger } from '@/components/pass/FareGate';
-import { JourneyLine } from '@/components/home/JourneyLine';
-import { useTheme, space, radius, font } from '@/design/theme';
+import { JourneyLine, nextStop } from '@/components/home/JourneyLine';
+import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
@@ -32,10 +32,10 @@ import {
   lockNow,
 } from '@/lib/store';
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({ value, label, divider }: { value: number; label: string; divider?: boolean }) {
   const theme = useTheme();
   return (
-    <View style={[styles.stat, { borderColor: theme.line, backgroundColor: theme.fill }]}>
+    <View style={[styles.stat, divider && { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: theme.line }]}>
       <Text variant="headline" center style={{ fontSize: 24 }}>
         {value}
       </Text>
@@ -55,6 +55,12 @@ export default function Home() {
   const langName = t(`lang.${pack.language}` as StringKey);
 
   const unlocked = isUnlocked(state, now);
+  // How far through THIS level's words: drives the journey line's creep toward
+  // the next station. Pack-scoped on purpose — words from a previous level or
+  // an AI pack don't move you along the A1→B2 route.
+  const levelMastered = pack.vocab.filter((v) => (state.progress[v.id]?.streak ?? 0) >= 3).length;
+  const levelProgress = pack.vocab.length === 0 ? 0 : levelMastered / pack.vocab.length;
+  const nextLevel = nextStop(pack.level);
 
   // Tick the countdown once a second while a grant is active.
   useEffect(() => {
@@ -81,17 +87,26 @@ export default function Home() {
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={unlocked ? 0.7 : 0.35} />
       <SafeAreaView style={styles.safe}>
-        <View style={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          alwaysBounceVertical={false}
+        >
           {/* brand row */}
           <Entrance>
             <View style={styles.brandRow}>
               <Logo height={22} />
               <View style={styles.brandRight}>
-                <View style={[styles.packChip, { borderColor: theme.line }]}>
+                <PressableScale
+                  onPress={() => router.push('/settings')}
+                  haptic={null}
+                  accessibilityRole="button"
+                  style={[styles.packChip, { borderColor: theme.line }]}
+                >
                   <Text variant="overline" color="inkSoft">
                     {langName} · {pack.level}
                   </Text>
-                </View>
+                </PressableScale>
                 <PressableScale
                   onPress={() => router.push('/settings')}
                   style={styles.gear}
@@ -167,22 +182,39 @@ export default function Home() {
             />
           </Entrance>
 
-          {/* stats — tap to open the word wallet (the actual words behind these counts) */}
+          {/* the wallet strip — one tappable row, chevron says so. Reads as a
+              single object (the wallet) rather than three unrelated buttons. */}
           <Entrance delay={300}>
-            <PressableScale onPress={() => router.push('/wallet')} haptic={null}>
-              <View style={styles.statsRow}>
-                <Stat value={wordsSeen(state)} label={t('home.statWords')} />
-                <Stat value={wordsMastered(state)} label={t('home.statMastered')} />
-                <Stat value={state.streak} label={t('home.statStreak')} />
+            <PressableScale
+              onPress={() => router.push('/wallet')}
+              haptic={null}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.wallet')}
+              style={[styles.walletStrip, { borderColor: theme.line, backgroundColor: theme.fill }]}
+            >
+              <Stat value={wordsSeen(state)} label={t('home.statWords')} />
+              <Stat value={wordsMastered(state)} label={t('home.statMastered')} divider />
+              <Stat value={state.streak} label={t('home.statStreak')} divider />
+              <View style={styles.walletChevron}>
+                <Ionicons name="chevron-forward" size={16} color={theme.inkFaint} />
               </View>
             </PressableScale>
           </Entrance>
 
           {/* your journey — the CEFR route line (A1 → B2) */}
           <Entrance delay={360}>
-            <JourneyLine level={pack.level} />
+            <JourneyLine
+              level={pack.level}
+              progress={levelProgress}
+              label={t('home.route')}
+              trailing={
+                nextLevel
+                  ? t('home.nextStop', { level: nextLevel, n: Math.max(0, pack.vocab.length - levelMastered) })
+                  : undefined
+              }
+            />
           </Entrance>
-        </View>
+        </ScrollView>
 
         {__DEV__ && unlocked && (
           <View style={styles.devRow}>
@@ -208,7 +240,7 @@ const styles = StyleSheet.create({
     paddingVertical: space.sm,
     marginTop: space.md,
   },
-  content: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.lg },
+  content: { paddingHorizontal: space.xl, paddingTop: space.lg, paddingBottom: space.xl },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brandRight: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   gear: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
@@ -218,16 +250,18 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1,
   },
-  statsRow: {
+  walletStrip: {
     flexDirection: 'row',
-    gap: space.sm,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: radius.lg,
     marginTop: space.lg,
+    paddingRight: space.sm,
   },
   stat: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: radius.lg,
     paddingVertical: space.md,
   },
+  walletChevron: { width: 20, alignItems: 'center' },
   devRow: { paddingHorizontal: space.xl, paddingBottom: space.sm },
 });

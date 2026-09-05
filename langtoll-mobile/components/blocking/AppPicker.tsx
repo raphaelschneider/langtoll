@@ -4,9 +4,9 @@
 // component renders nothing — settings falls back to the demo chip list.
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
+import { openPaywall } from '@/lib/paywall';
 import { useTheme, space, radius } from '@/design/theme';
 import {
   isNativeAvailable,
@@ -36,7 +36,6 @@ function nativeModule(): any | null {
 
 export function AppPicker() {
   const theme = useTheme();
-  const router = useRouter();
   const [authed, setAuthed] = useState(isAuthorized());
   const [picking, setPicking] = useState(false);
   const [configured, setConfigured] = useState(hasSelection());
@@ -172,7 +171,7 @@ export function AppPicker() {
           </Text>
           <Button
             label="Unlock unlimited with Plus"
-            onPress={() => router.push('/paywall')}
+            onPress={() => openPaywall('settings_apps')}
             full
             style={{ marginTop: space.sm }}
           />

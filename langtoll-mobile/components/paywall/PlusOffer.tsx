@@ -24,6 +24,7 @@ import {
 } from '@/lib/purchases';
 import { track } from '@/lib/telemetry';
 import { useT } from '@/lib/i18n';
+import type { PaywallSource } from '@/lib/paywall';
 
 function HowRow({ icon, title, detail }: { icon: any; title: string; detail: string }) {
   const theme = useTheme();
@@ -44,7 +45,7 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
   );
 }
 
-export function PlusOffer({ onDone }: { onDone: () => void }) {
+export function PlusOffer({ onDone, source }: { onDone: () => void; source: PaywallSource }) {
   const theme = useTheme();
   const t = useT();
   const [packages, setPackages] = useState<PlusPackage[]>([]);
@@ -55,7 +56,9 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    track('paywall_viewed');
+    // Tagged with the gate that opened it — the number that says which gate
+    // converts. Purchases carry the same tag so the two can be joined.
+    track('paywall_viewed', { source });
     getPackages().then((pkgs) => {
       setPackages(pkgs);
       if (pkgs.length && !pkgs.some((p) => p.period === 'yearly')) setSelected(pkgs[0].period);
@@ -70,7 +73,7 @@ export function PlusOffer({ onDone }: { onDone: () => void }) {
     setBusy(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setFailed(false);
-    const res = await purchase(current);
+    const res = await purchase(current, source);
     setBusy(false);
     if (res === 'purchased') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

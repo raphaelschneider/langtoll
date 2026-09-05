@@ -9,6 +9,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PressableScale } from '@/components/ui/PressableScale';
+import { Chip } from '@/components/ui/Chip';
+import { openPaywall } from '@/lib/paywall';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font } from '@/design/theme';
@@ -75,34 +77,6 @@ const LOCALES: { key: 'system' | LocaleCode; label?: string; labelKey?: 'setting
   { key: 'system', labelKey: 'settings.system' },
   ...LOCALE_CODES.map((c) => ({ key: c, label: LOCALE_ENDONYMS[c] })),
 ];
-
-function Chip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
-  return (
-    <PressableScale
-      onPress={onPress}
-      style={[
-        styles.chip,
-        {
-          backgroundColor: selected ? withAlpha(theme.accent, 0.12) : theme.fill,
-          borderColor: selected ? theme.accent : theme.line,
-        },
-      ]}
-    >
-      <Text variant="bodyMedium" style={{ color: selected ? theme.accent : theme.ink }}>
-        {label}
-      </Text>
-    </PressableScale>
-  );
-}
 
 // Sweeps for the native EQ chain. Values chosen to bracket the useful range for
 // speech — wide enough to hear the difference, narrow enough to stay usable.
@@ -393,7 +367,7 @@ export default function Settings() {
 
   async function generate() {
     if (!canUseAiTopics()) {
-      router.push('/paywall');
+      openPaywall('settings_topics');
       return;
     }
     const topic = topicDraft.trim();
@@ -449,7 +423,7 @@ export default function Settings() {
                   icon="sparkles"
                   glow
                   full
-                  onPress={() => router.push('/paywall')}
+                  onPress={() => openPaywall('settings')}
                 />
               </>
             )}
@@ -466,7 +440,7 @@ export default function Settings() {
               placeholder={t('ob.namePlaceholder')}
               placeholderTextColor={theme.inkFaint}
               selectionColor={theme.accent}
-              keyboardAppearance="dark"
+              keyboardAppearance={theme.scheme}
               autoCapitalize="words"
               style={[
                 styles.input,
@@ -593,7 +567,7 @@ export default function Settings() {
                   onPress={() =>
                     canCustomizeLock()
                       ? updateProfile({ exercisesPerUnlock: n })
-                      : router.push('/paywall')
+                      : openPaywall('settings_fare')
                   }
                 />
               ))}
@@ -614,7 +588,7 @@ export default function Settings() {
               />
             ) : (
               <PressableScale
-                onPress={() => router.push('/paywall')}
+                onPress={() => openPaywall('settings_fare')}
                 haptic={null}
                 style={styles.switchRow}
               >
@@ -641,7 +615,7 @@ export default function Settings() {
                   thumbColor="#FFFFFF"
                 />
               ) : (
-                <PressableScale onPress={() => router.push('/paywall')} haptic={null}>
+                <PressableScale onPress={() => openPaywall('settings_strict')} haptic={null}>
                   <Ionicons name="lock-closed" size={20} color={theme.inkFaint} />
                 </PressableScale>
               )}
@@ -670,7 +644,7 @@ export default function Settings() {
                 />
               ) : (
                 // Locked, not hidden: the row stays as a paywall entry point.
-                <PressableScale onPress={() => router.push('/paywall')} haptic={null}>
+                <PressableScale onPress={() => openPaywall('settings_voice')} haptic={null}>
                   <Ionicons name="lock-closed" size={20} color={theme.inkFaint} />
                 </PressableScale>
               )}
@@ -792,7 +766,7 @@ export default function Settings() {
               placeholder={t('settings.topicPlaceholder')}
               placeholderTextColor={theme.inkFaint}
               selectionColor={theme.accent}
-              keyboardAppearance="dark"
+              keyboardAppearance={theme.scheme}
               editable={!generating}
               onSubmitEditing={generate}
               style={[
@@ -955,12 +929,6 @@ const styles = StyleSheet.create({
   back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: space.xl, paddingBottom: space.xxxl },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },
-  chip: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-  },
   input: {
     height: 50,
     borderRadius: radius.md,

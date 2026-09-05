@@ -157,6 +157,7 @@ function ThemedShell() {
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="session" options={{ gestureEnabled: false }} />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="wallet" options={{ presentation: 'modal' }} />
         <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack>
     </>

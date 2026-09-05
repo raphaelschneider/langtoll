@@ -5,6 +5,7 @@ import type { StringKey } from './en';
 export const it: Partial<Record<StringKey, string>> = {
   'common.continue': 'Continua',
   'common.skip': 'Salta',
+  'common.close': 'Chiudi',
 
   'lang.en': 'inglese',
   'lang.de': 'tedesco',
@@ -28,6 +29,18 @@ export const it: Partial<Record<StringKey, string>> = {
   'home.practice': 'Allenati per sbloccare',
   'home.topUp': 'Ricarica · +{min} min',
   'home.lockDev': 'Blocca ora (dev)',
+
+  // wallet
+  'wallet.title': 'Portafoglio',
+  'wallet.empty': 'Padroneggia le parole per collezionare i loro biglietti.',
+  'wallet.collected': 'Raccolto',
+  'wallet.bonus': '+{min} min',
+  'home.wallet': 'Apri il portafoglio',
+  'home.route': 'Il tuo percorso',
+  'home.nextStop': 'Prossima fermata {level} · {n} parole',
+  'wallet.sectionCollected': 'Raccolti',
+  'wallet.sectionProgress': 'In corso',
+  'wallet.tapHint': 'Tocca un biglietto per ascoltarlo',
 
   'session.cloze': 'Completa la frase',
   'session.whatMean': 'Che cosa significa?',

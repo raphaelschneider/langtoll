@@ -313,8 +313,12 @@ export function lastPurchaseError(): string | null {
 }
 
 /** Buy a package. In mock mode, immediately grants Plus so the flow is testable. */
-export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
-  track('purchase_tapped', { period: pkg.period });
+/**
+ * `source` names the gate that opened the paywall (lib/paywall) so tapped /
+ * subscribed can be joined to paywall_viewed per gate.
+ */
+export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<PurchaseResult> {
+  track('purchase_tapped', { period: pkg.period, source });
   lastError = null;
   if (!purchasesEnabled() || !pkg.raw) {
     // Never hand out Plus in a build that isn't dev tooling — see MOCK_ALLOWED.
@@ -332,7 +336,7 @@ export async function purchase(pkg: PlusPackage): Promise<PurchaseResult> {
     const { customerInfo } = await rc().purchasePackage(pkg.raw);
     applyPlan(isPlusActive(customerInfo));
     if (isPlusActive(customerInfo)) {
-      track('subscribed', { period: pkg.period });
+      track('subscribed', { period: pkg.period, source });
       return 'purchased';
     }
     // Apple ACCEPTED the purchase (no throw) but the entitlement is not active.

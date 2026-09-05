@@ -3,7 +3,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -11,10 +11,13 @@ import { Text } from '@/components/ui/Text';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { useTheme, space } from '@/design/theme';
 import { useT } from '@/lib/i18n';
+import type { PaywallSource } from '@/lib/paywall';
 
 export default function Paywall() {
   const theme = useTheme();
   const t = useT();
+  // Which gate opened us — see lib/paywall. Missing means an untagged path.
+  const { from } = useLocalSearchParams<{ from?: PaywallSource }>();
 
   function close() {
     if (router.canGoBack()) router.back();
@@ -40,7 +43,7 @@ export default function Paywall() {
             {t('plus.title')}
           </Text>
           <View style={{ marginTop: space.xl, flex: 1 }}>
-            <PlusOffer onDone={close} />
+            <PlusOffer onDone={close} source={from ?? 'unknown'} />
           </View>
         </View>
       </SafeAreaView>

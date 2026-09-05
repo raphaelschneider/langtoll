@@ -33,6 +33,7 @@ import { speakTarget, stopSpeaking } from '@/lib/tts';
 import { canUseAudio, canUseFullCurriculum, effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
+import { openPaywall } from '@/lib/paywall';
 import { Tolly } from '@/components/ui/Tolly';
 import { syncPassActivity } from '@/lib/pass-activity';
 import { OrderBuilder } from '@/components/session/OrderBuilder';
@@ -377,7 +378,7 @@ export default function Session() {
             </View>
             <PressableScale
               onPress={() =>
-                audioAllowed ? updateProfile({ soundEnabled: !sound }) : router.push('/paywall')
+                audioAllowed ? updateProfile({ soundEnabled: !sound }) : openPaywall('session_voice')
               }
               style={[
                 styles.close,
@@ -496,7 +497,7 @@ export default function Session() {
                       onPress={() =>
                         audioAllowed
                           ? ex.audio && speakTarget(ex.audio, { force: true })
-                          : router.push('/paywall')
+                          : openPaywall('session_voice')
                       }
                       style={styles.speakerSmall}
                       haptic={null}
@@ -596,7 +597,7 @@ export default function Session() {
                   placeholder={pack.flavor.typedPlaceholder}
                   placeholderTextColor={theme.inkFaint}
                   selectionColor={theme.accent}
-                  keyboardAppearance="dark"
+                  keyboardAppearance={theme.scheme}
                   onSubmitEditing={() => typed.trim() && answer(typed)}
                   style={[
                     styles.input,
@@ -666,22 +667,38 @@ export default function Session() {
                     ? theme.danger
                     : theme.fill;
                 const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
+                // In feedback, everything that isn't the answer or the miss
+                // steps back so the eye lands on the two that matter; a glyph
+                // says which is which without relying on colour alone.
+                const bystander = phase === 'feedback' && !isAnswer && !isPicked;
                 return (
                   <Entrance key={`${ex.key}-${opt}-${i}:r${resumeTick}`} delay={40 * i} from={8}>
                     <PressableScale
                       onPress={() => answer(opt)}
                       disabled={phase !== 'answer'}
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: phase !== 'answer', selected: isPicked }}
                       style={[
                         styles.option,
                         {
                           backgroundColor: bg,
                           borderColor: isAnswer || isPicked ? bg : theme.line,
+                          opacity: bystander ? 0.4 : 1,
                         },
                       ]}
                     >
                       <Text variant="bodyMedium" center style={{ color: fg }}>
                         {opt}
                       </Text>
+                      {(isAnswer || isPicked) && (
+                        <View style={styles.optionGlyph}>
+                          <Ionicons
+                            name={isAnswer ? 'checkmark' : 'close'}
+                            size={18}
+                            color={fg}
+                          />
+                        </View>
+                      )}
                     </PressableScale>
                   </Entrance>
                 );
@@ -719,7 +736,16 @@ const styles = StyleSheet.create({
   trackFill: { position: 'absolute', left: 4, height: 2, borderRadius: 1, top: 19 },
   stations: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   station: { borderWidth: 1.5 },
-  body: { paddingHorizontal: space.xl, paddingTop: space.xxl, paddingBottom: space.lg },
+  // The prompt floats in the middle of the space above the answers — a
+  // flashcard held up, not a heading pinned to the top with a void under it.
+  // flexGrow lets short prompts centre while long ones still scroll.
+  body: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: space.xl,
+    paddingTop: space.lg,
+    paddingBottom: space.xl,
+  },
   promptRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   speakerSmall: { paddingTop: space.lg },
   cantHear: { paddingTop: space.md, paddingHorizontal: space.md, alignSelf: 'center' },
@@ -741,6 +767,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
   },
+  optionGlyph: { position: 'absolute', right: space.lg, top: 0, bottom: 0, justifyContent: 'center' },
   orderLine: {
     minHeight: 56,
     borderBottomWidth: 1,

@@ -23,6 +23,8 @@ import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { PassCard } from '@/components/pass/PassCard';
 import { Entrance } from '@/components/ui/Entrance';
 import { PressableScale } from '@/components/ui/PressableScale';
+import { Chip } from '@/components/ui/Chip';
+import { OptionRow } from '@/components/ui/OptionRow';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
@@ -54,6 +56,7 @@ import {
 import { FareSlider } from '@/components/ui/FareSlider';
 import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
+import { LOCALE_ENDONYMS } from '@/lib/locales';
 
 const STEPS = [
   'hook',
@@ -222,75 +225,6 @@ function RotatingHook() {
 }
 
 // ── shared bits ────────────────────────────────────────────────────────────
-
-function OptionRow({
-  label,
-  selected,
-  disabled,
-  tag,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  disabled?: boolean;
-  tag?: string;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
-  return (
-    <PressableScale
-      onPress={onPress}
-      disabled={disabled}
-      style={[
-        styles.option,
-        {
-          backgroundColor: selected ? withAlpha(theme.accent, 0.10) : theme.fill,
-          borderColor: selected ? theme.accent : theme.line,
-          opacity: disabled ? 0.45 : 1,
-        },
-      ]}
-    >
-      <Text variant="bodyMedium" style={{ color: selected ? theme.accent : theme.ink, flex: 1 }}>
-        {label}
-      </Text>
-      {tag ? (
-        <Text variant="caption" color="inkFaint" style={{ letterSpacing: 1 }}>
-          {tag}
-        </Text>
-      ) : selected ? (
-        <Ionicons name="checkmark-circle" size={20} color={theme.accent} />
-      ) : null}
-    </PressableScale>
-  );
-}
-
-function Chip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const theme = useTheme();
-  return (
-    <PressableScale
-      onPress={onPress}
-      style={[
-        styles.chip,
-        {
-          backgroundColor: selected ? withAlpha(theme.accent, 0.12) : theme.fill,
-          borderColor: selected ? theme.accent : theme.line,
-        },
-      ]}
-    >
-      <Text variant="bodyMedium" style={{ color: selected ? theme.accent : theme.ink }}>
-        {label}
-      </Text>
-    </PressableScale>
-  );
-}
 
 function HowRow({ icon, title, detail }: { icon: any; title: string; detail: string }) {
   const theme = useTheme();
@@ -612,7 +546,7 @@ export default function Onboarding() {
                   placeholder={t('ob.namePlaceholder')}
                   placeholderTextColor={theme.inkFaint}
                   selectionColor={theme.accent}
-                  keyboardAppearance="dark"
+                  keyboardAppearance={theme.scheme}
                   onSubmitEditing={() => next()}
                   style={[
                     styles.input,
@@ -634,6 +568,10 @@ export default function Onboarding() {
                     <OptionRow
                       key={l}
                       label={t(`lang.${l}` as StringKey)}
+                      // The language's own name under the translated one: the
+                      // first word of the course, and a check that "German"
+                      // really is the Deutsch you meant.
+                      sub={LOCALE_ENDONYMS[l]}
                       selected={l === language}
                       onPress={() => setLanguage(l)}
                     />
@@ -947,7 +885,7 @@ export default function Onboarding() {
                   </Text>
                 )}
                 <View style={{ marginTop: space.lg, flex: 1 }}>
-                  <PlusOffer onDone={next} />
+                  <PlusOffer onDone={next} source="onboarding" />
                 </View>
               </View>
             )}
@@ -1020,22 +958,6 @@ const styles = StyleSheet.create({
   fill: { height: 3, borderRadius: 1.5 },
   body: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
   footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm },
-  option: {
-    minHeight: 56,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
-    gap: space.sm,
-  },
-  chip: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-  },
   chipWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
