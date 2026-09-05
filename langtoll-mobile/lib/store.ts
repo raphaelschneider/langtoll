@@ -92,6 +92,15 @@ export interface AppState {
   plan: 'free' | 'plus';
   planSince: string | null;
   /**
+   * The live entitlement's shape, from the same RevenueCat mirror: when it
+   * ends, whether it will renew, and whether it is the free trial. Null when
+   * unknown (mock, or a legacy record) — every reader treats null as "no
+   * warning to give", never as "about to lapse".
+   */
+  plusExpiresAt: string | null;
+  plusWillRenew: boolean | null;
+  plusIsTrial: boolean | null;
+  /**
    * Dev-only voice override (voice lab). When set and the identifier matches
    * the active pack's language, it wins over automatic voice selection so the
    * lab's choice is what sessions actually use. Null = auto-select.
@@ -108,9 +117,8 @@ export interface AppState {
   voiceShaping: Record<string, number> | null;
   /**
    * ISO timestamp of the first launch on this device, stamped once by hydrate().
-   * Drives the honeymoon window (see lib/plans.ts) — deliberately independent of
-   * `planSince` and of any App Store trial, so the grace period starts when the
-   * user arrives rather than when they visit the paywall.
+   * Install age for telemetry and review timing; it no longer gates anything
+   * (the free preview week was removed 2026-09-05 — Plus is the trial, only).
    */
   firstLaunchAt: string | null;
 }
@@ -144,6 +152,9 @@ const initialState: AppState = {
   useCustomTopic: false,
   plan: 'free',
   planSince: null,
+  plusExpiresAt: null,
+  plusWillRenew: null,
+  plusIsTrial: null,
   firstLaunchAt: null,
   voiceOverride: null,
   voiceRate: null,
@@ -183,9 +194,8 @@ export async function hydrate(): Promise<void> {
     // corrupted / missing — start fresh
   }
   hydrated = true;
-  // Stamp the honeymoon clock on first ever launch. Existing installs that
-  // predate this field get stamped now, which starts their window today rather
-  // than retroactively expiring it — the generous read, on purpose.
+  // Stamp the install date on first ever launch (existing installs that
+  // predate the field get today).
   if (!state.firstLaunchAt) {
     state.firstLaunchAt = new Date().toISOString();
     persist();
@@ -330,11 +340,23 @@ export function isPlus(s: AppState = state): boolean {
  * (on launch, on purchase, and on every renewal/expiry). Downgrading just flips
  * the plan; every isPlus() gate re-evaluates live.
  */
-export function applyEntitlement(active: boolean): void {
+export interface EntitlementMeta {
+  expiresAt: string | null;
+  willRenew: boolean | null;
+  isTrial: boolean | null;
+}
+
+export function applyEntitlement(active: boolean, meta?: EntitlementMeta): void {
   if (active) {
-    setState({ plan: 'plus', planSince: state.planSince ?? new Date().toISOString() });
+    setState({
+      plan: 'plus',
+      planSince: state.planSince ?? new Date().toISOString(),
+      plusExpiresAt: meta?.expiresAt ?? null,
+      plusWillRenew: meta?.willRenew ?? null,
+      plusIsTrial: meta?.isTrial ?? null,
+    });
   } else {
-    setState({ plan: 'free', planSince: null });
+    setState({ plan: 'free', planSince: null, plusExpiresAt: null, plusWillRenew: null, plusIsTrial: null });
     // Lapse edge: a former Plus user may be blocking multiple apps / a whole category / websites,
     // which the free tier doesn't allow. A Family Controls selection is opaque, so we can't trim it
     // to one app — we clear it and let them re-pick a single app. No-op in stub/sim (counts null) and

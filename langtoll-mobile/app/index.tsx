@@ -22,7 +22,8 @@ import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { packFor } from '@/content';
-import { effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
+import { effectiveExercisesPerUnlock, effectiveUnlockMinutes, fareWillRevert, freeExercises, freeMinutes } from '@/lib/plans';
+import { openPaywall } from '@/lib/paywall';
 import { useT, type StringKey } from '@/lib/i18n';
 import {
   useAppState,
@@ -66,6 +67,11 @@ export default function Home() {
   const levelMastered = levelVocab.filter((v) => (state.progress[v.id]?.streak ?? 0) >= 3).length;
   const levelProgress = levelVocab.length === 0 ? 0 : levelMastered / levelVocab.length;
   const nextLevel = nextStop(pack.level);
+  // Hours until a cancelled trial ends, or null when nothing is ending.
+  const trialEndsIn =
+    state.plan === 'plus' && state.plusWillRenew === false && state.plusExpiresAt
+      ? (Date.parse(state.plusExpiresAt) - now) / 3_600_000
+      : null;
 
   // Tick the countdown once a second while a grant is active.
   useEffect(() => {
@@ -169,6 +175,27 @@ export default function Home() {
                 <Ionicons name="notifications-off-outline" size={18} color={theme.amber} />
                 <Text variant="caption" style={{ flex: 1, color: theme.amber }}>
                   {t('home.activityOff')}
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={theme.amber} />
+              </PressableScale>
+            </Entrance>
+          )}
+
+          {/* A cancelled trial about to take the fare with it: the same warning
+              as the notification, for the phone where notifications are off. */}
+          {trialEndsIn !== null && trialEndsIn <= 48 && fareWillRevert() && (
+            <Entrance delay={180}>
+              <PressableScale
+                onPress={() => openPaywall('trial_end')}
+                style={[styles.activityOff, { borderColor: theme.amber, backgroundColor: withAlpha(theme.amber, 0.08) }]}
+              >
+                <Ionicons name="hourglass-outline" size={18} color={theme.amber} />
+                <Text variant="caption" style={{ flex: 1, color: theme.amber }}>
+                  {t('home.trialEnds', {
+                    when: trialEndsIn <= 24 ? t('common.today') : t('common.tomorrow'),
+                    ex: freeExercises(state.exercisesPerUnlock),
+                    min: freeMinutes(state.unlockMinutes),
+                  })}
                 </Text>
                 <Ionicons name="chevron-forward" size={14} color={theme.amber} />
               </PressableScale>

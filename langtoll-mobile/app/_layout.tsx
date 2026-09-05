@@ -26,7 +26,7 @@ import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
 import { refreshGoalPack } from '@/lib/ai/topics';
 import { prefetchActivePack } from '@/lib/audio-pack';
-import { handleNotificationTaps, scheduleHoneymoonEndNotice } from '@/lib/notify';
+import { handleNotificationTaps, scheduleTrialEndNotice } from '@/lib/notify';
 import { primeVoices, configureAudioSession, applyStoredShaping, stopSpeaking } from '@/lib/tts';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -84,9 +84,9 @@ export default function RootLayout() {
       // Re-adopt the island countdown if a pass is still running — iOS ends Live
       // Activities on every app update/reboot, and the pass must survive both.
       syncPassActivity();
-      // Day-6 conversion notice: re-evaluated every launch (needs the hydrated
-      // firstLaunchAt); cancels itself once Plus or past the window.
-      scheduleHoneymoonEndNotice();
+      // Trial-end downgrade warning: re-evaluated every launch from the
+      // hydrated entitlement shape; cancels itself when nothing will change.
+      scheduleTrialEndNotice();
     });
     configurePurchases(); // no-op in mock; mirrors the live entitlement when keyed
     primeVoices(); // load the device voice list so the first speak() isn't a race

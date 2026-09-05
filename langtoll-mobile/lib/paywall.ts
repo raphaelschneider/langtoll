@@ -15,6 +15,7 @@ export type PaywallSource =
   | 'wallet_voice'
   | 'onboarding'
   | 'notification'
+  | 'trial_end'
   | 'unknown';
 
 export function openPaywall(source: PaywallSource): void {

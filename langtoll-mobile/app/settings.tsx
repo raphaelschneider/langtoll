@@ -28,7 +28,7 @@ import {
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus, grantUnlock } from '@/lib/blocking';
 import { supportCode } from '@/lib/device';
-import { scheduleHoneymoonEndNotice, openSystemSettings } from '@/lib/notify';
+import { scheduleTrialEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
@@ -44,6 +44,11 @@ import {
   FARE_MINUTES_MIN,
   FARE_MINUTES_MAX,
   FARE_MINUTES_STEP,
+  FREE_FARE_EXERCISES,
+  FREE_FARE_MINUTES,
+  fareWillRevert,
+  freeExercises,
+  freeMinutes,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
 import {
@@ -552,25 +557,28 @@ export default function Settings() {
             </View>
           </Section>
 
-          {/* fare — the levers are Plus/honeymoon; locked they show the free
-              defaults and route to the paywall, mirroring the voice row. */}
+          {/* fare — free can make it harder, only Plus can make it easier
+              (lib/plans). Free picks from the free lists; the rest of the range
+              is shown locked and routes to the paywall. */}
           <Section title={t('settings.fare')}>
             <Text variant="caption" color="inkFaint">
               {t('settings.fareEx')}
             </Text>
             <View style={styles.chipRow}>
-              {FARE_EXERCISES.map((n) => (
-                <Chip
-                  key={n}
-                  label={`${n}`}
-                  selected={effectiveExercisesPerUnlock() === n}
-                  onPress={() =>
-                    canCustomizeLock()
-                      ? updateProfile({ exercisesPerUnlock: n })
-                      : openPaywall('settings_fare')
-                  }
-                />
-              ))}
+              {FARE_EXERCISES.map((n) => {
+                const locked = !canCustomizeLock() && !FREE_FARE_EXERCISES.includes(n);
+                return (
+                  <Chip
+                    key={n}
+                    label={`${n}`}
+                    selected={effectiveExercisesPerUnlock() === n}
+                    locked={locked}
+                    onPress={() =>
+                      locked ? openPaywall('settings_fare') : updateProfile({ exercisesPerUnlock: n })
+                    }
+                  />
+                );
+              })}
             </View>
             <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
               {t('settings.fareMin')}
@@ -587,16 +595,34 @@ export default function Settings() {
                 maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
               />
             ) : (
-              <PressableScale
-                onPress={() => openPaywall('settings_fare')}
-                haptic={null}
-                style={styles.switchRow}
-              >
-                <Text variant="callout" color="inkSoft" style={{ flex: 1 }}>
-                  {t('settings.fareMinValue', { min: effectiveUnlockMinutes() })}
-                </Text>
-                <Ionicons name="lock-closed" size={20} color={theme.inkFaint} />
-              </PressableScale>
+              <View style={styles.chipRow}>
+                {FREE_FARE_MINUTES.map((n) => (
+                  <Chip
+                    key={n}
+                    label={t('settings.fareMinValue', { min: n })}
+                    selected={effectiveUnlockMinutes() === n}
+                    onPress={() => updateProfile({ unlockMinutes: n })}
+                  />
+                ))}
+                <Chip
+                  label={t('settings.fareAny', { min: FARE_MINUTES_MIN, max: FARE_MINUTES_MAX })}
+                  selected={false}
+                  locked
+                  onPress={() => openPaywall('settings_fare')}
+                />
+              </View>
+            )}
+            {/* The downgrade, stated while it can still be avoided: a Plus fare
+                outside the free lists falls back the day the plan lapses. */}
+            {fareWillRevert() && (
+              <Text variant="caption" color="amber" style={{ marginTop: space.md }}>
+                {t('settings.fareRevertNote', {
+                  exs: FREE_FARE_EXERCISES.join(` ${t('common.or')} `),
+                  mins: FREE_FARE_MINUTES.join(` ${t('common.or')} `),
+                  ex: freeExercises(state.exercisesPerUnlock),
+                  min: freeMinutes(state.unlockMinutes),
+                })}
+              </Text>
             )}
 
             {/* strict mode: zero-grace re-lock (Plus) */}
@@ -897,7 +923,7 @@ export default function Settings() {
               <Button
                 label={plus ? 'Downgrade to free (dev)' : 'Grant Plus (dev)'}
                 variant="ghost"
-                onPress={() => { applyEntitlement(!plus); scheduleHoneymoonEndNotice(); }}
+                onPress={() => { applyEntitlement(!plus); scheduleTrialEndNotice(); }}
               />
               <Button label={t('home.lockDev')} variant="ghost" onPress={lockNow} />
               <Button

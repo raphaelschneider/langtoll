@@ -26,7 +26,7 @@ export const PRODUCT_IDS = {
 
 export const PLUS_FEATURES = [
   { icon: 'apps-outline', title: 'Lock your whole world', detail: 'Block unlimited apps, entire categories, and websites — free locks a single app' },
-  { icon: 'options-outline', title: 'Your lock, your rules', detail: 'Tune the fare and how long apps stay open — free stays on the standard setting' },
+  { icon: 'options-outline', title: 'Your lock, your rules', detail: 'Set any fare — fewer exercises, longer unlocks, your call. Free keeps the stricter fares' },
   { icon: 'flame-outline', title: 'Strict mode', detail: 'Zero grace: the shield lands the instant your pass expires' },
   { icon: 'school-outline', title: 'The full curriculum', detail: 'Typed answers, sentence building, listening and harder levels — free trains multiple choice' },
   { icon: 'sparkles-outline', title: 'AI topic packs', detail: 'Generate vocabulary for your world — brunch orders, match-day slang, anything' },
@@ -66,47 +66,36 @@ export function isPlus(): boolean {
   return storeIsPlus();
 }
 
-/** Honeymoon length — the "first week is the full experience" promise in ob.payPrice. */
-export const HONEYMOON_DAYS = TRIAL_DAYS;
-
 /**
- * True while the user is inside the honeymoon window: the grace period after
- * first launch where everything is unlocked, ending in the convert-or-downgrade
- * decision. Measured from firstLaunchAt, NOT from a purchase or a paywall view,
- * so it starts when the user arrives.
- *
- * A missing firstLaunchAt means hydrate() hasn't run yet; we return false rather
- * than guessing, so a race can only ever under-grant (a locked button that
- * unlocks a moment later), never hand out a perk the user hasn't got.
- */
-export function withinHoneymoon(): boolean {
-  const at = getState().firstLaunchAt;
-  if (!at) return false;
-  const started = Date.parse(at);
-  if (Number.isNaN(started)) return false;
-  return Date.now() - started < HONEYMOON_DAYS * 24 * 60 * 60 * 1000;
-}
-
-/**
- * Audio is a Honeymoon + Plus perk. Free users see the controls in a locked
+ * Audio is a Plus perk. Free users see the controls in a locked
  * state (the paywall entry point) rather than not at all — see session.tsx and
  * settings.tsx. This also gates whether the trainer may generate 'listen'
  * exercises at all: without audio they are unanswerable, so buildSession must
  * be told, not just the playback layer.
  */
 export function canUseAudio(): boolean {
-  return isPlus() || withinHoneymoon();
+  return isPlus();
 }
 
 // ── free-tier limits ────────────────────────────────────────────────────────
 
-/** Free default lock settings — what the levers snap back to for free users.
- *  NOTE: the 30-minute unlock is deliberately the SAME for free and Plus — time is not a
- *  monetization lever (a shorter free reward only drives off the users who wanted the lock).
- *  Conversion comes from SCOPE (how much you can block) and POWER (strict mode, custom fares,
- *  curriculum, AI), never from degrading the core loop. */
+/** Free default lock settings — what an out-of-range fare snaps back to for free users.
+ *  The default fare is the SAME for free and Plus: nobody who never touches the dials
+ *  meets a gate. Conversion comes from SCOPE (how much you can block), POWER (strict
+ *  mode, curriculum, AI) and FLEXIBILITY (any fare), never from degrading the core loop. */
 export const FREE_EXERCISES_PER_UNLOCK = 5;
 export const FREE_UNLOCK_MINUTES = 30;
+
+/**
+ * The fare rule (founder call, 2026-09-05): FREE CAN MAKE IT HARDER, ONLY PLUS
+ * CAN MAKE IT EASIER. A stricter lock costs nothing and makes better learners,
+ * so it is never behind a wall; leniency — a longer scroll for a shorter
+ * session — is what Plus sells, and nobody resents paying for it because the
+ * fair default was always available. These lists are the free-tier choices;
+ * both contain the defaults above, as they must.
+ */
+export const FREE_FARE_EXERCISES: readonly number[] = [5, 8];
+export const FREE_FARE_MINUTES: readonly number[] = [15, 30];
 
 /**
  * The fare a user may choose: how many exercises buy how many minutes.
@@ -148,43 +137,62 @@ export function selectionExceedsFreeLimit(c: SelectionCounts, plus: boolean): bo
   return c.applicationCount > FREE_MAX_APPS || c.categoryCount > 0 || c.webDomainCount > 0;
 }
 
-// Every gate below includes the honeymoon: ob.payPrice promises "your first
-// week is the full experience", so the first seven days must behave exactly
-// like Plus — the paywall then sells what the user is about to LOSE.
+// There is no free preview window: Plus is the 7-day App Store trial and
+// nothing else (founder call, 2026-09-05 — the earlier "honeymoon" week is gone).
 
-/** Custom fare (exercise count / unlock duration) is Plus. */
+/** The FULL fare range (any exercise count, any duration) is Plus. */
 export function canCustomizeLock(): boolean {
-  return isPlus() || withinHoneymoon();
+  return isPlus();
 }
 
 /** Strict mode (re-lock with zero grace) is Plus. */
 export function canUseStrictMode(): boolean {
-  return isPlus() || withinHoneymoon();
+  return isPlus();
 }
 
 /** Typed / sentence-building / listening drills are Plus; free trains multiple choice. */
 export function canUseFullCurriculum(): boolean {
-  return isPlus() || withinHoneymoon();
+  return isPlus();
 }
 
 /** AI topic packs are Plus. */
 export function canUseAiTopics(): boolean {
-  return isPlus() || withinHoneymoon();
+  return isPlus();
+}
+
+/** What a stored fare becomes on the free tier: itself if free may choose it, else the default. */
+export function freeExercises(n: number): number {
+  return FREE_FARE_EXERCISES.includes(n) ? n : FREE_EXERCISES_PER_UNLOCK;
+}
+export function freeMinutes(n: number): number {
+  return FREE_FARE_MINUTES.includes(n) ? n : FREE_UNLOCK_MINUTES;
 }
 
 /**
  * The fare that actually applies, derived at READ time rather than snapped
  * back on downgrade: a lapsed subscriber's stored custom fare stays put (so
  * resubscribing restores it) but stops applying the moment the entitlement
- * lapses. Everything that grants, displays or builds sessions reads these,
- * never the raw store fields.
+ * lapses — it falls to the nearest free choice. Everything that grants,
+ * displays or builds sessions reads these, never the raw store fields.
  */
 export function effectiveExercisesPerUnlock(): number {
-  return canCustomizeLock() ? getState().exercisesPerUnlock : FREE_EXERCISES_PER_UNLOCK;
+  const n = getState().exercisesPerUnlock;
+  return canCustomizeLock() ? n : freeExercises(n);
 }
 
 export function effectiveUnlockMinutes(): number {
-  return canCustomizeLock() ? getState().unlockMinutes : FREE_UNLOCK_MINUTES;
+  const n = getState().unlockMinutes;
+  return canCustomizeLock() ? n : freeMinutes(n);
+}
+
+/**
+ * True when the fare the user is running on needs Plus — i.e. losing Plus
+ * would change it. Drives the trial-end warning: the one thing a lapsing
+ * subscriber must hear before it happens, not after (founder call).
+ */
+export function fareWillRevert(): boolean {
+  const s = getState();
+  return isPlus() && (freeExercises(s.exercisesPerUnlock) !== s.exercisesPerUnlock || freeMinutes(s.unlockMinutes) !== s.unlockMinutes);
 }
 
 /** Strict mode as it actually applies — the toggle only bites while entitled. */

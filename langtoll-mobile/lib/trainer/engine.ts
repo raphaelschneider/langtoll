@@ -57,8 +57,8 @@ export interface BuildOptions {
   /** Whether audio (listen) exercises may be included. */
   audio?: boolean;
   /**
-   * Whether typed answers and sentence-building may be planned (Plus /
-   * honeymoon — plans.canUseFullCurriculum). Free trains multiple choice:
+   * Whether typed answers and sentence-building may be planned (Plus —
+   * plans.canUseFullCurriculum). Free trains multiple choice:
    * mc both ways, articles and cloze. Defaults to true so tests and any
    * future callers get the whole trainer unless they opt down.
    */

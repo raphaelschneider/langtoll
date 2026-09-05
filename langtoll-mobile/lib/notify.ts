@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { Linking } from 'react-native';
 import { t } from '@/lib/i18n';
 import { getState, isPlus } from '@/lib/store';
-import { HONEYMOON_DAYS } from '@/lib/plans';
+import { fareWillRevert, freeExercises, freeMinutes } from '@/lib/plans';
 
 /**
  * Ask for notification permission. Called right after Screen Time authorization,
@@ -83,7 +83,7 @@ export function openSystemSettings(): void {
 
 const NUDGE_ID = 'daily-nudge';
 const EXPIRY_ID = 'pass-expiry';
-const HONEYMOON_ID = 'honeymoon-end';
+const TRIAL_ID = 'trial-end';
 
 /** Resolve a bundled Tolly PNG into a notification attachment (best-effort). */
 async function tollyAttachment(
@@ -145,31 +145,38 @@ export function clearDeliveredNotifications(): void {
 }
 
 /**
- * One-shot notice 24 hours before the honeymoon ends — exactly a day before
- * the gates snap back, so "tomorrow" in the copy is literally true. Tapping
- * opens the paywall. Replace-by-id and self-cancelling: called on every
- * launch, after onboarding grants permission, and on entitlement changes, it
- * re-evaluates from scratch — Plus, an expired window, or a past fire time
- * all mean cancel. Fire-and-forget safe like every scheduler here.
+ * The downgrade warning. A trial the user has CANCELLED (willRenew false) is
+ * about to fall to the free tier, and if their fare is one only Plus offers
+ * it will change under them — the one thing a lapsing subscriber must hear
+ * the day before, not discover after (founder call, 2026-09-05). Fires 24h
+ * before the entitlement ends; tapping opens the paywall. Replace-by-id and
+ * self-cancelling: re-evaluated on every entitlement change and launch, so a
+ * trial that will convert, a paid plan, a free fare, or a past fire time all
+ * mean cancel. A trial that still renews gets nothing from us — Apple's own
+ * reminder covers the charge, and their fare isn't going anywhere.
  */
-export function scheduleHoneymoonEndNotice(): void {
+export function scheduleTrialEndNotice(): void {
   void (async () => {
     try {
-      await Notifications.cancelScheduledNotificationAsync(HONEYMOON_ID);
+      await Notifications.cancelScheduledNotificationAsync(TRIAL_ID);
       const s = getState();
-      if (isPlus(s)) return;
-      const started = s.firstLaunchAt ? Date.parse(s.firstLaunchAt) : NaN;
-      if (Number.isNaN(started)) return;
-      const fireAt = new Date(started + (HONEYMOON_DAYS - 1) * 24 * 60 * 60 * 1000);
+      if (!isPlus(s) || !s.plusExpiresAt || s.plusWillRenew !== false) return;
+      if (!fareWillRevert()) return;
+      const ends = Date.parse(s.plusExpiresAt);
+      if (Number.isNaN(ends)) return;
+      const fireAt = new Date(ends - 24 * 60 * 60 * 1000);
       if (fireAt <= new Date() || !(await notificationsGranted())) return;
       // Sad Tolly: losing things is his department.
       const attachments = await tollyAttachment(require('../assets/tolly/tolly-sad.png'));
       await Notifications.scheduleNotificationAsync({
-        identifier: HONEYMOON_ID,
+        identifier: TRIAL_ID,
         content: {
-          title: t('honeymoon.title'),
-          body: t('honeymoon.body'),
-          data: { url: 'langtoll://paywall' },
+          title: t('trial.title'),
+          body: t('trial.body', {
+            ex: freeExercises(s.exercisesPerUnlock),
+            min: freeMinutes(s.unlockMinutes),
+          }),
+          data: { url: 'langtoll://paywall?from=notification' },
           attachments,
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fireAt },

@@ -32,7 +32,7 @@ import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
 import {
   scheduleDailyNudge,
-  scheduleHoneymoonEndNotice,
+  scheduleTrialEndNotice,
   requestNotificationPermission,
   notificationPermissionState,
   openSystemSettings,
@@ -52,6 +52,11 @@ import {
   FARE_MINUTES_MIN,
   FARE_MINUTES_MAX,
   FARE_MINUTES_STEP,
+  FREE_FARE_EXERCISES,
+  FREE_FARE_MINUTES,
+  TRIAL_DAYS,
+  freeExercises,
+  freeMinutes,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
 import { track } from '@/lib/telemetry';
@@ -369,7 +374,7 @@ export default function Onboarding() {
   // printing-step stage ticker — pure theater, and FAST: the paywall must
   // arrive without a download in front of it (founder call, 2026-08-08). The
   // real audio download runs during the LOCK step below, after the trial
-  // decision — every path (trial or skip-into-honeymoon) passes through it,
+  // decision — every path (trial or skip) passes through it,
   // so the first session still never falls back to the robot voice.
   const [printStage, setPrintStage] = useState(0);
   useEffect(() => {
@@ -466,8 +471,8 @@ export default function Onboarding() {
     // At the hour THEY named — permission was just granted (or denied) during
     // lock setup, and the scheduler quietly no-ops without it.
     void scheduleDailyNudge(nudgeHour);
-    // Launch-time scheduling ran before permission existed; now it might.
-    scheduleHoneymoonEndNotice();
+    // Launch-time scheduling ran before notification permission existed; now it might.
+    scheduleTrialEndNotice();
     lockNow(); // shield the chosen apps immediately so home lands in the "locked" state
     track('onboarded', { language, level: derivedLevel, difficulty });
     router.replace('/');
@@ -725,6 +730,20 @@ export default function Onboarding() {
                   minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
                   maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
                 />
+                {/* Said at the moment of choice, not discovered on day 8: the full
+                    range is the trial's, and this is what free keeps. */}
+                {(freeExercises(fareEx) !== fareEx || freeMinutes(fareMin) !== fareMin) && (
+                  <View style={[styles.fareNote, { borderColor: withAlpha(theme.accent, 0.4), backgroundColor: withAlpha(theme.accent, 0.08) }]}>
+                    <Ionicons name="sparkles" size={16} color={theme.accent} />
+                    <Text variant="caption" style={{ flex: 1, color: theme.accent }}>
+                      {t('ob.fareNeedsPlus', {
+                        days: TRIAL_DAYS,
+                        exs: FREE_FARE_EXERCISES.join(` ${t('common.or')} `),
+                        mins: FREE_FARE_MINUTES.join(` ${t('common.or')} `),
+                      })}
+                    </Text>
+                  </View>
+                )}
               </Entrance>
             )}
 
@@ -1019,6 +1038,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: space.sm,
+  },
+  fareNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    marginTop: space.lg,
   },
   levelBadge: {
     alignSelf: 'flex-start',

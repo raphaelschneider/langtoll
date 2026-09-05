@@ -8,6 +8,9 @@ export const en = {
   'common.continue': 'Continue',
   'common.skip': 'Skip',
   'common.close': 'Close',
+  'common.today': 'today',
+  'common.tomorrow': 'tomorrow',
+  'common.or': 'or',
 
   // language names (referenced by pack.language)
   'lang.en': 'English',
@@ -43,6 +46,7 @@ export const en = {
   'home.wallet': 'Open wallet',
   'home.route': 'Your route',
   'home.nextStop': 'Next stop {level} · {n} words',
+  'home.trialEnds': 'Trial ends {when} — your fare goes back to {ex} exercises for {min} min unless you keep Plus.',
   'wallet.sectionCollected': 'Collected',
   'wallet.sectionProgress': 'In progress',
   'wallet.tapHint': 'Tap a ticket to hear it',
@@ -97,6 +101,7 @@ export const en = {
   'ob.fareSub': 'Every unlock costs exercises. You can change this later.',
   'ob.fareEx': 'Exercises per unlock',
   'ob.fareMin': 'Minutes unlocked',
+  'ob.fareNeedsPlus': 'This fare is part of Plus, yours free for {days} days. Free keeps {exs} exercises for {mins} min.',
   'ob.goalTitle': 'Why {lang}?',
   'ob.goalTravel': 'Travel — order like a local',
   'ob.goalLove': 'Someone I love speaks it',
@@ -121,8 +126,6 @@ export const en = {
   'expiry.body': 'The gate closes in {mins} minutes — finish up, or top up with a quick session.',
   'nudge.title': 'This is usually your scroll hour.',
   'nudge.body': 'Five quick exercises buy your phone time back.',
-  'honeymoon.title': 'Tomorrow your free week ends.',
-  'honeymoon.body': 'The voice, typed practice, custom fares and strict mode go back behind Plus tomorrow. One tap keeps them.',
   'ob.printOver': 'One moment',
   'ob.printTitle': 'Building your plan…',
   'ob.printTitleNamed': 'Building your plan, {name}…',
@@ -147,7 +150,6 @@ export const en = {
   'ob.pay2d': 'Typed answers, sentences, harder levels as you grow.',
   'ob.pay3': 'Every language we add',
   'ob.pay3d': 'New languages land in Plus first.',
-  'ob.payPrice': 'Your first week is the full experience, free. Then $34.99/year — less than one month of the time those apps were taking.',
   'ob.payCta': 'Start my free week',
   'ob.payGhost': 'Continue with the basic fare',
   'ob.lockOver': 'Arm the lock',
@@ -181,6 +183,8 @@ export const en = {
   'settings.fareEx': 'Exercises per unlock',
   'settings.fareMin': 'Minutes unlocked',
   'settings.fareMinValue': '{min} min',
+  'settings.fareAny': '{min}–{max} min',
+  'settings.fareRevertNote': 'Plus fare. Free picks {exs} exercises for {mins} min — without Plus yours becomes {ex} for {min} min.',
   'settings.strictMode': 'Strict mode',
   'settings.strictModeDetail': 'Re-locks the instant your pass expires — no grace window.',
   'home.activityOff': 'Your countdown and island vocabulary are gone — Live Activities are off. Tap to turn them back on.',
@@ -242,6 +246,10 @@ export const en = {
   'plus.trialLegal': '{days} days free, then {price}. Cancel anytime.',
   'plus.locked': 'Plus feature',
   'plus.lockedCta': 'This is part of LangToll Plus.',
+
+  // trial-end downgrade warning
+  'trial.title': 'Your trial ends tomorrow.',
+  'trial.body': 'Unless you keep Plus, your fare goes back to {ex} exercises for {min} min.',
 } as const;
 
 export type StringKey = keyof typeof en;

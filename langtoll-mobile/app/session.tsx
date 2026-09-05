@@ -130,8 +130,8 @@ export default function Session() {
   // Autoplay is the DEFAULT: hear the target language when a target-language
   // prompt appears, and again on reveal so the pronunciation lands with the
   // answer. Both suppressions live inside speakTarget() rather than here —
-  // it returns early when the plan doesn't include audio (free, honeymoon
-  // over) and when the user has muted it. 'listen' passes force so it beats
+  // it returns early when the plan doesn't include audio (free plan) and
+  // when the user has muted it. 'listen' passes force so it beats
   // the mute toggle, since there the audio IS the question.
   //
   // buildSession only plans 'listen' when sound was on at session start, so a

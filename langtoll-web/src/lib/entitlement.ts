@@ -24,8 +24,10 @@ import { deviceCheckConfigured, queryBit0, setBit0 } from '@/lib/devicecheck';
 const RC_SECRET = process.env.REVENUECAT_SECRET_KEY || '';
 const RC_ENTITLEMENT = process.env.REVENUECAT_ENTITLEMENT || 'plus';
 const ENFORCE = process.env.ENTITLEMENT_ENFORCE === '1';
-// Keep in lockstep with the app's FREE_GRACE_DAYS (lib/plans.ts).
-const HONEYMOON_DAYS = Number(process.env.FREE_GRACE_DAYS || '7');
+// The free preview week was removed from the app (2026-09-05): Plus is the App Store trial and
+// nothing else, so the server grants no install-age window either. Kept as an env knob (0 = off)
+// so a future test can flip it without a deploy of code; the app has no matching window today.
+const HONEYMOON_DAYS = Number(process.env.FREE_GRACE_DAYS || '0');
 
 /** Enforcement is only meaningful when attestation is enforced — otherwise the per-install key is
  *  unverified and the honeymoon window is trivially spoofable. Also needs the RC secret to verify Plus. */

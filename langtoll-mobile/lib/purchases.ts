@@ -9,16 +9,25 @@
 // `plus` entitlement into the store, so renewals, cancellations and EXPIRY all
 // flow through automatically.
 import { Platform } from 'react-native';
-import { applyEntitlement } from './store';
-import { scheduleHoneymoonEndNotice } from './notify';
+import { applyEntitlement, type EntitlementMeta } from './store';
+import { scheduleTrialEndNotice } from './notify';
 
-// Every entitlement write goes through here: the plan change also re-evaluates
-// the day-6 honeymoon notice (a fresh Plus cancels it; a lapse re-arms it if
-// the window is somehow still open). Keeping the pair atomic at this seam
-// beats remembering it at six call sites.
-function applyPlan(plus: boolean): void {
-  applyEntitlement(plus);
-  scheduleHoneymoonEndNotice();
+// Every entitlement write goes through here so the store and the trial-end
+// warning always agree: a fresh Plus, a cancelled trial (willRenew flips) and
+// a lapse each re-evaluate the notice from the live entitlement shape.
+function applyPlan(plus: boolean, meta?: EntitlementMeta): void {
+  applyEntitlement(plus, meta);
+  scheduleTrialEndNotice();
+}
+
+/** The 'plus' entitlement's shape, straight from RevenueCat's CustomerInfo. */
+function entitlementMeta(info: any): EntitlementMeta {
+  const e = info?.entitlements?.active?.[PLUS_ENTITLEMENT];
+  return {
+    expiresAt: typeof e?.expirationDate === 'string' ? e.expirationDate : null,
+    willRenew: typeof e?.willRenew === 'boolean' ? e.willRenew : null,
+    isTrial: e?.periodType ? e.periodType === 'TRIAL' : null,
+  };
 }
 import { track } from './telemetry';
 import { PLUS_ENTITLEMENT, PRODUCT_IDS, FALLBACK_PRICES, TRIAL_DAYS, type Period } from './plans';
@@ -180,7 +189,7 @@ export async function configurePurchases(): Promise<void> {
     }
     Purchases.configure({ apiKey: RC_API_KEY });
     configured = true;
-    Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info)));
+    Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info), entitlementMeta(info)));
     await syncEntitlement();
   } catch {
     // bad key / pod not linked — stay on mock; rebuild to enable
@@ -191,7 +200,8 @@ export async function configurePurchases(): Promise<void> {
 export async function syncEntitlement(): Promise<void> {
   if (!purchasesEnabled()) return;
   try {
-    applyPlan(isPlusActive(await rc().getCustomerInfo()));
+    const info = await rc().getCustomerInfo();
+    applyPlan(isPlusActive(info), entitlementMeta(info));
   } catch {
     // offline / not configured — keep last known plan
   }
@@ -334,7 +344,7 @@ export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<Pu
   }
   try {
     const { customerInfo } = await rc().purchasePackage(pkg.raw);
-    applyPlan(isPlusActive(customerInfo));
+    applyPlan(isPlusActive(customerInfo), entitlementMeta(customerInfo));
     if (isPlusActive(customerInfo)) {
       track('subscribed', { period: pkg.period, source });
       return 'purchased';
@@ -370,7 +380,7 @@ export async function restore(): Promise<boolean> {
   try {
     const info = await rc().restorePurchases();
     const active = isPlusActive(info);
-    applyPlan(active);
+    applyPlan(active, entitlementMeta(info));
     if (active) track('restored');
     return active;
   } catch {

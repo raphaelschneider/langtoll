@@ -4,7 +4,7 @@
 //
 // Deliberately SEPARATE from the app-state blob (langtoll:v1): a settings "reset"
 // wipes progress but must not mint a new identity, or support codes and the
-// server-side honeymoon/entitlement mirror would dangle.
+// server-side entitlement mirror would dangle.
 //
 // Access is synchronous from a module cache so call sites (telemetry, fetch headers)
 // never await. initDeviceId() is awaited once at app start (_layout, before anything

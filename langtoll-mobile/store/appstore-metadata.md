@@ -103,11 +103,11 @@ BUILT FOR REAL LIFE
 • Nothing to sign up for. No account, no email, no password.
 
 LANGTOLL PLUS
-The lock is free forever, and your first week is the full experience — every
-lever open. Plus keeps them open: unlimited apps and whole categories behind
-the gate, custom fares, strict mode with zero grace, AI packs for your world
-and your goal — say "pass the B1 exam" and every session carries exam
-material — and every language we add. 7-day free trial on monthly and yearly.
+The lock is free forever. Plus opens every lever: unlimited apps and whole
+categories behind the gate, any fare you like, strict mode with zero grace,
+the studio voice, the full curriculum, and AI packs for your world and your
+goal — say "pass the B1 exam" and every session carries exam material.
+7-day free trial on monthly and yearly.
 
 Your worst habit becomes your study schedule.
 ```

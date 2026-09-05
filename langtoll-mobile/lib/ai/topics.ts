@@ -242,18 +242,18 @@ function demoPack(topic: string, level: Level): Promise<CustomTopic> {
  * Generate (or refresh) the pack derived from the user's goal and merge it
  * into sessions via the store — the goal's VISIBLE effect. Regenerates only
  * when goal, level or language changed; silently a no-op for free users
- * outside the honeymoon (the route is entitlement-gated anyway) and offline.
+ * (the route is entitlement-gated anyway) and offline.
  */
 export async function refreshGoalPack(): Promise<void> {
   const s = getState();
   const goal = aiGoal();
   if (!goal) return;
-  // Plus/honeymoon perk, same gate as the settings generator. The goal itself
+  // Plus perk, same gate as the settings generator. The goal itself
   // stays stored and cosmetic (paywall quotes it back); only the generated
   // curriculum is entitled. pack.ts gates the merge for packs that already
   // exist locally.
   if (!canUseAiTopics()) {
-    console.log('[goal] pack skipped: not entitled (free, past honeymoon)');
+    console.log('[goal] pack skipped: not entitled (free)');
     return;
   }
   const existing = s.goalPack;

@@ -170,7 +170,7 @@ export function practiceStats(todayISO: string): PracticeStats {
   };
 }
 
-/** First day the user ever practiced (or profile creation) — anchors the honeymoon clock. */
+/** First day the user ever practiced (or profile creation). */
 export function journeyStartDate(): string | null {
   const first = getDb().getFirstSync<{ date: string }>(
     'SELECT date FROM practice_sessions ORDER BY date ASC LIMIT 1'
