@@ -566,11 +566,9 @@ export default function Session() {
                     },
                   ]}
                 >
-                  <Ionicons
-                    name={grade === 'wrong' ? 'close-circle' : 'checkmark-circle'}
-                    size={20}
-                    color={grade === 'wrong' ? '#FFFFFF' : theme.onAccent}
-                  />
+                  {/* The operator reacts, not a generic tick: Tolly is the
+                      one grading you, and he is pleased or not. */}
+                  <Tolly mood={grade === 'wrong' ? 'sad' : 'happy'} size={36} />
                   <Text
                     variant="bodyMedium"
                     style={{ color: grade === 'wrong' ? '#FFFFFF' : theme.onAccent, flex: 1 }}
