@@ -26,15 +26,21 @@ Prod DNS records are **proxied** (orange cloud) by default — see the Cloudflar
 proxy section at the bottom for the fresh-droplet ordering, since Caddy's ACME
 challenge needs one unproxied apply first.
 
-## Environments (`var.environment`, default `dev`)
+## Environments (`var.environment`, default `prod`)
 
 | `environment` | API host | Landing host |
 |---------------|----------|--------------|
-| `dev` (default) | `api-dev.<zone>` | `dev.<zone>` |
-| `prod` | `api.<zone>` | `<zone>` apex + `www` redirect |
+| `prod` (default) | `api.<zone>` | `<zone>` apex + `www` redirect |
+| `dev` | `api-dev.<zone>` | `dev.<zone>` |
 
-Prod is a separate `terraform apply -var environment=prod` — run it in its **own workspace**
-(`terraform workspace new prod`) so it gets its own droplet + state, once dev testing is done.
+**There is no dev environment.** Everything runs in the `prod` workspace, and the
+default is `prod` so a bare `terraform apply` there is safe. A dev default once
+planned to rename the live `api.<zone>` record to `api-dev` and destroy the apex
+records — one `-var` away from an outage. If a dev droplet is ever wanted, run it in
+its own workspace (`terraform workspace new dev`) with `-var environment=dev`.
+
+Routine apply (re-pins SSH/HTTPS to this machine's current public IP):
+`terraform -chdir=infra apply` — review the plan; it should be one firewall change.
 
 The **SSH key** (`local`) already lives in the DO account, so Terraform *reads* it (data
 source) rather than creating it.

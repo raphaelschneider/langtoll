@@ -73,9 +73,9 @@ variable "extra_allowed_cidrs" {
 }
 
 variable "environment" {
-  description = "Deployment environment. dev → api-dev.<zone> + <env>.<zone> landing (this droplet). prod → api.<zone> + the <zone> apex + www redirect."
+  description = "Deployment environment. prod → api.<zone> + the <zone> apex + www redirect. dev → api-dev.<zone> + <env>.<zone> landing. There is no dev environment (founder call, 2026-09-05): the default is prod so a bare `terraform apply` in the prod workspace can never rename the live API record to api-dev — which is exactly what a dev default planned."
   type        = string
-  default     = "dev"
+  default     = "prod"
 
   validation {
     condition     = contains(["dev", "prod"], var.environment)
