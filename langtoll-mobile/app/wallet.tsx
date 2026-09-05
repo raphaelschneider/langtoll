@@ -135,9 +135,11 @@ export default function Wallet() {
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <Entrance>
+            {/* Nested <Text> is our themed component, which resets to the body
+                scale — the count used to render at body size inside a hero. */}
             <Text variant="hero">
-              <Text style={{ color: theme.accent }}>{collected.length}</Text>
-              <Text style={{ color: theme.inkFaint }}> / {tickets.length}</Text>
+              <Text variant="hero" style={{ color: theme.accent }}>{collected.length}</Text>
+              <Text variant="hero" style={{ color: theme.inkFaint }}> / {tickets.length}</Text>
             </Text>
             <Text variant="callout" color="inkSoft" style={{ marginTop: 2 }}>
               {t('home.statMastered')} · {pack.name}

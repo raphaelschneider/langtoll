@@ -85,6 +85,15 @@ export function PassCard({
 
   return (
     <Animated.View
+      // One spoken sentence for the whole ticket: VoiceOver otherwise reads
+      // the barcode-less soup of labels, serial and chip in layout order.
+      accessible
+      accessibilityRole="summary"
+      accessibilityLabel={
+        active
+          ? `${t('pass.active')}. ${formatMs(remainingMs)} ${t('pass.timeLeft')}`
+          : `${t('pass.locked')}. ${t('pass.fare', { ex: exercisesPerUnlock, min: unlockMinutes })}`
+      }
       style={[
         styles.wrap,
         shadow.card,

@@ -54,7 +54,7 @@ export function Button({
         full && { alignSelf: 'stretch' },
         { backgroundColor: bg, opacity: disabled ? 0.4 : 1 },
         isGhost && { borderWidth: StyleSheet.hairlineWidth, borderColor: theme.line },
-        glow && !disabled && shadow.glow,
+        glow && !disabled && [shadow.glow, { shadowColor: theme.accent }],
         style,
       ]}
     >

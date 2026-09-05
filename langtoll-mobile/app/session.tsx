@@ -602,7 +602,7 @@ export default function Session() {
                   style={[
                     styles.input,
                     {
-                      backgroundColor: theme.fill,
+                      backgroundColor: theme.surface,
                       borderColor: theme.line,
                       color: theme.ink,
                     },
@@ -635,7 +635,7 @@ export default function Session() {
                         style={[
                           styles.orderChip,
                           {
-                            backgroundColor: theme.fill,
+                            backgroundColor: theme.surface,
                             borderColor: theme.line,
                             opacity: used ? 0.25 : 1,
                           },
@@ -665,7 +665,7 @@ export default function Session() {
                   ? theme.accent
                   : isPicked
                     ? theme.danger
-                    : theme.fill;
+                    : theme.surface;
                 const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
                 // In feedback, everything that isn't the answer or the miss
                 // steps back so the eye lands on the two that matter; a glyph

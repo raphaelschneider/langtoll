@@ -551,7 +551,7 @@ export default function Onboarding() {
                   style={[
                     styles.input,
                     {
-                      backgroundColor: theme.fill,
+                      backgroundColor: theme.surface,
                       borderColor: theme.line,
                       color: theme.ink,
                     },

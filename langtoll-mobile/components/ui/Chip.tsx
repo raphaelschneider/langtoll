@@ -32,7 +32,7 @@ export function Chip({
       style={[
         styles.chip,
         {
-          backgroundColor: selected ? withAlpha(theme.accent, 0.12) : theme.fill,
+          backgroundColor: selected ? withAlpha(theme.accent, 0.12) : theme.surface,
           borderColor: selected ? theme.accent : theme.line,
           opacity: disabled ? 0.45 : 1,
         },

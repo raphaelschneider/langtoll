@@ -36,7 +36,7 @@ export function OptionRow({
       style={[
         styles.option,
         {
-          backgroundColor: selected ? withAlpha(theme.accent, 0.1) : theme.fill,
+          backgroundColor: selected ? withAlpha(theme.accent, 0.1) : theme.surface,
           borderColor: selected ? theme.accent : theme.line,
           opacity: disabled ? 0.45 : 1,
         },

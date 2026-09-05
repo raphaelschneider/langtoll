@@ -21,6 +21,7 @@ import { JourneyLine, nextStop } from '@/components/home/JourneyLine';
 import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
+import { packFor } from '@/content';
 import { effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
 import { useT, type StringKey } from '@/lib/i18n';
 import {
@@ -58,8 +59,12 @@ export default function Home() {
   // How far through THIS level's words: drives the journey line's creep toward
   // the next station. Pack-scoped on purpose — words from a previous level or
   // an AI pack don't move you along the A1→B2 route.
-  const levelMastered = pack.vocab.filter((v) => (state.progress[v.id]?.streak ?? 0) >= 3).length;
-  const levelProgress = pack.vocab.length === 0 ? 0 : levelMastered / pack.vocab.length;
+  // The BUNDLED level pack, not activePack(): that one carries the generated
+  // pool too, which put "4683 words" on the route caption. The route is the
+  // authored curriculum; the pool is extra practice, not extra distance.
+  const levelVocab = packFor(state.learningLanguage, state.level).vocab;
+  const levelMastered = levelVocab.filter((v) => (state.progress[v.id]?.streak ?? 0) >= 3).length;
+  const levelProgress = levelVocab.length === 0 ? 0 : levelMastered / levelVocab.length;
   const nextLevel = nextStop(pack.level);
 
   // Tick the countdown once a second while a grant is active.
@@ -209,7 +214,7 @@ export default function Home() {
               label={t('home.route')}
               trailing={
                 nextLevel
-                  ? t('home.nextStop', { level: nextLevel, n: Math.max(0, pack.vocab.length - levelMastered) })
+                  ? t('home.nextStop', { level: nextLevel, n: Math.max(0, levelVocab.length - levelMastered) })
                   : undefined
               }
             />
