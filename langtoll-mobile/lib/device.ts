@@ -55,3 +55,6 @@ export function supportCode(): string {
   const raw = id.replace(/^dev_/, '').slice(0, 8).toUpperCase();
   return `${raw.slice(0, 4)}-${raw.slice(4)}`;
 }
+
+/** Where a human answers. Also in the store metadata and the review notes. */
+export const SUPPORT_EMAIL = 'support@langtoll.app';

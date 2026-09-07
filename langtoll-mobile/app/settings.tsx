@@ -2,7 +2,7 @@
 // course (level + difficulty), fare, voice, app language, blocked apps, and
 // the AI topic pack generator (lib/ai/topics behind a demo-mode fallback).
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, ScrollView, Switch, Alert, AppState } from 'react-native';
+import { View, StyleSheet, TextInput, ScrollView, Switch, Alert, AppState, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -27,7 +27,7 @@ import {
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus, grantUnlock } from '@/lib/blocking';
-import { supportCode } from '@/lib/device';
+import { supportCode, SUPPORT_EMAIL } from '@/lib/device';
 import { scheduleTrialEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
@@ -834,6 +834,26 @@ export default function Settings() {
                 {supportCode()}
               </Text>
             </View>
+            {/* The way to reach a human. The support code rides along in the
+                subject so the reply can start from the install, not from "hi". */}
+            <PressableScale
+              onPress={() =>
+                Linking.openURL(
+                  `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`LangToll · ${supportCode()}`)}`
+                )
+              }
+              haptic={null}
+              accessibilityRole="link"
+              style={[styles.topicRow, { borderColor: theme.line }]}
+            >
+              <View style={{ flex: 1 }}>
+                <Text variant="bodyMedium">{t('settings.contact')}</Text>
+                <Text variant="caption" color="inkFaint">
+                  {SUPPORT_EMAIL}
+                </Text>
+              </View>
+              <Ionicons name="mail-outline" size={20} color={theme.accent} />
+            </PressableScale>
           </Section>
 
           {/* dev */}

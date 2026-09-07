@@ -5,6 +5,8 @@ import { getPricing, fmtPrice } from '@/lib/settings';
 import { getUsageByDay, estimateCostUSD } from '@/lib/usage';
 import { updatePricing, deleteDevice } from './actions';
 import { BarChart } from './Charts';
+import { CopyButton } from './CopyButton';
+import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS } from './funnel';
 
 export const dynamic = 'force-dynamic';
 
@@ -121,9 +123,11 @@ function Stat({ label, value, sub, tint, hint }: { label: string; value: string;
 }
 
 // Tab bar — server-rendered links (state lives in ?tab=). Each tab fetches only its own data.
-function Tabs({ active }: { active: 'dashboard' | 'support' }) {
+type TabKey = 'dashboard' | 'funnel' | 'support';
+function Tabs({ active }: { active: TabKey }) {
   const tabs = [
     { key: 'dashboard' as const, label: 'Dashboard', href: '/langtoll-adm' },
+    { key: 'funnel' as const, label: 'Funnel', href: '/langtoll-adm?tab=funnel' },
     { key: 'support' as const, label: 'Support', href: '/langtoll-adm?tab=support' },
   ];
   return (
@@ -373,18 +377,110 @@ async function DashboardTab() {
   );
 }
 
-export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string; code?: string }> }) {
-  const { tab, code } = await searchParams;
-  const active: 'dashboard' | 'support' = tab === 'support' ? 'support' : 'dashboard';
+export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string; code?: string; days?: string; test?: string }> }) {
+  const { tab, code, days, test } = await searchParams;
+  const active: TabKey = tab === 'support' ? 'support' : tab === 'funnel' ? 'funnel' : 'dashboard';
   return (
     <main style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: 'ui-sans-serif, system-ui' }}>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700 }}>LangToll</div>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
         <Tabs active={active} />
-        {active === 'support' ? await SupportTab(code) : await DashboardTab()}
+        {active === 'support' ? await SupportTab(code) : active === 'funnel' ? await FunnelTab(days, test) : await DashboardTab()}
       </div>
     </main>
+  );
+}
+
+// FUNNEL tab — where installs are lost, step by step (see ./funnel.ts). Every table has its own
+// copy button and the whole report downloads as CSV/Markdown, so a number can be pasted into a
+// conversation with its context attached. Ported from relift-adm.
+async function FunnelTab(daysRaw?: string, testRaw?: string) {
+  const days = parseDays(daysRaw);
+  const excludeTest = testRaw !== '1';
+  const report = await loadFunnel({ days, excludeTest });
+  const href = (d: number | null, t: boolean) => `/langtoll-adm?tab=funnel${d ? `&days=${d}` : ''}${t ? '&test=1' : ''}`;
+  const exportHref = (fmt: 'csv' | 'txt') => `/langtoll-adm/export?fmt=${fmt}&days=${days ?? 'all'}${excludeTest ? '' : '&test=1'}`;
+  const pill = (label: string, on: boolean, to: string) => (
+    <a
+      key={label}
+      href={to}
+      style={{
+        padding: '6px 12px',
+        fontSize: 13,
+        fontWeight: 600,
+        textDecoration: 'none',
+        borderRadius: 999,
+        border: `1px solid ${on ? BRAND.accent : BRAND.line}`,
+        background: on ? BRAND.accent : BRAND.surface,
+        color: on ? '#fff' : BRAND.ink,
+      }}
+    >
+      {label}
+    </a>
+  );
+  const btn: React.CSSProperties = { padding: '6px 12px', fontSize: 13, fontWeight: 600, textDecoration: 'none', border: `1px solid ${BRAND.line}`, borderRadius: 8, background: BRAND.surface, color: BRAND.ink };
+  // One stylesheet for every table cell: the "Every install" table alone is many hundred cells,
+  // and a style object per cell is serialized into the RSC payload once per cell.
+  const css = `
+    .fn-table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
+    .fn-table th { padding: 6px 8px; font-weight: 600; text-align: left; white-space: nowrap; color: ${BRAND.inkSoft}; border-bottom: 1px solid ${BRAND.line}; }
+    .fn-table td { padding: 6px 8px; border-bottom: 1px solid ${BRAND.line}; white-space: nowrap; vertical-align: top; }
+    .fn-table td.mono { font-family: ui-monospace, monospace; font-size: 12px; }
+    .fn-table td.empty { color: ${BRAND.inkSoft}; }
+  `;
+
+  return (
+    <div>
+      <style>{css}</style>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+        {FUNNEL_WINDOWS.map((w) => pill(w ? `${w} days` : 'All time', days === w, href(w, !excludeTest)))}
+        <span style={{ width: 12 }} />
+        {pill(excludeTest ? 'Test devices hidden' : 'Test devices shown', !excludeTest, href(days, excludeTest))}
+        <span style={{ flex: 1 }} />
+        <CopyButton text={reportToText(report)} label="Copy whole report" />
+        <a href={exportHref('csv')} style={btn}>Download CSV</a>
+        <a href={exportHref('txt')} style={btn}>Download .md</a>
+      </div>
+      <div style={{ fontSize: 13, color: BRAND.inkSoft, marginBottom: 16 }}>
+        {report.window} · generated {report.generatedAt.replace('T', ' ').slice(0, 16)} UTC · {report.excludedTest} test device{report.excludedTest === 1 ? '' : 's'} {excludeTest ? 'hidden' : 'included'}
+      </div>
+
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        {report.kpis.map((k) => (
+          <Stat key={k.label} label={k.label} value={k.value} sub={k.sub} />
+        ))}
+      </div>
+
+      {report.sections.map((s) => (
+        <div key={s.key} style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: s.note ? 4 : 14 }}>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 22, margin: 0, flex: 1 }}>{s.title}</h2>
+            <CopyButton text={sectionToText(s)} />
+          </div>
+          {s.note && <div style={{ fontSize: 13, color: BRAND.inkSoft, marginBottom: 14 }}>{s.note}</div>}
+          <div style={{ overflowX: 'auto' }}>
+            <table className="fn-table">
+              <thead>
+                <tr>{s.headers.map((h) => <th key={h}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {s.rows.length === 0 && (
+                  <tr><td className="empty" colSpan={s.headers.length}>nothing yet</td></tr>
+                )}
+                {s.rows.map((r, i) => (
+                  <tr key={i}>
+                    {r.map((c, j) => (
+                      <td key={j} className={j === 0 && s.key === 'installs' ? 'mono' : undefined}>{c}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -216,6 +216,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'settings.supportHint':
     'Identifica solo questa installazione — niente nome, niente e-mail, nulla di personale. Includilo quando scrivi al supporto così possiamo aiutarti davvero.',
 
+  'settings.contact': 'Contatta il supporto',
   'plus.title': 'Sblocca tutto.',
   'plus.weekly': 'Settimanale',
   'plus.monthly': 'Mensile',

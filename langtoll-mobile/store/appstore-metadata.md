@@ -176,5 +176,7 @@ internals:
 **Category**: Education (primary), Productivity (secondary). Education carries the
 language-learning intent; Productivity catches the screen-time/blocker crowd.
 
+**Support email**: support@langtoll.app (in-app: Settings → Support → Contact support, subject pre-filled with the support code).
+
 **Support URL / Marketing URL**: https://langtoll.app — must resolve before
 submission (currently the droplet is off; bring the new host up first).

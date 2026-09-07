@@ -226,6 +226,7 @@ export const en = {
     'Identifies this app installation only — no name, no email, nothing personal. Include it when you write to support so we can actually help.',
 
   // plus / paywall
+  'settings.contact': 'Contact support',
   'plus.title': 'Unlock everything.',
   'plus.weekly': 'Weekly',
   'plus.monthly': 'Monthly',
