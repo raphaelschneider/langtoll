@@ -65,48 +65,40 @@ Six languages, one rule: the apps that eat your evenings stay locked until you p
 ```
 Your doomscroll is about to teach you a language.
 
-LangToll puts the apps that eat your evenings behind a toll gate. Want TikTok,
-Instagram, YouTube? Pay the fare first: a quick round of exercises, about a
-minute, and your pass is issued. A stretch of phone time, earned. Then the gate
-closes again.
+LangToll puts the apps that eat your evenings behind a toll gate. Want TikTok, Instagram, YouTube?
+Pay the fare first: a quick round of exercises, about a minute, and your pass is issued.
+A stretch of phone time, earned. Then the gate closes again.
 
 No streak guilt. No willpower required. You will learn — because you can't not.
 
-WHAT YOU BECOME
-Order dinner without pointing at the menu. Understand the group chat. Speak in
-sentences instead of single words. The twenty minutes you were going to lose
-anyway become the reason you can.
+WHAT YOU BECOME:
+Order dinner without pointing at the menu. Understand the group chat. Speak in sentences instead of single words.
+The twenty minutes you were going to lose anyway become the reason you can.
 
-HOW THE TOLL WORKS
+HOW THE TOLL WORKS:
 • Choose the apps that steal your time — they go behind the gate
 • Practice a short session to earn your pass
 • Your pass buys a stretch of phone time, then the apps lock again
 • Miss the toll and Tolly, the operator, keeps the gate shut
 
-THE WORDS NEVER LEAVE YOUR SCREEN
-While your pass runs, your vocabulary rides the Dynamic Island — word on one
-side, translation on the other — and your lock screen carries the countdown
-with the word of the moment. He watches the clock. You soak up the words. Even
-the scrolling you paid for keeps teaching.
+THE WORDS NEVER LEAVE YOUR SCREEN:
+While your pass runs, your vocabulary rides the Dynamic Island — word on one side, translation on the other — and your lock screen carries the countdown with the word of the moment.
+He watches the clock. You soak up the words.
+Even the scrolling you paid for keeps teaching.
 
-SIX LANGUAGES, A REAL CURRICULUM
-German, Spanish, French, Italian, Portuguese and English — each from A1 to
-B2. Not a
-phrasebook: multiple choice, typed answers with accent-forgiving grading, cloze,
-sentence building, listening, and article drills where your language has them.
+SIX LANGUAGES, A REAL CURRICULUM:
+German, Spanish, French, Italian, Portuguese and English — each from A1 to B2.
+Not a phrasebook: multiple choice, typed answers with accent-forgiving grading, cloze, sentence building, listening, and article drills where your language has them.
 
-BUILT FOR REAL LIFE
+BUILT FOR REAL LIFE:
 • Every lesson through B1 ships inside the app — works with no signal
-• Words you master collect in your wallet like ticket stubs — and each one you
-  master mid-session buys you five extra minutes
+• Words you master collect in your wallet like ticket stubs — and each one you master mid-session buys you five extra minutes
 • Every word and sentence read aloud in a studio-tuned native voice
 • Nothing to sign up for. No account, no email, no password.
 
-LANGTOLL PLUS
-The lock is free forever. Plus opens every lever: unlimited apps and whole
-categories behind the gate, any fare you like, strict mode with zero grace,
-the studio voice, the full curriculum, and AI packs for your world and your
-goal — say "pass the B1 exam" and every session carries exam material.
+LANGTOLL PLUS:
+The lock is free forever. Plus opens every lever: unlimited apps and whole categories behind the gate, any fare you like, strict mode with zero grace, the studio voice, the full curriculum, and AI packs for your world and your goal — say "pass the B1 exam" and every session carries exam material.
+
 7-day free trial on monthly and yearly.
 
 Your worst habit becomes your study schedule.
@@ -123,6 +115,11 @@ First stop. Six languages, one toll gate, and Tolly at the window.
 ---
 
 ## Localizations (the reach multiplier)
+
+Full descriptions for all six store localizations are paste-ready plain text in
+`store/descriptions/<locale>.txt` (en-US, de-DE, es-ES, fr-FR, it-IT, pt-BR) — each
+under 4000 characters, same structure, each language's own toll-booth word
+(Schranke / peaje / péage / casello / catraca), legal links at the end.
 
 Add a localization for each language the app teaches — the UI already speaks all
 six, so the store page matching is consistent, and each one gets its **own 100
