@@ -5,7 +5,7 @@ import { getPricing, fmtPrice } from '@/lib/settings';
 import { getUsageByDay, estimateCostUSD } from '@/lib/usage';
 import { updatePricing, deleteDevice } from './actions';
 import { BarChart } from './Charts';
-import { BRAND, FONT } from './brand';
+import { BRAND, FONT, BRAND_CSS } from './brand';
 import { adminFontClassName } from '@/lib/fonts';
 import { CopyButton } from './CopyButton';
 import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS } from './funnel';
@@ -293,7 +293,7 @@ async function DashboardTab() {
                           borderRadius: 999,
                           fontSize: 12,
                           background: u.plan === 'plus' ? BRAND.accent : BRAND.line,
-                          color: u.plan === 'plus' ? '#fff' : BRAND.inkSoft,
+                          color: u.plan === 'plus' ? BRAND.onAccent : BRAND.inkSoft,
                         }}
                       >
                         {u.plan}
@@ -374,7 +374,8 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const { tab, code, days, test } = await searchParams;
   const active: TabKey = tab === 'support' ? 'support' : tab === 'funnel' ? 'funnel' : 'dashboard';
   return (
-    <main className={adminFontClassName} style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: FONT.display }}>
+    <main className={`adm ${adminFontClassName}`} style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: FONT.display }}>
+      <style>{BRAND_CSS}</style>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700, fontFamily: FONT.mono }}>LangToll</div>
         <h1 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
