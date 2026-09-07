@@ -231,6 +231,8 @@ export const pt: Partial<Record<StringKey, string>> = {
   'plus.startTrial': 'Começar meus {days} dias grátis',
   'plus.subscribe': 'Quero o LangToll Plus',
   'plus.restore': 'Restaurar',
+  'plus.terms': 'Termos de uso',
+  'plus.privacy': 'Privacidade',
   'plus.later': 'Talvez depois',
   'plus.legal': 'Cancele quando quiser. Renova automaticamente.',
   'plus.trialLegal': '{days} dias grátis, depois {price}. Cancele quando quiser.',

@@ -65,6 +65,16 @@ export const FALLBACK_PRICES: Record<Period, { amount: number; currency: string 
   yearly: { amount: 39.99, currency: 'USD' },
 };
 
+/**
+ * Terms of Use and Privacy Policy. Apple requires both to be reachable from the
+ * subscription screen (guideline 3.1.2) and the Terms link to appear in the
+ * store metadata; the pages live on the landing site.
+ */
+export const LEGAL_URLS = {
+  terms: 'https://langtoll.app/terms',
+  privacy: 'https://langtoll.app/privacy',
+} as const;
+
 /** Free trial length surfaced in copy (the actual intro offer is configured in App Store Connect). */
 export const TRIAL_DAYS = 7;
 

@@ -241,6 +241,8 @@ export const en = {
   'plus.startTrial': 'Start my {days}-day free trial',
   'plus.subscribe': 'Get LangToll Plus',
   'plus.restore': 'Restore',
+  'plus.terms': 'Terms of Use',
+  'plus.privacy': 'Privacy Policy',
   'plus.later': 'Maybe later',
   'plus.legal': 'Cancel anytime. Renews automatically.',
   'plus.trialLegal': '{days} days free, then {price}. Cancel anytime.',

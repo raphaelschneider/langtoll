@@ -110,6 +110,9 @@ goal — say "pass the B1 exam" and every session carries exam material.
 7-day free trial on monthly and yearly.
 
 Your worst habit becomes your study schedule.
+
+Terms of Use: https://langtoll.app/terms
+Privacy Policy: https://langtoll.app/privacy
 ```
 
 **What's New** (first version)

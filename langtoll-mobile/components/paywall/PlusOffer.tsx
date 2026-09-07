@@ -3,7 +3,7 @@
 // pricing and purchase logic live in exactly one place. Purchases route through
 // lib/purchases (real RevenueCat on the dev build, mock in Expo Go/simulator).
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
@@ -12,7 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
-import { PLUS_FEATURES, type Period } from '@/lib/plans';
+import { PLUS_FEATURES, LEGAL_URLS, type Period } from '@/lib/plans';
 import {
   getPackages,
   purchase,
@@ -236,6 +236,33 @@ export function PlusOffer({ onDone, source }: { onDone: () => void; source: Payw
           {t('plus.restore')}
         </Text>
       </PressableScale>
+      {/* Guideline 3.1.2: Terms of Use and Privacy Policy reachable from the
+          subscription screen itself, not only from the store page. */}
+      <View style={styles.legalRow}>
+        <PressableScale
+          onPress={() => Linking.openURL(LEGAL_URLS.terms)}
+          haptic={null}
+          accessibilityRole="link"
+          style={styles.legalLink}
+        >
+          <Text variant="caption" color="inkFaint">
+            {t('plus.terms')}
+          </Text>
+        </PressableScale>
+        <Text variant="caption" color="inkFaint">
+          ·
+        </Text>
+        <PressableScale
+          onPress={() => Linking.openURL(LEGAL_URLS.privacy)}
+          haptic={null}
+          accessibilityRole="link"
+          style={styles.legalLink}
+        >
+          <Text variant="caption" color="inkFaint">
+            {t('plus.privacy')}
+          </Text>
+        </PressableScale>
+      </View>
     </ScrollView>
   );
 }
@@ -284,4 +311,6 @@ const styles = StyleSheet.create({
   pkgTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   link: { paddingVertical: 6, paddingHorizontal: space.md, alignSelf: 'center' },
+  legalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, marginTop: 2 },
+  legalLink: { paddingVertical: 6, paddingHorizontal: 4 },
 });
