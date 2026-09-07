@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 export type PaywallSource =
   | 'settings'
   | 'settings_fare'
+  | 'settings_level'
   | 'settings_strict'
   | 'settings_voice'
   | 'settings_topics'

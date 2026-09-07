@@ -30,7 +30,7 @@ While a pass is active, a Live Activity shows the remaining time on the Lock Scr
 
 IN-APP PURCHASES
 
-LangToll Plus is an auto-renewing subscription (weekly, monthly, yearly). Monthly and yearly include a 7-day free trial; weekly does not. The free tier is fully functional: the lock, practice sessions and all six language courses work without paying. Free locks one app, trains with multiple choice, and chooses between the stricter fares (5 or 8 exercises for 15 or 30 minutes). Plus adds unlimited apps, categories and websites; any fare; strict mode; typed, sentence-building and listening exercises; spoken audio; and AI topic packs. Purchases use StoreKit via RevenueCat; Restore Purchases is on the same screen.
+LangToll Plus is an auto-renewing subscription (weekly, monthly, yearly). Monthly and yearly include a 7-day free trial; weekly does not. The free tier is fully functional: the lock, practice sessions and all six language courses work without paying. Free locks one app, trains the complete A1 course with multiple choice, chooses between the stricter fares (5 or 8 exercises for 15 or 30 minutes), and shows the pass countdown on the Lock Screen. Plus adds the A2 to B2 levels; vocabulary on the Dynamic Island and translations on the Lock Screen; unlimited apps, categories and websites; any fare; strict mode; typed, sentence-building and listening exercises; spoken audio; and AI topic packs. Purchases use StoreKit via RevenueCat; Restore Purchases is on the same screen.
 
 AI TOPIC PACKS (PLUS)
 

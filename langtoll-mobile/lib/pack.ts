@@ -6,7 +6,7 @@ import { resolvedLocale } from '@/lib/i18n';
 import { sanitizeTopic } from '@/lib/ai/topics';
 import { poolItems } from '@/lib/ai/pool';
 import { FALLBACK_LOCALE, type LocaleCode } from '@/lib/locales';
-import { canUseAiTopics } from '@/lib/plans';
+import { canUseAiTopics, effectiveLevel } from '@/lib/plans';
 
 /** Onboarding difficulty (1–10) → CEFR level. Four bands since B2 landed. */
 export function levelForDifficulty(d: number): Level {
@@ -85,7 +85,9 @@ function filterPackForForms(pack: LanguagePack, forms: 'm' | 'f' | null): Langua
 export function activePack(): LanguagePack {
   const s = getState();
   const locale = resolvedLocale();
-  const base = localizePack(packFor(s.learningLanguage, s.level), locale);
+  // effectiveLevel, never s.level: the stored level may be Plus-only.
+  const level = effectiveLevel();
+  const base = localizePack(packFor(s.learningLanguage, level), locale);
 
   // The generated pool, merged for EVERYONE. The bundled packs alone are a few
   // hundred items per level, which a heavy user exhausts in days — this is what
@@ -93,7 +95,7 @@ export function activePack(): LanguagePack {
   // the in-memory cache (see lib/ai/pool), so a session never waits on network
   // and works offline once synced. Localized here because it bypasses
   // localizePack entirely.
-  const rawPool = poolItems(s.learningLanguage, s.level);
+  const rawPool = poolItems(s.learningLanguage, level);
   const pool = localizeItems(rawPool.vocab, rawPool.sentences, locale);
 
   // Sanitize on every load: packs generated before the blank-detection guards
@@ -112,7 +114,7 @@ export function activePack(): LanguagePack {
     canUseAiTopics() &&
     s.goalPack &&
     s.goalPack.language === s.learningLanguage &&
-    s.goalPack.level === s.level
+    s.goalPack.level === level
       ? sanitizeTopic(s.goalPack)
       : null;
   const rawGoalItems =

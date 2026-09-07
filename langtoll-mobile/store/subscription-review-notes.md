@@ -53,12 +53,13 @@ HOW TO REACH THIS SUBSCRIPTION
 
 WHAT IT UNLOCKS
 LangToll puts the user's own distracting apps behind a language exercise. That
-core loop is FREE FOREVER and is not gated by this subscription. Plus adds:
+core loop and the complete A1 course of every language are FREE FOREVER and not
+gated by this subscription. Plus adds: the A2 to B2 levels; vocabulary on the
+Dynamic Island and translations on the Lock Screen (free keeps the countdown);
 blocking unlimited apps, whole categories and websites (free blocks a single
 app); any fare and unlock duration (free chooses between the stricter fares);
 strict mode; typed, sentence-building and listening exercises (free trains
 multiple choice); spoken audio in a native voice; and AI-generated topic packs.
-All six language courses are free.
 
 Purchases are processed through StoreKit via RevenueCat. "Restore" is available
 on the same screen. Prices shown in the screenshot are US storefront values.

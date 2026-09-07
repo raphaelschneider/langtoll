@@ -141,8 +141,9 @@ struct LockScreenView: View {
               lineWidth: 1))
       }
       // With a word to teach, the word IS the headline and the countdown steps
-      // back to a caption. The stale pass drops the word — an expired island
-      // sells the next session, not vocabulary.
+      // back to a caption. Free users get the word alone (no translation in the
+      // deck — the teaser); Plus gets word and translation. The stale pass
+      // drops the word — an expired island sells the next session, not vocabulary.
       if let word = context.state.word, !context.isStale {
         HStack(alignment: .center) {
           WordLine(word: word, translation: context.state.translation, size: 26)
@@ -212,9 +213,12 @@ struct PassActivityWidget: Widget {
             .padding(.trailing, 4)
         }
         DynamicIslandExpandedRegion(.bottom) {
-          if let word = context.state.word, !context.isStale {
+          // Island vocabulary is Plus: the app writes a translation into the deck
+          // only for Plus users (word-rotation.ts), so its presence is the gate.
+          // Free decks carry the bare word, which the LOCK SCREEN still shows.
+          if let word = context.state.word, let translation = context.state.translation, !context.isStale {
             VStack(alignment: .leading, spacing: 4) {
-              WordLine(word: word, translation: context.state.translation, size: 28)
+              WordLine(word: word, translation: translation, size: 28)
               HStack(spacing: 6) {
                 CountdownText(expiresAt: context.state.expiresAt, size: 12, weight: .semibold)
                 Text("left")
@@ -256,7 +260,7 @@ struct PassActivityWidget: Widget {
         // battery all day. compactSlotWidth = min(measured, cap), so short
         // words hug while long ones pin at the cap and shrink inside it;
         // word-rotation.ts additionally filters pairs past MAX_ISLAND_CHARS.
-        if let word = context.state.word, !context.isStale {
+        if let word = context.state.word, context.state.translation != nil, !context.isStale {
           Text(word)
             .font(.system(size: 13, weight: .semibold))
             .foregroundColor(.ticketCream)
@@ -267,15 +271,13 @@ struct PassActivityWidget: Widget {
           TollyFace(stale: context.isStale, height: 21)
         }
       } compactTrailing: {
-        if context.state.word != nil, !context.isStale {
-          if let translation = context.state.translation {
-            Text(translation)
-              .font(.system(size: 13))
-              .foregroundColor(.railTeal)
-              .lineLimit(1)
-              .minimumScaleFactor(0.6)
-              .frame(width: compactSlotWidth(translation, size: 13, weight: .regular))
-          }
+        if context.state.word != nil, let translation = context.state.translation, !context.isStale {
+          Text(translation)
+            .font(.system(size: 13))
+            .foregroundColor(.railTeal)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .frame(width: compactSlotWidth(translation, size: 13, weight: .regular))
         } else {
           CountdownText(
             expiresAt: context.state.expiresAt, size: 13, weight: .semibold,

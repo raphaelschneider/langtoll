@@ -17,7 +17,7 @@ import type { CustomTopic } from '@/lib/store';
 import { getState, updateProfile } from '@/lib/store';
 import { getDeviceId } from '@/lib/device';
 import { aiGoal } from '@/lib/goal';
-import { canUseAiTopics } from '@/lib/plans';
+import { canUseAiTopics, effectiveLevel } from '@/lib/plans';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
 
@@ -256,11 +256,12 @@ export async function refreshGoalPack(): Promise<void> {
     console.log('[goal] pack skipped: not entitled (free)');
     return;
   }
+  const level = effectiveLevel();
   const existing = s.goalPack;
   if (
     existing &&
     existing.name === goal &&
-    existing.level === s.level &&
+    existing.level === level &&
     existing.language === s.learningLanguage
   ) {
     console.log(
@@ -270,12 +271,12 @@ export async function refreshGoalPack(): Promise<void> {
   }
   if (!aiAvailable()) return;
   try {
-    const pack = await generateTopicPack(goal, s.level, s.learningLanguage);
+    const pack = await generateTopicPack(goal, level, s.learningLanguage);
     // Stamp the course so a language/level switch invalidates rather than
     // leaking Spanish exam items into a German session.
-    updateProfile({ goalPack: { ...pack, language: s.learningLanguage, level: s.level } });
+    updateProfile({ goalPack: { ...pack, language: s.learningLanguage, level } });
     console.log(
-      `[goal] pack ready: "${goal}" ${s.learningLanguage}/${s.level} (${pack.vocab.length}v/${pack.sentences.length}s)`
+      `[goal] pack ready: "${goal}" ${s.learningLanguage}/${level} (${pack.vocab.length}v/${pack.sentences.length}s)`
     );
   } catch (e) {
     // offline / not entitled / budget — the goal stays invisible until a later

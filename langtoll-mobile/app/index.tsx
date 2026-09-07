@@ -22,7 +22,7 @@ import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { packFor } from '@/content';
-import { effectiveExercisesPerUnlock, effectiveUnlockMinutes, fareWillRevert, freeExercises, freeMinutes } from '@/lib/plans';
+import { effectiveExercisesPerUnlock, effectiveUnlockMinutes, effectiveLevel, canUseLevel, describePlusLoss } from '@/lib/plans';
 import { openPaywall } from '@/lib/paywall';
 import { useT, type StringKey } from '@/lib/i18n';
 import {
@@ -63,10 +63,12 @@ export default function Home() {
   // The BUNDLED level pack, not activePack(): that one carries the generated
   // pool too, which put "4683 words" on the route caption. The route is the
   // authored curriculum; the pool is extra practice, not extra distance.
-  const levelVocab = packFor(state.learningLanguage, state.level).vocab;
+  const levelVocab = packFor(state.learningLanguage, effectiveLevel()).vocab;
   const levelMastered = levelVocab.filter((v) => (state.progress[v.id]?.streak ?? 0) >= 3).length;
   const levelProgress = levelVocab.length === 0 ? 0 : levelMastered / levelVocab.length;
   const nextLevel = nextStop(pack.level);
+  // What a lapse would change, as one localized clause — shared with the notification.
+  const lapseChanges = describePlusLoss(t);
   // Hours until a cancelled trial ends, or null when nothing is ending.
   const trialEndsIn =
     state.plan === 'plus' && state.plusWillRenew === false && state.plusExpiresAt
@@ -183,7 +185,7 @@ export default function Home() {
 
           {/* A cancelled trial about to take the fare with it: the same warning
               as the notification, for the phone where notifications are off. */}
-          {trialEndsIn !== null && trialEndsIn <= 48 && fareWillRevert() && (
+          {trialEndsIn !== null && trialEndsIn <= 48 && lapseChanges && (
             <Entrance delay={180}>
               <PressableScale
                 onPress={() => openPaywall('trial_end')}
@@ -193,8 +195,7 @@ export default function Home() {
                 <Text variant="caption" style={{ flex: 1, color: theme.amber }}>
                   {t('home.trialEnds', {
                     when: trialEndsIn <= 24 ? t('common.today') : t('common.tomorrow'),
-                    ex: freeExercises(state.exercisesPerUnlock),
-                    min: freeMinutes(state.unlockMinutes),
+                    changes: lapseChanges,
                   })}
                 </Text>
                 <Ionicons name="chevron-forward" size={14} color={theme.amber} />
@@ -240,9 +241,11 @@ export default function Home() {
               progress={levelProgress}
               label={t('home.route')}
               trailing={
-                nextLevel
-                  ? t('home.nextStop', { level: nextLevel, n: Math.max(0, levelVocab.length - levelMastered) })
-                  : undefined
+                !nextLevel
+                  ? undefined
+                  : canUseLevel(nextLevel)
+                    ? t('home.nextStop', { level: nextLevel, n: Math.max(0, levelVocab.length - levelMastered) })
+                    : t('home.nextStopPlus', { level: nextLevel })
               }
             />
           </Entrance>

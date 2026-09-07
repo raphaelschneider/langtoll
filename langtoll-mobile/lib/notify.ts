@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { Linking } from 'react-native';
 import { t } from '@/lib/i18n';
 import { getState, isPlus } from '@/lib/store';
-import { fareWillRevert, freeExercises, freeMinutes } from '@/lib/plans';
+import { describePlusLoss } from '@/lib/plans';
 
 /**
  * Ask for notification permission. Called right after Screen Time authorization,
@@ -146,8 +146,8 @@ export function clearDeliveredNotifications(): void {
 
 /**
  * The downgrade warning. A trial the user has CANCELLED (willRenew false) is
- * about to fall to the free tier, and if their fare is one only Plus offers
- * it will change under them — the one thing a lapsing subscriber must hear
+ * about to fall to the free tier, and what changes — the level, a Plus-only
+ * fare, the island words — is the one thing a lapsing subscriber must hear
  * the day before, not discover after (founder call, 2026-09-05). Fires 24h
  * before the entitlement ends; tapping opens the paywall. Replace-by-id and
  * self-cancelling: re-evaluated on every entitlement change and launch, so a
@@ -161,7 +161,8 @@ export function scheduleTrialEndNotice(): void {
       await Notifications.cancelScheduledNotificationAsync(TRIAL_ID);
       const s = getState();
       if (!isPlus(s) || !s.plusExpiresAt || s.plusWillRenew !== false) return;
-      if (!fareWillRevert()) return;
+      const changes = describePlusLoss(t);
+      if (!changes) return;
       const ends = Date.parse(s.plusExpiresAt);
       if (Number.isNaN(ends)) return;
       const fireAt = new Date(ends - 24 * 60 * 60 * 1000);
@@ -172,10 +173,7 @@ export function scheduleTrialEndNotice(): void {
         identifier: TRIAL_ID,
         content: {
           title: t('trial.title'),
-          body: t('trial.body', {
-            ex: freeExercises(s.exercisesPerUnlock),
-            min: freeMinutes(s.unlockMinutes),
-          }),
+          body: t('trial.body', { changes }),
           data: { url: 'langtoll://paywall?from=notification' },
           attachments,
         },

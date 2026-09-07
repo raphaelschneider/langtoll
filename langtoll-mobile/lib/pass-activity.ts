@@ -29,6 +29,6 @@ export function syncPassActivity(): boolean {
     `${pack.language.toUpperCase()} · ${pack.level}`,
     `№ ${String(s.sessionsCompleted).padStart(4, '0')}`,
     first ? first[0] : null,
-    first ? first[1] : null
+    first?.[1] ?? null
   );
 }

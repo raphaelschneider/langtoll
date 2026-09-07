@@ -74,9 +74,11 @@ It ends automatically when the pass expires.
 LangToll Plus is an auto-renewing subscription, offered weekly, monthly or
 yearly. The monthly and yearly plans include a 7-day free trial; the weekly plan
 does not. The free tier is fully functional: the lock, practice sessions and all
-six language courses work without paying. Free locks a single app, trains with
-multiple-choice exercises, and chooses between the stricter fares (5 or 8
-exercises for 15 or 30 minutes). Plus adds: unlimited apps, whole categories and
+six language courses work without paying. Free locks a single app, trains the
+complete A1 course with multiple-choice exercises, chooses between the stricter
+fares (5 or 8 exercises for 15 or 30 minutes), and shows the pass countdown on
+the Lock Screen. Plus adds: the A2 to B2 levels; vocabulary on the Dynamic
+Island and translations on the Lock Screen; unlimited apps, whole categories and
 websites; any fare (down to 3 exercises, up to 60 minutes); strict mode; typed,
 sentence-building and listening exercises; spoken audio in a native voice; and
 AI-generated topic packs. Purchases go through StoreKit via RevenueCat; Restore

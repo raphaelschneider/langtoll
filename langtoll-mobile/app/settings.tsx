@@ -46,6 +46,10 @@ import {
   FARE_MINUTES_STEP,
   FREE_FARE_EXERCISES,
   FREE_FARE_MINUTES,
+  FREE_LEVELS,
+  canUseLevel,
+  effectiveLevel,
+  levelWillRevert,
   fareWillRevert,
   freeExercises,
   freeMinutes,
@@ -380,7 +384,7 @@ export default function Settings() {
     setGenerating(true);
     setAiError(false);
     try {
-      const pack = await generateTopicPack(topic, state.level, state.learningLanguage);
+      const pack = await generateTopicPack(topic, effectiveLevel(), state.learningLanguage);
       updateProfile({ customTopic: pack, useCustomTopic: true });
       setTopicDraft('');
     } catch {
@@ -516,15 +520,24 @@ export default function Settings() {
               {t('settings.level')}
             </Text>
             <View style={styles.chipRow}>
-              {LEVELS.map((l) => (
-                <Chip
-                  key={l}
-                  label={l}
-                  selected={state.level === l}
-                  onPress={() => updateProfile({ level: l })}
-                />
-              ))}
+              {LEVELS.map((l) => {
+                const locked = !canUseLevel(l);
+                return (
+                  <Chip
+                    key={l}
+                    label={l}
+                    selected={effectiveLevel() === l}
+                    locked={locked}
+                    onPress={() => (locked ? openPaywall('settings_level') : updateProfile({ level: l }))}
+                  />
+                );
+              })}
             </View>
+            {levelWillRevert() && (
+              <Text variant="caption" color="amber" style={{ marginTop: space.sm }}>
+                {t('settings.levelRevertNote', { level: FREE_LEVELS[0] })}
+              </Text>
+            )}
             <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
               {t('settings.difficulty')}
             </Text>

@@ -6,6 +6,7 @@
 // practice to unlock always works). Plus unlocks the levers: custom fares,
 // strict mode, the full curriculum, AI topic packs, and new languages.
 import { isPlus as storeIsPlus, getState } from './store';
+import type { Level } from '@/content';
 
 export type Period = 'weekly' | 'monthly' | 'yearly';
 
@@ -35,11 +36,13 @@ export const PRODUCT_IDS = {
  */
 export const PLUS_FEATURES = [
   { icon: 'apps-outline', title: 'plus.f1Title', detail: 'plus.f1Detail' },
+  { icon: 'train-outline', title: 'plus.f7Title', detail: 'plus.f7Detail' },
+  { icon: 'phone-portrait-outline', title: 'plus.f8Title', detail: 'plus.f8Detail' },
+  { icon: 'volume-high-outline', title: 'plus.f6Title', detail: 'plus.f6Detail' },
+  { icon: 'school-outline', title: 'plus.f4Title', detail: 'plus.f4Detail' },
   { icon: 'options-outline', title: 'plus.f2Title', detail: 'plus.f2Detail' },
   { icon: 'flame-outline', title: 'plus.f3Title', detail: 'plus.f3Detail' },
-  { icon: 'school-outline', title: 'plus.f4Title', detail: 'plus.f4Detail' },
   { icon: 'sparkles-outline', title: 'plus.f5Title', detail: 'plus.f5Detail' },
-  { icon: 'volume-high-outline', title: 'plus.f6Title', detail: 'plus.f6Detail' },
 ] as const;
 
 // Fallback prices shown only until RevenueCat loads the real localized store price.
@@ -176,6 +179,54 @@ export function canUseAiTopics(): boolean {
   return isPlus();
 }
 
+// ── depth gates (founder call, 2026-09-05): free is a complete A1 course with the
+// countdown on the lock screen; Plus is the route beyond it and the words that
+// ride the island. Both cap depth rather than break the loop.
+
+/** Levels the free tier may train. */
+export const FREE_LEVELS: readonly Level[] = ['A1'];
+
+export function canUseLevel(level: string): boolean {
+  return isPlus() || (FREE_LEVELS as readonly string[]).includes(level);
+}
+
+/**
+ * The level that actually applies, derived at READ time like the fare: a lapsed
+ * subscriber's stored B1 stays put (resubscribing restores it) but the course
+ * trains A1 the moment the entitlement lapses.
+ */
+export function effectiveLevel(): Level {
+  const l = getState().level;
+  return canUseLevel(l) ? l : FREE_LEVELS[0];
+}
+
+/**
+ * Vocabulary on the Dynamic Island, and the translation on the lock screen.
+ * Free keeps the countdown and sees the bare word on the lock screen — the
+ * teaser; Plus gets word and translation on both surfaces. The signal to the
+ * widget is the deck itself: a free deck carries words only (word-rotation.ts),
+ * and the widget shows island vocabulary only when a translation is present.
+ */
+export function canUseIslandWords(): boolean {
+  return isPlus();
+}
+
+/**
+ * The lapse, as one localized clause: "your course returns to A1, your fare
+ * goes back to 5 exercises for 30 min, your words leave the Dynamic Island".
+ * Takes the caller's t() so the store never imports i18n. Null when nothing
+ * would change (not on Plus).
+ */
+export function describePlusLoss(t: (key: any, params?: Record<string, string | number>) => string): string | null {
+  const loss = plusLossOnLapse();
+  if (!loss) return null;
+  const parts: string[] = [];
+  if (loss.level) parts.push(t('trial.lossLevel', { level: loss.level }));
+  if (loss.fare) parts.push(t('trial.lossFare', { ex: loss.fare.ex, min: loss.fare.min }));
+  if (loss.island) parts.push(t('trial.lossIsland'));
+  return parts.join(', ');
+}
+
 /** What a stored fare becomes on the free tier: itself if free may choose it, else the default. */
 export function freeExercises(n: number): number {
   return FREE_FARE_EXERCISES.includes(n) ? n : FREE_EXERCISES_PER_UNLOCK;
@@ -209,6 +260,30 @@ export function effectiveUnlockMinutes(): number {
 export function fareWillRevert(): boolean {
   const s = getState();
   return isPlus() && (freeExercises(s.exercisesPerUnlock) !== s.exercisesPerUnlock || freeMinutes(s.unlockMinutes) !== s.unlockMinutes);
+}
+
+/** True when the level the user trains on needs Plus. */
+export function levelWillRevert(): boolean {
+  return isPlus() && !(FREE_LEVELS as readonly string[]).includes(getState().level);
+}
+
+/**
+ * Everything a lapsing Plus user stands to lose, for the trial-end warning:
+ * the fare (if theirs is Plus-only), the level (if beyond A1), and the island
+ * words (always — every Plus user has them). Null when not on Plus.
+ */
+export function plusLossOnLapse(): {
+  fare: { ex: number; min: number } | null;
+  level: Level | null;
+  island: boolean;
+} | null {
+  if (!isPlus()) return null;
+  const s = getState();
+  return {
+    fare: fareWillRevert() ? { ex: freeExercises(s.exercisesPerUnlock), min: freeMinutes(s.unlockMinutes) } : null,
+    level: levelWillRevert() ? FREE_LEVELS[0] : null,
+    island: true,
+  };
 }
 
 /** Strict mode as it actually applies — the toggle only bites while entitled. */

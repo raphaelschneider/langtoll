@@ -66,10 +66,12 @@ export function startPassActivity(
 }
 
 /**
- * Store the rotation deck (word/translation pairs) in the app group, where the
- * DeviceActivity extension advances through it on its background wake-ups.
+ * Store the rotation deck in the app group, where the DeviceActivity extension
+ * advances through it on its background wake-ups. Entries are [word, translation]
+ * for Plus and [word] for free — a one-element entry yields a nil translation on
+ * the native side, which is how the widget knows to keep the island on the countdown.
  */
-export function setWordRotation(pairs: [string, string][]): void {
+export function setWordRotation(pairs: string[][]): void {
   try {
     native?.setWordRotation(JSON.stringify(pairs));
   } catch {

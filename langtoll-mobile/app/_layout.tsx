@@ -26,6 +26,7 @@ import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
 import { refreshGoalPack } from '@/lib/ai/topics';
 import { prefetchActivePack } from '@/lib/audio-pack';
+import { effectiveLevel } from '@/lib/plans';
 import { handleNotificationTaps, scheduleTrialEndNotice } from '@/lib/notify';
 import { primeVoices, configureAudioSession, applyStoredShaping, stopSpeaking } from '@/lib/tts';
 
@@ -72,7 +73,7 @@ export default function RootLayout() {
       // background. Must run AFTER hydrate — it needs the persisted language and
       // level. Deliberately not awaited: the lock never waits on a network call.
       const s = getState();
-      void initPool(s.learningLanguage, s.level);
+      void initPool(s.learningLanguage, effectiveLevel());
       // The goal's own pack — generated once per (goal, language, level) and
       // merged into sessions. Fire-and-forget like the pool.
       void refreshGoalPack();

@@ -54,6 +54,7 @@ import {
   FARE_MINUTES_STEP,
   FREE_FARE_EXERCISES,
   FREE_FARE_MINUTES,
+  FREE_LEVELS,
   TRIAL_DAYS,
   freeExercises,
   freeMinutes,
@@ -635,6 +636,16 @@ export default function Onboarding() {
                     {t('ob.diffLevel', { level: derivedLevel })}
                   </Text>
                 </View>
+                {/* Same honesty as the fare note: the route beyond A1 is the
+                    trial's, and this says so where the choice is made. */}
+                {!(FREE_LEVELS as readonly string[]).includes(derivedLevel) && (
+                  <View style={[styles.fareNote, { borderColor: withAlpha(theme.accent, 0.4), backgroundColor: withAlpha(theme.accent, 0.08) }]}>
+                    <Ionicons name="sparkles" size={16} color={theme.accent} />
+                    <Text variant="caption" style={{ flex: 1, color: theme.accent }}>
+                      {t('ob.levelNeedsPlus', { level: derivedLevel, days: TRIAL_DAYS, free: FREE_LEVELS[0] })}
+                    </Text>
+                  </View>
+                )}
               </Entrance>
             )}
 

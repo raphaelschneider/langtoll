@@ -238,7 +238,7 @@ export default function Session() {
       completeSession(effectiveUnlockMinutes() + bonus);
       // Coarse dims only (language + CEFR level) — the words themselves never leave the phone.
       const st = getState();
-      track('session_completed', { language: st.learningLanguage, level: st.level });
+      track('session_completed', { language: st.learningLanguage, level: pack.level });
       track('unlocked', { minutes: effectiveUnlockMinutes() + bonus });
       grantUnlock(effectiveUnlockMinutes() + bonus); // lift the real shield + schedule re-lock (native only)
       // The pass, live: countdown in the Dynamic Island / lock screen until the

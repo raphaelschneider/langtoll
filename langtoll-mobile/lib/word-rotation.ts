@@ -12,6 +12,7 @@
 // target-language word (whatever the language) and `en` the user's own.
 import { getState } from '@/lib/store';
 import { activePack } from '@/lib/pack';
+import { canUseIslandWords } from '@/lib/plans';
 
 export const ROTATION_DECK_SIZE = 12;
 // Keep in sync with the 80pt compact-slot cap in PassActivityWidget.swift.
@@ -20,8 +21,12 @@ export const ROTATION_DECK_SIZE = 12;
 // teaches nothing. The shipped worst case must always fit whole.
 export const MAX_ISLAND_CHARS = 15;
 
-/** [targetWord, translation] pairs, priority-ordered. May be empty (fresh install). */
-export function pickRotationDeck(): [string, string][] {
+/**
+ * Priority-ordered deck. Plus: [targetWord, translation] pairs. Free: [targetWord]
+ * only — the lock screen shows the bare word (the teaser) and the widget, seeing
+ * no translation, keeps the island on the countdown. May be empty (fresh install).
+ */
+export function pickRotationDeck(): string[][] {
   const { progress } = getState();
   const vocab = activePack().vocab;
 
@@ -47,8 +52,9 @@ export function pickRotationDeck(): [string, string][] {
   const fitsIsland = (v: (typeof vocab)[number]) =>
     v.de.length <= MAX_ISLAND_CHARS && (v.en[0]?.length ?? 0) <= MAX_ISLAND_CHARS;
 
+  const withTranslation = canUseIslandWords();
   return [...struggling, ...unseen]
     .filter(fitsIsland)
     .slice(0, ROTATION_DECK_SIZE)
-    .map((v) => [v.de, v.en[0]] as [string, string]);
+    .map((v) => (withTranslation ? [v.de, v.en[0]] : [v.de]));
 }

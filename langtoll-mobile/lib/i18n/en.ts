@@ -46,7 +46,8 @@ export const en = {
   'home.wallet': 'Open wallet',
   'home.route': 'Your route',
   'home.nextStop': 'Next stop {level} · {n} words',
-  'home.trialEnds': 'Trial ends {when} — your fare goes back to {ex} exercises for {min} min unless you keep Plus.',
+  'home.nextStopPlus': 'Next stop {level} · with Plus',
+  'home.trialEnds': 'Trial ends {when} — unless you keep Plus, {changes}.',
   'wallet.sectionCollected': 'Collected',
   'wallet.sectionProgress': 'In progress',
   'wallet.tapHint': 'Tap a ticket to hear it',
@@ -102,6 +103,7 @@ export const en = {
   'ob.fareEx': 'Exercises per unlock',
   'ob.fareMin': 'Minutes unlocked',
   'ob.fareNeedsPlus': 'This fare is part of Plus, yours free for {days} days. Free keeps {exs} exercises for {mins} min.',
+  'ob.levelNeedsPlus': 'Level {level} is part of Plus, yours free for {days} days. Free trains {free}.',
   'ob.goalTitle': 'Why {lang}?',
   'ob.goalTravel': 'Travel — order like a local',
   'ob.goalLove': 'Someone I love speaks it',
@@ -185,6 +187,7 @@ export const en = {
   'settings.fareMinValue': '{min} min',
   'settings.fareAny': '{min}–{max} min',
   'settings.fareRevertNote': 'Plus fare. Free picks {exs} exercises for {mins} min — without Plus yours becomes {ex} for {min} min.',
+  'settings.levelRevertNote': 'Plus level. Free trains {level} — without Plus your course returns there.',
   'settings.strictMode': 'Strict mode',
   'settings.strictModeDetail': 'Re-locks the instant your pass expires — no grace window.',
   'home.activityOff': 'Your countdown and island vocabulary are gone — Live Activities are off. Tap to turn them back on.',
@@ -262,10 +265,17 @@ export const en = {
   'plus.f5Detail': 'Generate vocabulary for your world — brunch orders, match-day slang, anything',
   'plus.f6Title': 'The voice',
   'plus.f6Detail': 'Hear every word and sentence in a studio-tuned native voice — free practises in text',
+  'plus.f7Title': 'The whole route',
+  'plus.f7Detail': 'A2, B1 and B2 — free trains the A1 course',
+  'plus.f8Title': 'Your words on the Dynamic Island',
+  'plus.f8Detail': 'Word and translation ride the island all day, and the lock screen translates — free keeps the countdown',
 
   // trial-end downgrade warning
   'trial.title': 'Your trial ends tomorrow.',
-  'trial.body': 'Unless you keep Plus, your fare goes back to {ex} exercises for {min} min.',
+  'trial.body': 'Unless you keep Plus: {changes}.',
+  'trial.lossLevel': 'your course returns to {level}',
+  'trial.lossFare': 'your fare goes back to {ex} exercises for {min} min',
+  'trial.lossIsland': 'your words leave the Dynamic Island',
 } as const;
 
 export type StringKey = keyof typeof en;
