@@ -1,1 +1,5 @@
 backups/
+
+# editor swap files (one once carried a live .env)
+*.swp
+*.swo
