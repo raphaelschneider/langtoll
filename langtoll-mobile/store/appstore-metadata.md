@@ -135,7 +135,7 @@ one, so the subtitle must not imply "learn German" to a German reader.
 - Name: `LangToll: Sprachen lernen` (25)
 - Subtitle: `Üben, um Apps zu entsperren` (27)
 - Keywords: `vokabeln,spanisch,franzoesisch,italienisch,englisch,bildschirmzeit,fokus,gewohnheit`
-- Promotional text: `Sechs Sprachen, eine Regel: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du übst. Tolly steht am Tor.` (114)
+- Promotional text: `Seis idiomas, uma regra: os apps que devoram suas noites ficam bloqueados até você praticar. O Tolly está na catraca.` (117)
 
 ### Spanish (es-ES / es-MX)
 - Name: `LangToll: Aprende idiomas` (25)
