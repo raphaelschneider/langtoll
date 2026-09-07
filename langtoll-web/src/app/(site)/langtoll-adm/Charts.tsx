@@ -4,7 +4,7 @@
 // hoverable. Kept as a small client island so the page itself stays a server component.
 import { useState } from 'react';
 
-const BRAND = { ink: '#14110E', inkSoft: '#6B6258', line: '#E7E1D8', surface: '#FFFFFF' };
+import { BRAND, FONT } from './brand';
 
 export interface DayCount {
   day: string;
@@ -80,7 +80,7 @@ export function BarChart({ data, color, title }: { data: DayCount[]; color: stri
               top: -4,
               transform: 'translate(-50%, -100%)',
               background: BRAND.ink,
-              color: '#fff',
+              color: BRAND.onAccent,
               padding: '5px 9px',
               borderRadius: 8,
               fontSize: 12,
@@ -91,7 +91,7 @@ export function BarChart({ data, color, title }: { data: DayCount[]; color: stri
               zIndex: 2,
             }}
           >
-            <strong style={{ fontSize: 14 }}>{days[hover].n.toLocaleString()}</strong>{' '}
+            <strong style={{ fontSize: 14, fontFamily: FONT.mono }}>{days[hover].n.toLocaleString()}</strong>{' '}
             <span style={{ opacity: 0.7 }}>· {fmtDay(days[hover].day)}</span>
           </div>
         )}

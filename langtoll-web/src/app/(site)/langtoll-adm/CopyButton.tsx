@@ -4,6 +4,7 @@
 // server component. Falls back to a textarea+execCommand where the async clipboard API is
 // unavailable (plain-http dev hosts).
 import { useState } from 'react';
+import { BRAND } from './brand';
 
 export function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [state, setState] = useState<'idle' | 'done' | 'fail'>('idle');
@@ -34,10 +35,10 @@ export function CopyButton({ text, label = 'Copy' }: { text: string; label?: str
         padding: '6px 12px',
         fontSize: 13,
         fontWeight: 600,
-        border: '1px solid #E7E1D8',
+        border: `1px solid ${BRAND.line}`,
         borderRadius: 8,
-        background: state === 'done' ? '#2E5E4E' : state === 'fail' ? '#C8553D' : '#FFFFFF',
-        color: state === 'idle' ? '#14110E' : '#fff',
+        background: state === 'done' ? BRAND.pine : state === 'fail' ? BRAND.danger : BRAND.surface,
+        color: state === 'idle' ? BRAND.ink : BRAND.onAccent,
         cursor: 'pointer',
       }}
     >

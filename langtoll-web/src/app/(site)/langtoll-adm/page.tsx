@@ -5,6 +5,8 @@ import { getPricing, fmtPrice } from '@/lib/settings';
 import { getUsageByDay, estimateCostUSD } from '@/lib/usage';
 import { updatePricing, deleteDevice } from './actions';
 import { BarChart } from './Charts';
+import { BRAND, FONT } from './brand';
+import { adminFontClassName } from '@/lib/fonts';
 import { CopyButton } from './CopyButton';
 import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS } from './funnel';
 
@@ -14,16 +16,7 @@ export const dynamic = 'force-dynamic';
 // kept out of search engines, and (unlike /admin) NOT named in robots.txt so the path isn't leaked.
 export const metadata = { robots: { index: false, follow: false } };
 
-const BRAND = {
-  ink: '#14110E',
-  inkSoft: '#6B6258',
-  paper: '#F6F3EE',
-  surface: '#FFFFFF',
-  line: '#E7E1D8',
-  accent: '#C8553D',
-  pine: '#2E5E4E',
-  amber: '#D99A4E',
-};
+// Palette + type live in ./brand (shared with the charts and the copy button).
 
 interface DayCount {
   day: string;
@@ -116,7 +109,7 @@ function Stat({ label, value, sub, tint, hint }: { label: string; value: string;
       <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600 }}>
         {label}
       </div>
-      <div style={{ fontSize: 34, fontFamily: 'Georgia, serif', color: tint ?? BRAND.ink, marginTop: 6 }}>{value}</div>
+      <div style={{ fontSize: 34, fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, color: tint ?? BRAND.ink, marginTop: 6 }}>{value}</div>
       {sub && <div style={{ fontSize: 13, color: BRAND.inkSoft, marginTop: 2 }}>{sub}</div>}
     </div>
   );
@@ -229,7 +222,7 @@ async function DashboardTab() {
         </div>
 
         {/* AI usage & cost */}
-        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 24, margin: '36px 0 12px' }}>AI usage &amp; cost</h2>
+        <h2 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 24, margin: '36px 0 12px' }}>AI usage &amp; cost</h2>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <Stat label="AI packs today" value={String(todayUsage.topics)} sub={`${sum7.topics} in 7 days`} tint={BRAND.amber} hint={`${todayUsage.topics} pack generations today · ${sum7.topics} over the last 7 days`} />
           <Stat label="Audio renders today" value={String(todayUsage.tts)} sub={`${sum7.tts} in 7 days`} tint={BRAND.pine} hint={`${todayUsage.tts} JIT tts files today · ${sum7.tts} over the last 7 days`} />
@@ -360,7 +353,7 @@ async function DashboardTab() {
             </label>
             <button
               type="submit"
-              style={{ padding: '9px 22px', background: BRAND.accent, color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              style={{ padding: '9px 22px', background: BRAND.accent, color: BRAND.onAccent, border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
             >
               Save
             </button>
@@ -381,10 +374,10 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const { tab, code, days, test } = await searchParams;
   const active: TabKey = tab === 'support' ? 'support' : tab === 'funnel' ? 'funnel' : 'dashboard';
   return (
-    <main style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: 'ui-sans-serif, system-ui' }}>
+    <main className={adminFontClassName} style={{ minHeight: '100vh', background: BRAND.paper, color: BRAND.ink, padding: '48px 32px', fontFamily: FONT.display }}>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-        <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700 }}>LangToll</div>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
+        <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700, fontFamily: FONT.mono }}>LangToll</div>
+        <h1 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
         <Tabs active={active} />
         {active === 'support' ? await SupportTab(code) : active === 'funnel' ? await FunnelTab(days, test) : await DashboardTab()}
       </div>
@@ -413,7 +406,7 @@ async function FunnelTab(daysRaw?: string, testRaw?: string) {
         borderRadius: 999,
         border: `1px solid ${on ? BRAND.accent : BRAND.line}`,
         background: on ? BRAND.accent : BRAND.surface,
-        color: on ? '#fff' : BRAND.ink,
+        color: on ? BRAND.onAccent : BRAND.ink,
       }}
     >
       {label}
@@ -426,7 +419,7 @@ async function FunnelTab(daysRaw?: string, testRaw?: string) {
     .fn-table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
     .fn-table th { padding: 6px 8px; font-weight: 600; text-align: left; white-space: nowrap; color: ${BRAND.inkSoft}; border-bottom: 1px solid ${BRAND.line}; }
     .fn-table td { padding: 6px 8px; border-bottom: 1px solid ${BRAND.line}; white-space: nowrap; vertical-align: top; }
-    .fn-table td.mono { font-family: ui-monospace, monospace; font-size: 12px; }
+    .fn-table td.mono { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 12px; }
     .fn-table td.empty { color: ${BRAND.inkSoft}; }
   `;
 
@@ -455,7 +448,7 @@ async function FunnelTab(daysRaw?: string, testRaw?: string) {
       {report.sections.map((s) => (
         <div key={s.key} style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, marginTop: 20 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: s.note ? 4 : 14 }}>
-            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 22, margin: 0, flex: 1 }}>{s.title}</h2>
+            <h2 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 22, margin: 0, flex: 1 }}>{s.title}</h2>
             <CopyButton text={sectionToText(s)} />
           </div>
           {s.note && <div style={{ fontSize: 13, color: BRAND.inkSoft, marginBottom: 14 }}>{s.note}</div>}
@@ -540,7 +533,7 @@ async function SupportTab(rawCode?: string) {
       const cell: React.CSSProperties = { padding: '6px 12px', borderBottom: `1px solid ${BRAND.line}`, fontSize: 14, textAlign: 'left' };
       result = (
         <div>
-          <h3 style={{ fontFamily: 'Georgia, serif', margin: '20px 0 8px' }}>Device</h3>
+          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>Device</h3>
           <table style={{ borderCollapse: 'collapse' }}><tbody>
             <tr><td style={cell}>device_id</td><td style={cell}><code>{deviceId}</code></td></tr>
             <tr><td style={cell}>platform / version</td><td style={cell}>{String(u.platform ?? '—')} · {String(u.app_version ?? '—')}</td></tr>
@@ -548,10 +541,10 @@ async function SupportTab(rawCode?: string) {
             <tr><td style={cell}>onboarded / last seen</td><td style={cell}>{String(u.onboarded_at ?? '—')} · {String(u.last_seen_at ?? '—')}</td></tr>
           </tbody></table>
 
-          <h3 style={{ fontFamily: 'Georgia, serif', margin: '20px 0 8px' }}>RevenueCat (live)</h3>
+          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>RevenueCat (live)</h3>
           <p style={{ fontSize: 14 }}>{rcUser ? <><code>{String(rcUser)}</code> — {rcLive}</> : rcLive}</p>
 
-          <h3 style={{ fontFamily: 'Georgia, serif', margin: '20px 0 8px' }}>Subscription mirror</h3>
+          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>Subscription mirror</h3>
           <table style={{ borderCollapse: 'collapse' }}><tbody>
             {(subs as Record<string, unknown>[]).map((s2, i) => (
               <tr key={i}><td style={cell}>{String(s2.plan)} · {String(s2.period ?? '—')}</td><td style={cell}>{String(s2.status)}</td><td style={cell}>{String(s2.started_at)} → {String(s2.ended_at ?? 'now')}</td></tr>
@@ -559,7 +552,7 @@ async function SupportTab(rawCode?: string) {
             {(subs as unknown[]).length === 0 ? <tr><td style={cell}>no subscription events</td></tr> : null}
           </tbody></table>
 
-          <h3 style={{ fontFamily: 'Georgia, serif', margin: '20px 0 8px' }}>Attest keys (installs)</h3>
+          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>Attest keys (installs)</h3>
           <table style={{ borderCollapse: 'collapse' }}><tbody>
             {(keys as Record<string, unknown>[]).map((k, i) => (
               <tr key={i}><td style={cell}><code>{String(k.key_id).slice(0, 12)}…</code></td><td style={cell}>honeymoon_ok: {k.honeymoon_ok === null ? 'unevaluated' : String(k.honeymoon_ok)}</td><td style={cell}>created {String(k.created_at)}</td></tr>
@@ -567,7 +560,7 @@ async function SupportTab(rawCode?: string) {
             {(keys as unknown[]).length === 0 ? <tr><td style={cell}>no attest keys for this device (older app version, or never reached a paid route)</td></tr> : null}
           </tbody></table>
 
-          <h3 style={{ fontFamily: 'Georgia, serif', margin: '20px 0 8px' }}>Activity — last 60 events</h3>
+          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>Activity — last 60 events</h3>
           <table style={{ borderCollapse: 'collapse' }}><tbody>
             {(timeline as Record<string, unknown>[]).map((ev, i) => (
               <tr key={i}>
@@ -603,7 +596,7 @@ async function SupportTab(rawCode?: string) {
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 24, margin: '0 0 12px' }}>Support lookup</h2>
+      <h2 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 24, margin: '0 0 12px' }}>Support lookup</h2>
       <form method="get" action="/langtoll-adm">
         <input type="hidden" name="tab" value="support" />
         <input
@@ -612,7 +605,7 @@ async function SupportTab(rawCode?: string) {
           placeholder="Support code, e.g. X8K2-M4QX"
           style={{ padding: '10px 14px', fontSize: 15, border: `1px solid ${BRAND.line}`, borderRadius: 8, width: 280, background: BRAND.surface }}
         />
-        <button type="submit" style={{ marginLeft: 8, padding: '10px 18px', fontSize: 15, fontWeight: 600, border: 'none', borderRadius: 8, background: BRAND.accent, color: '#fff', cursor: 'pointer' }}>
+        <button type="submit" style={{ marginLeft: 8, padding: '10px 18px', fontSize: 15, fontWeight: 600, border: 'none', borderRadius: 8, background: BRAND.accent, color: BRAND.onAccent, cursor: 'pointer' }}>
           Look up
         </button>
       </form>
