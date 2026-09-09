@@ -40,11 +40,12 @@ export interface Exercise {
   audio?: string;
   /**
    * Provenance of the underlying item — absent means authored, 'ai' means it
-   * came from the generated pool, 'goal' from the learner's goal pack. Carried
+   * came from the generated pool, 'goal' from the learner's goal pack, 'topic'
+   * from the topic pack they generated themselves. Carried
    * through so a dev build can show which is which on a real device, and so
    * answer quality can be compared later.
    */
-  source?: 'ai' | 'goal';
+  source?: 'ai' | 'goal' | 'topic';
 }
 
 export interface SessionPlan {

@@ -11,6 +11,7 @@ export type PaywallSource =
   | 'settings_strict'
   | 'settings_voice'
   | 'settings_topics'
+  | 'settings_goal'
   | 'settings_apps'
   | 'session_voice'
   | 'wallet_voice'

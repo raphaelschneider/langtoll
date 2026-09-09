@@ -103,7 +103,16 @@ export function activePack(): LanguagePack {
   // unanswerable exercise ("__" offered as one of the options).
   const topic = s.customTopic ? sanitizeTopic(s.customTopic) : null;
   const useTopic = !!topic && s.useCustomTopic && topic.vocab.length > 0;
-  const topicItems = useTopic ? localizeItems(topic!.vocab, topic!.sentences, locale) : null;
+  const rawTopicItems = useTopic ? localizeItems(topic!.vocab, topic!.sentences, locale) : null;
+  // Tagged 'topic' so a session can say WHERE an item came from. Untagged they
+  // fell through the badge's else branch and were shown as AUTHORED — telling
+  // the learner that a word they generated themselves was written by us.
+  const topicItems = rawTopicItems
+    ? {
+        vocab: rawTopicItems.vocab.map((v) => ({ ...v, source: 'topic' as const })),
+        sentences: rawTopicItems.sentences.map((x) => ({ ...x, source: 'topic' as const })),
+      }
+    : null;
 
   // The goal's pack rides along whenever it matches the active course — this
   // is what makes "Pass the B1 exam" VISIBLE in sessions rather than a label.

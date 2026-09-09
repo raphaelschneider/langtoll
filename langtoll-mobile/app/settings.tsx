@@ -372,6 +372,11 @@ export default function Settings() {
 
   const plus = isPlus(state);
   const audioAllowed = canUseAudio();
+  // The goal drives the SAME generator as the AI topic pack below and shares
+  // its entitlement, so it gets the same treatment as every other Plus control
+  // in this screen: visible, locked, and a tap away from the offer. It used to
+  // accept typing from a free user and silently discard it.
+  const goalLocked = !canUseAiTopics();
   const pack = activePack();
 
   async function generate() {
@@ -464,9 +469,22 @@ export default function Settings() {
                 pack toward it (lib/goal.ts -> /api/topics/generate); the four
                 onboarding chips remain valid values and map to canonical
                 phrases. t() renders both — unknown keys pass through. */}
-            <Text variant="caption" color="inkFaint">
-              {t('settings.goal')}
-            </Text>
+            {/* Same marginTop as every other field label in this card: without
+                it the label sat 12pt under the section title with nothing
+                below it, reading as a second section heading rather than the
+                name of the field beneath it. */}
+            <View style={styles.labelRow}>
+              <Text variant="caption" color="inkFaint">
+                {t('settings.goal')}
+              </Text>
+              {goalLocked && <Ionicons name="lock-closed" size={12} color={theme.inkFaint} />}
+            </View>
+            <PressableScale
+              onPress={() => goalLocked && openPaywall('settings_goal')}
+              haptic={null}
+              disabled={!goalLocked}
+              accessibilityRole={goalLocked ? 'button' : undefined}
+            >
             <TextInput
               defaultValue={state.goal && !state.goal.startsWith('ob.') ? state.goal : ''}
               onEndEditing={(e) => {
@@ -487,7 +505,9 @@ export default function Settings() {
               style={[styles.input, { borderColor: theme.line, color: theme.ink, marginBottom: space.lg }]}
               maxLength={120}
               returnKeyType="done"
+              editable={!goalLocked}
             />
+            </PressableScale>
             {/* Speaker-gendered forms — same three-way choice as onboarding,
                 editable later. null = show both variants. Hidden entirely for
                 languages without the concept (de, en), and the examples follow
@@ -762,38 +782,53 @@ export default function Settings() {
 
           {/* AI topic pack */}
           <Section title={t('settings.topics')}>
-            <Text variant="callout" color="inkSoft">
-              {t('settings.topicHint')}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text variant="callout" color="inkSoft" style={{ flexShrink: 1 }}>
+                {t('settings.topicHint')}
+              </Text>
+              {goalLocked && <Ionicons name="lock-closed" size={12} color={theme.inkFaint} />}
+            </View>
             {!aiAvailable() && (
               <Text variant="caption" color="amber" style={{ marginTop: space.sm }}>
                 {t('settings.noKey')}
               </Text>
             )}
-            <TextInput
-              value={topicDraft}
-              onChangeText={setTopicDraft}
-              placeholder={t('settings.topicPlaceholder')}
-              placeholderTextColor={theme.inkFaint}
-              selectionColor={theme.accent}
-              keyboardAppearance={theme.scheme}
-              editable={!generating}
-              onSubmitEditing={generate}
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.fill,
-                  borderColor: theme.line,
-                  color: theme.ink,
-                  marginTop: space.md,
-                },
-              ]}
-            />
+            {/* Same gating as the goal field above — they share an entitlement
+                and a generator, so they must not disagree about whether a free
+                user may type into them. Locked: visible, padlocked, one tap
+                from the offer. */}
+            <PressableScale
+              onPress={() => goalLocked && openPaywall('settings_topics')}
+              haptic={null}
+              disabled={!goalLocked}
+              accessibilityRole={goalLocked ? 'button' : undefined}
+            >
+              <TextInput
+                value={topicDraft}
+                onChangeText={setTopicDraft}
+                placeholder={t('settings.topicPlaceholder')}
+                placeholderTextColor={theme.inkFaint}
+                selectionColor={theme.accent}
+                keyboardAppearance={theme.scheme}
+                editable={!generating && !goalLocked}
+                onSubmitEditing={generate}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.fill,
+                    borderColor: theme.line,
+                    color: theme.ink,
+                    marginTop: space.md,
+                  },
+                ]}
+              />
+            </PressableScale>
             <Button
               label={generating ? t('settings.generating') : t('settings.generate')}
               onPress={generate}
               loading={generating}
-              disabled={!topicDraft.trim() || generating}
+              disabled={(!topicDraft.trim() && !goalLocked) || generating}
+              icon={goalLocked ? 'lock-closed' : undefined}
               full
               style={{ marginTop: space.md }}
             />
@@ -958,6 +993,7 @@ const styles = StyleSheet.create({
   },
   back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: space.xl, paddingBottom: space.xxxl },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.lg },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },
   input: {
     height: 50,

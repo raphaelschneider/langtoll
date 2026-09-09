@@ -578,6 +578,26 @@ export default function Session() {
                       longer "what do you hear?" — it is the meaning question. */}
                   {listenAsText ? promptLabel.mc_de_en : promptLabel[ex.type]}
                 </Text>
+                {/* Why this item is here, for the learner. Shown ONLY for the two
+                    sources they asked for by name — their goal and their own topic
+                    pack — so a generated exercise reads as the thing they requested
+                    rather than a random word. Never shown for 'ai' (the shared
+                    pool) or for authored content: that is provenance, not an
+                    answer to "why am I being asked this?". */}
+                {ex.source === 'goal' || ex.source === 'topic' ? (
+                  <View
+                    style={{
+                      paddingHorizontal: 6,
+                      paddingVertical: 1,
+                      borderRadius: 4,
+                      backgroundColor: withAlpha(theme.accent, 0.18),
+                    }}
+                  >
+                    <Text variant="caption" color="accent">
+                      {ex.source === 'goal' ? t('session.fromGoal') : t('session.fromTopic')}
+                    </Text>
+                  </View>
+                ) : null}
                 {/* Provenance, dev builds only: is this exercise ours or generated?
                     Gated on the same flag as the rest of the dev tooling, so it can
                     never appear in a store build (the pre-install check fails a
@@ -588,11 +608,13 @@ export default function Session() {
                       paddingHorizontal: 6,
                       paddingVertical: 1,
                       borderRadius: 4,
-                      backgroundColor: ex.source === 'ai' ? withAlpha(theme.accent, 0.18) : 'rgba(255,255,255,0.08)',
+                      backgroundColor: ex.source ? withAlpha(theme.accent, 0.18) : 'rgba(255,255,255,0.08)',
                     }}
                   >
-                    <Text variant="caption" color={ex.source === 'ai' ? 'ink' : 'inkFaint'}>
-                      {ex.source === 'ai' ? 'AI' : 'AUTHORED'}
+                    <Text variant="caption" color={ex.source ? 'ink' : 'inkFaint'}>
+                      {/* the real source, not a two-way guess — 'goal' and
+                          'topic' used to fall through to AUTHORED here */}
+                      {(ex.source ?? 'authored').toUpperCase()}
                     </Text>
                   </View>
                 )}

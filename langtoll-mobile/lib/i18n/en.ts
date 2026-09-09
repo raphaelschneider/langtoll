@@ -66,6 +66,8 @@ export const en = {
   'session.orderHint': 'Tap the words in order',
   'session.listen': 'What do you hear?',
   'session.cantHear': 'I can’t listen right now',
+  'session.fromGoal': 'Your goal',
+  'session.fromTopic': 'Your topic',
   'session.offlineVoice': 'Device is offline, using your device’s voice instead',
   'session.passIssued': 'Pass issued',
   'session.correctCount': '{correct} of {total} correct',

@@ -60,6 +60,8 @@ export const fr: Partial<Record<StringKey, string>> = {
   'session.orderHint': 'Touche les mots dans le bon ordre',
   'session.listen': "Qu'est-ce que tu entends ?",
   'session.cantHear': 'Je ne peux pas écouter maintenant',
+  'session.fromGoal': 'Ton objectif',
+  'session.fromTopic': 'Ton thème',
   'session.offlineVoice': 'Appareil hors ligne – voix de l’appareil utilisée',
   'session.passIssued': 'Pass émis',
   'session.correctCount': '{correct} bonnes réponses sur {total}',

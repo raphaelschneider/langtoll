@@ -90,7 +90,7 @@ export interface VocabItem {
    * 'goal' marks items from the pack generated for the learner's own goal
    * ("Pass the B1 exam") — the trainer guarantees these seats in a session.
    */
-  source?: 'ai' | 'goal';
+  source?: 'ai' | 'goal' | 'topic';
 }
 
 export interface SentenceItem {
@@ -121,7 +121,7 @@ export interface SentenceItem {
    * 'goal' marks items from the pack generated for the learner's own goal
    * ("Pass the B1 exam") — the trainer guarantees these seats in a session.
    */
-  source?: 'ai' | 'goal';
+  source?: 'ai' | 'goal' | 'topic';
 }
 
 export interface LanguagePack {
