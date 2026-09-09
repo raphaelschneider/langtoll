@@ -10,11 +10,13 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { useTheme, space } from '@/design/theme';
+import { useLayout, band } from '@/design/layout';
 import { useT } from '@/lib/i18n';
 import type { PaywallSource } from '@/lib/paywall';
 
 export default function Paywall() {
   const theme = useTheme();
+  const L = useLayout();
   const t = useT();
   // Which gate opened us — see lib/paywall. Missing means an untagged path.
   const { from } = useLocalSearchParams<{ from?: PaywallSource }>();
@@ -28,14 +30,14 @@ export default function Paywall() {
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={0.7} />
       <SafeAreaView style={styles.safe}>
-        <View style={styles.header}>
+        <View style={[styles.header, band(L)]}>
           <PressableScale onPress={close} style={styles.close} haptic={null}>
             <Ionicons name="close" size={24} color={theme.inkSoft} />
           </PressableScale>
         </View>
         {/* PlusOffer scrolls its own feature list and pins the purchase controls to
             the bottom — an outer ScrollView would put the CTA below the fold again. */}
-        <View style={styles.content}>
+        <View style={[styles.content, band(L)]}>
           <Text variant="overline" color="accent">
             {t('ob.payOver')}
           </Text>

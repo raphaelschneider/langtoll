@@ -16,6 +16,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font, shadow } from '@/design/theme';
+import { useLayout, band, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { buildSession, gradeTyped, gradeOrder, type Exercise, type Grade } from '@/lib/trainer';
@@ -37,7 +38,7 @@ import { openPaywall } from '@/lib/paywall';
 import { Tolly } from '@/components/ui/Tolly';
 import { syncPassActivity } from '@/lib/pass-activity';
 import { OrderBuilder } from '@/components/session/OrderBuilder';
-import { ensureAudio } from '@/lib/audio-pack';
+import { audioNetworkFailed, ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
 import { clearDeliveredNotifications } from '@/lib/notify';
 
@@ -50,6 +51,7 @@ type Phase = 'answer' | 'feedback' | 'done';
 
 export default function Session() {
   const theme = useTheme();
+  const L = useLayout();
   const t = useT();
   const appState = useAppState();
   const pack = useMemo(() => activePack(), []);
@@ -89,13 +91,20 @@ export default function Session() {
     if (reviewTimer.current) clearTimeout(reviewTimer.current);
   }, []);
 
-  // Hold the first card briefly until this session's own audio is on disk —
-  // corpus files arrive at onboarding, but AI-pack items synthesize on first
-  // request (a couple of seconds server-side) and the order exercise speaks
-  // individual words. Bounded inside ensureAudio: past the deadline the
-  // session starts and TTS covers any straggler. Founder call: the first
-  // sound of a session is never the robot voice when audio is obtainable.
+  // Hold the first card briefly until this session's own audio is on disk.
+  // This is the ONLY place audio is fetched ahead of play, and it covers just
+  // these exercises — a few dozen ~30KB files, not a pack. (Onboarding used to
+  // pre-download a whole level and block on it; App Review 4.2.3(ii) killed
+  // that, see lib/audio-pack.ts.) Bounded inside ensureAudio: past the
+  // deadline the session starts and TTS covers any straggler. Founder call:
+  // the first sound of a session is never the robot voice when audio is
+  // obtainable — but it is never a wall the user has to wait behind either.
   const [audioReady, setAudioReady] = useState(false);
+  // Whether this session has hit a genuine network failure fetching audio, so
+  // the learner is told WHY the voice changed rather than left wondering. Read
+  // from the flag after each warm-up and on each exercise, since a session can
+  // start online and lose the network partway through.
+  const [audioOffline, setAudioOffline] = useState(false);
   useEffect(() => {
     const texts = plan.exercises.flatMap((e) => {
       const out: string[] = [];
@@ -104,7 +113,11 @@ export default function Session() {
       return out;
     });
     let alive = true;
-    ensureAudio(texts).finally(() => alive && setAudioReady(true));
+    ensureAudio(texts).finally(() => {
+      if (!alive) return;
+      setAudioReady(true);
+      setAudioOffline(audioNetworkFailed());
+    });
     return () => {
       alive = false;
     };
@@ -112,6 +125,9 @@ export default function Session() {
   }, [plan]);
 
   const ex: Exercise = plan.exercises[idx];
+  useEffect(() => {
+    setAudioOffline(audioNetworkFailed());
+  }, [idx]);
   const audioAllowed = canUseAudio();
   // Locked users still SEE the speaker (it is a paywall entry point); it just
   // routes to the offer instead of speaking.
@@ -321,6 +337,148 @@ export default function Session() {
   // state so one tap covers every remaining listen exercise in the plan.
   const listenAsText = isListen && !sound;
 
+  // The answer panel. On a phone it is pinned above the home indicator — the
+  // thumb zone. On iPad it must NOT be: with the prompt optically centred, a
+  // bottom-pinned panel sits hundreds of points below the question it answers,
+  // and the bottom edge of a 13-inch screen is the longest reach on the device.
+  // On regular widths it rides directly under the prompt instead, so question
+  // and answers read as one object.
+  const answerPanel = (
+    // Inline on iPad it sits INSIDE the body, which already supplies the gutter
+    // and the width cap — applying them twice would inset it by 48pt a side.
+    <View style={[styles.answers, L.regular ? styles.answersInline : band(L)]}>
+      {isTyped ? (
+        <>
+          <TextInput
+            value={typed}
+            onChangeText={setTyped}
+            editable={phase === 'answer'}
+            autoFocus
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder={pack.flavor.typedPlaceholder}
+            placeholderTextColor={theme.inkFaint}
+            selectionColor={theme.accent}
+            keyboardAppearance={theme.scheme}
+            onSubmitEditing={() => typed.trim() && answer(typed)}
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.line,
+                color: theme.ink,
+              },
+            ]}
+          />
+          {phase === 'answer' && (
+            <Button
+              label={t('session.check')}
+              onPress={() => answer(typed)}
+              disabled={!typed.trim()}
+              glow={!!typed.trim()}
+              full
+              style={{ marginTop: space.md }}
+            />
+          )}
+        </>
+      ) : isOrder ? (
+        <>
+          <View style={styles.orderWrap}>
+            {ex.options!.map((word, i) => {
+              const used = orderPicked.includes(i);
+              return (
+                <PressableScale
+                  key={`${word}-${i}`}
+                  disabled={phase !== 'answer' || used}
+                  onPress={() => {
+                    speakTarget(word);
+                    setOrderPicked((cur) => [...cur, i]);
+                  }}
+                  style={[
+                    styles.orderChip,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.line,
+                      opacity: used ? 0.25 : 1,
+                    },
+                  ]}
+                >
+                  <Text variant="bodyMedium">{word}</Text>
+                </PressableScale>
+              );
+            })}
+          </View>
+          {phase === 'answer' && (
+            <Button
+              label={t('session.check')}
+              onPress={answerOrder}
+              disabled={!orderPicked.length}
+              glow={!!orderPicked.length}
+              full
+              style={{ marginTop: space.md }}
+            />
+          )}
+        </>
+      ) : (
+        ex.options!.map((opt, i) => {
+          const isPicked = phase === 'feedback' && picked === opt;
+          const isAnswer = phase === 'feedback' && opt === ex.answer;
+          const bg = isAnswer
+            ? theme.accent
+            : isPicked
+              ? theme.danger
+              : theme.surface;
+          const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
+          // In feedback, everything that isn't the answer or the miss
+          // steps back so the eye lands on the two that matter; a glyph
+          // says which is which without relying on colour alone.
+          const bystander = phase === 'feedback' && !isAnswer && !isPicked;
+          return (
+            <Entrance key={`${ex.key}-${opt}-${i}:r${resumeTick}`} delay={40 * i} from={8}>
+              <PressableScale
+                onPress={() => answer(opt)}
+                disabled={phase !== 'answer'}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: phase !== 'answer', selected: isPicked }}
+                style={[
+                  styles.option,
+                  {
+                    backgroundColor: bg,
+                    borderColor: isAnswer || isPicked ? bg : theme.line,
+                    opacity: bystander ? 0.4 : 1,
+                  },
+                ]}
+              >
+                <Text variant="bodyMedium" center style={{ color: fg }}>
+                  {opt}
+                </Text>
+                {(isAnswer || isPicked) && (
+                  <View style={styles.optionGlyph}>
+                    <Ionicons
+                      name={isAnswer ? 'checkmark' : 'close'}
+                      size={18}
+                      color={fg}
+                    />
+                  </View>
+                )}
+              </PressableScale>
+            </Entrance>
+          );
+        })
+      )}
+
+      {phase === 'feedback' && (
+        <Button
+          label={idx + 1 >= total ? t('session.finish') : t('common.continue')}
+          glow
+          onPress={next}
+          full
+          style={{ marginTop: space.md }}
+        />
+      )}
+    </View>
+  );
+
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={0.3} />
@@ -331,7 +489,7 @@ export default function Session() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           {/* header: close + route-line progress (each exercise is a stop) + voice toggle */}
-          <View style={styles.header}>
+          <View style={[styles.header, band(L)]}>
             <PressableScale
               onPress={() => {
                 track('session_abandoned', { at: idx, of: total });
@@ -410,7 +568,7 @@ export default function Session() {
           <ScrollView
             ref={bodyScrollRef}
             style={{ flex: 1 }}
-            contentContainerStyle={styles.body}
+            contentContainerStyle={[styles.body, band(L), opticalCenter(L)]}
             showsVerticalScrollIndicator={false}
           >
             <Entrance key={`${ex.key}:r${resumeTick}`} from={10}>
@@ -579,140 +737,15 @@ export default function Session() {
                 </View>
               </Entrance>
             )}
+            {audioOffline && audioAllowed ? (
+              <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+                {t('session.offlineVoice')}
+              </Text>
+            ) : null}
+            {L.regular ? <View style={{ marginTop: space.xxl }}>{answerPanel}</View> : null}
           </ScrollView>
+          {L.regular ? null : answerPanel}
 
-          {/* answers */}
-          <View style={styles.answers}>
-            {isTyped ? (
-              <>
-                <TextInput
-                  value={typed}
-                  onChangeText={setTyped}
-                  editable={phase === 'answer'}
-                  autoFocus
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder={pack.flavor.typedPlaceholder}
-                  placeholderTextColor={theme.inkFaint}
-                  selectionColor={theme.accent}
-                  keyboardAppearance={theme.scheme}
-                  onSubmitEditing={() => typed.trim() && answer(typed)}
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.line,
-                      color: theme.ink,
-                    },
-                  ]}
-                />
-                {phase === 'answer' && (
-                  <Button
-                    label={t('session.check')}
-                    onPress={() => answer(typed)}
-                    disabled={!typed.trim()}
-                    glow={!!typed.trim()}
-                    full
-                    style={{ marginTop: space.md }}
-                  />
-                )}
-              </>
-            ) : isOrder ? (
-              <>
-                <View style={styles.orderWrap}>
-                  {ex.options!.map((word, i) => {
-                    const used = orderPicked.includes(i);
-                    return (
-                      <PressableScale
-                        key={`${word}-${i}`}
-                        disabled={phase !== 'answer' || used}
-                        onPress={() => {
-                          speakTarget(word);
-                          setOrderPicked((cur) => [...cur, i]);
-                        }}
-                        style={[
-                          styles.orderChip,
-                          {
-                            backgroundColor: theme.surface,
-                            borderColor: theme.line,
-                            opacity: used ? 0.25 : 1,
-                          },
-                        ]}
-                      >
-                        <Text variant="bodyMedium">{word}</Text>
-                      </PressableScale>
-                    );
-                  })}
-                </View>
-                {phase === 'answer' && (
-                  <Button
-                    label={t('session.check')}
-                    onPress={answerOrder}
-                    disabled={!orderPicked.length}
-                    glow={!!orderPicked.length}
-                    full
-                    style={{ marginTop: space.md }}
-                  />
-                )}
-              </>
-            ) : (
-              ex.options!.map((opt, i) => {
-                const isPicked = phase === 'feedback' && picked === opt;
-                const isAnswer = phase === 'feedback' && opt === ex.answer;
-                const bg = isAnswer
-                  ? theme.accent
-                  : isPicked
-                    ? theme.danger
-                    : theme.surface;
-                const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
-                // In feedback, everything that isn't the answer or the miss
-                // steps back so the eye lands on the two that matter; a glyph
-                // says which is which without relying on colour alone.
-                const bystander = phase === 'feedback' && !isAnswer && !isPicked;
-                return (
-                  <Entrance key={`${ex.key}-${opt}-${i}:r${resumeTick}`} delay={40 * i} from={8}>
-                    <PressableScale
-                      onPress={() => answer(opt)}
-                      disabled={phase !== 'answer'}
-                      accessibilityRole="button"
-                      accessibilityState={{ disabled: phase !== 'answer', selected: isPicked }}
-                      style={[
-                        styles.option,
-                        {
-                          backgroundColor: bg,
-                          borderColor: isAnswer || isPicked ? bg : theme.line,
-                          opacity: bystander ? 0.4 : 1,
-                        },
-                      ]}
-                    >
-                      <Text variant="bodyMedium" center style={{ color: fg }}>
-                        {opt}
-                      </Text>
-                      {(isAnswer || isPicked) && (
-                        <View style={styles.optionGlyph}>
-                          <Ionicons
-                            name={isAnswer ? 'checkmark' : 'close'}
-                            size={18}
-                            color={fg}
-                          />
-                        </View>
-                      )}
-                    </PressableScale>
-                  </Entrance>
-                );
-              })
-            )}
-
-            {phase === 'feedback' && (
-              <Button
-                label={idx + 1 >= total ? t('session.finish') : t('common.continue')}
-                glow
-                onPress={next}
-                full
-                style={{ marginTop: space.md }}
-              />
-            )}
-          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -757,6 +790,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   answers: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm },
+  answersInline: { paddingHorizontal: 0, paddingBottom: 0 },
   option: {
     minHeight: 56,
     borderRadius: radius.md,

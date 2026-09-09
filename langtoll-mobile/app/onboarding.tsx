@@ -39,9 +39,9 @@ import {
 } from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space, radius, font } from '@/design/theme';
+import { useLayout, band, opticalBias, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
 import { levelForDifficulty } from '@/lib/pack';
-import { downloadPackAudio } from '@/lib/audio-pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile } from '@/lib/store';
@@ -327,6 +327,7 @@ function NotifyNudge() {
 
 export default function Onboarding() {
   const theme = useTheme();
+  const L = useLayout();
   const t = useT();
 
   // DEV ?step= jumps straight to any step (QA / store shoots — relift's rig):
@@ -372,6 +373,23 @@ export default function Onboarding() {
   const [fareMin, setFareMin] = useState(30);
   const [lockReady, setLockReady] = useState(false);
 
+  // Which steps centre their body vertically.
+  //
+  // NOT the paywall: its content is a flex:1 View that must fill the body for
+  // PlusOffer to pin its purchase controls to the bottom, and a paddingBottom
+  // would just shorten it. (An earlier attempt wrapped the body's children to
+  // measure them; the wrapper had no height, so that flex:1 collapsed and the
+  // paywall step rendered BLANK. Nothing here may sit between the body and its
+  // children again.)
+  //
+  // 'printing' centres at EVERY size — it is a 2.7s loading beat with no CTA,
+  // and three ticking lines pinned to the top of an empty screen read as a
+  // broken page rather than a pause. Everything else centres only at iPad
+  // width, and only when the window is tall enough that a long step (the
+  // language picker) cannot be pushed off the top.
+  const centreStep = step === 'printing' || (L.regular && L.height >= 900 && step !== 'paywall');
+  const centreStyle = { justifyContent: 'center' as const, paddingBottom: opticalBias(L) };
+
   // printing-step stage ticker — pure theater, and FAST: the paywall must
   // arrive without a download in front of it (founder call, 2026-08-08). The
   // real audio download runs during the LOCK step below, after the trial
@@ -394,37 +412,13 @@ export default function Onboarding() {
     };
   }, [step]);
 
-  // Lock step: the audio pack downloads WHILE the user grants Screen Time
-  // permission — the two waits overlap, so the added time is usually zero.
-  // The finish button holds until the pack is complete (progress in its
-  // label); downloadPackAudio counts every attempted file, so a dead network
-  // still reaches 100% and can never trap the user here.
-  const [audioPct, setAudioPct] = useState(0);
-  useEffect(() => {
-    if (step !== 'lock') return;
-    let cancelled = false;
-    setAudioPct(0);
-    (async () => {
-      try {
-        const lvl = levelForDifficulty(difficulty);
-        const pack = packFor(language ?? 'de', lvl);
-        await downloadPackAudio(
-          pack.vocab.map((v) => v.de),
-          pack.sentences.map((x) => x.de),
-          pack.language,
-          (done, totalFiles) => {
-            if (!cancelled) setAudioPct(Math.round((100 * done) / totalFiles));
-          }
-        );
-      } catch {
-        // background prefetch heals any gap later
-      }
-      if (!cancelled) setAudioPct(100);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [step]);
+  // No audio download here, and none anywhere else in onboarding. Builds up to
+  // 21 pulled a whole level's audio on this step and disabled the finish button
+  // until it landed — App Review rejected that under 4.2.3(ii) (a required
+  // download whose size was never disclosed and which the user was never asked
+  // about). Pronunciation audio is now fetched one file at a time as each
+  // exercise needs it; see lib/audio-pack.ts. Nothing may gate onboarding on a
+  // network fetch again.
 
   const firstName = name.trim().split(/\s+/)[0] || null;
   const dailyMinutes = estimateDailyMinutes(apps);
@@ -481,6 +475,37 @@ export default function Onboarding() {
 
   const printLines = [t('ob.print1'), t('ob.print2'), t('ob.print3')];
 
+  // The step's action. On a phone it is pinned to the bottom edge — the thumb
+  // zone. On iPad that is the WORST place for it: the bottom edge of a 13-inch
+  // screen is the longest reach, and with the body centred the button ends up
+  // hundreds of points from the content it belongs to, reading as a stray bar.
+  // So on regular widths it travels WITH the content instead (founder call,
+  // 2026-09-09: "I don't know about this button really down there").
+  const footerCta =
+    step === 'printing' || step === 'paywall' ? null : (
+      <View style={[styles.footer, band(L)]}>
+        <Button
+          label={
+            step === 'hook'
+              ? t('ob.hookCta')
+              : step === 'mirror'
+                ? t('ob.mirrorCta')
+                : step === 'summary'
+                  ? t('ob.sumCta')
+                  : step === 'lock'
+                    ? !lockReady
+                      ? t('ob.lockCtaWait')
+                      : t('ob.lockCta')
+                    : t('common.continue')
+          }
+          glow
+          full
+          disabled={step === 'lock' && !lockReady}
+          onPress={step === 'lock' ? finish : next}
+        />
+      </View>
+    );
+
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={step === 'paywall' || step === 'summary' ? 0.7 : 0.35} />
@@ -490,7 +515,7 @@ export default function Onboarding() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           {/* header: back + progress + skip */}
-          <View style={styles.header}>
+          <View style={[styles.header, band(L)]}>
             <PressableScale onPress={back} style={styles.headerBtn} haptic={null}>
               {stepIdx > 0 && step !== 'printing' ? (
                 <Ionicons name="arrow-back" size={20} color={theme.inkSoft} />
@@ -510,7 +535,7 @@ export default function Onboarding() {
             </PressableScale>
           </View>
 
-          <View style={styles.body}>
+          <View style={[styles.body, band(L), centreStep && centreStyle]}>
             {step === 'hook' && (
               <Entrance key="hook">
                 <Text variant="overline" color="accent">
@@ -939,34 +964,10 @@ export default function Onboarding() {
                 </View>
               </Entrance>
             )}
+            {L.regular ? <View style={{ marginTop: space.xxl }}>{footerCta}</View> : null}
           </View>
+          {L.regular ? null : footerCta}
 
-          {/* footer CTA (paywall provides its own via PlusOffer) */}
-          {step !== 'printing' && step !== 'paywall' && (
-            <View style={styles.footer}>
-              <Button
-                label={
-                  step === 'hook'
-                    ? t('ob.hookCta')
-                    : step === 'mirror'
-                      ? t('ob.mirrorCta')
-                      : step === 'summary'
-                        ? t('ob.sumCta')
-                        : step === 'lock'
-                          ? !lockReady
-                            ? t('ob.lockCtaWait')
-                            : audioPct < 100
-                              ? t('ob.printAudio', { pct: audioPct })
-                              : t('ob.lockCta')
-                          : t('common.continue')
-                }
-                glow
-                full
-                disabled={step === 'lock' && (!lockReady || audioPct < 100)}
-                onPress={step === 'lock' ? finish : next}
-              />
-            </View>
-          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>

@@ -14,6 +14,7 @@ import { openPaywall } from '@/lib/paywall';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font } from '@/design/theme';
+import { useLayout, band } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
 import {
   useAppState,
@@ -360,6 +361,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function Settings() {
   const theme = useTheme();
+  const L = useLayout();
   const t = useT();
   const state = useAppState();
 
@@ -396,7 +398,7 @@ export default function Settings() {
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={0.3} />
       <SafeAreaView style={styles.safe}>
-        <View style={styles.header}>
+        <View style={[styles.header, band(L)]}>
           <PressableScale onPress={() => router.back()} style={styles.back} haptic={null}>
             <Ionicons name="arrow-back" size={22} color={theme.inkSoft} />
           </PressableScale>
@@ -405,7 +407,7 @@ export default function Settings() {
 
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, band(L)]}
           showsVerticalScrollIndicator={false}
           automaticallyAdjustKeyboardInsets
           keyboardShouldPersistTaps="handled"

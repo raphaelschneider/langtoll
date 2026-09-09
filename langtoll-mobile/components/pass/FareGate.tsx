@@ -7,7 +7,7 @@
 // (green = through, vermilion = blocked); wording from COPY[locale].pass. Reduced motion → the
 // spring is disabled and it degrades to a brief fade.
 import { useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,11 +27,19 @@ import { t } from '@/lib/i18n';
 
 export type FareGateTrigger = 'validate' | 'void' | null;
 
-const HALF = Dimensions.get('window').width / 2;
 const GATE = 'rgba(10,13,17,0.97)'; // dark gate-arm material, reads on both themes
 
 export function FareGate({ trigger, onDone }: { trigger: FareGateTrigger; onDone: () => void }) {
   const theme = useTheme();
+  // Half the window, READ PER RENDER. This was `Dimensions.get('window').width / 2`
+  // sampled once at module load, which is correct exactly until the window
+  // changes size — so on an iPadOS 26 resizable window (and on rotation) the
+  // gate arms were sized and thrown for whatever width the app happened to
+  // launch at, leaving a bare strip of screen mid-animation. The reanimated
+  // babel plugin picks `half` up as a worklet dependency, so the animated
+  // styles below re-derive whenever it changes.
+  const { width } = useWindowDimensions();
+  const half = width / 2;
   const scrim = useSharedValue(0);
   const sweep = useSharedValue(0); // 0 = arms closed (covering), 1 = arms open (off-screen)
   const panelO = useSharedValue(1);
@@ -101,11 +109,11 @@ export function FareGate({ trigger, onDone }: { trigger: FareGateTrigger; onDone
   const scrimStyle = useAnimatedStyle(() => ({ opacity: scrim.value }));
   const leftGate = useAnimatedStyle(() => ({
     opacity: panelO.value,
-    transform: [{ translateX: -sweep.value * HALF }],
+    transform: [{ translateX: -sweep.value * half }],
   }));
   const rightGate = useAnimatedStyle(() => ({
     opacity: panelO.value,
-    transform: [{ translateX: sweep.value * HALF }],
+    transform: [{ translateX: sweep.value * half }],
   }));
   const ringStyle = useAnimatedStyle(() => ({
     opacity: ringOpacity.value,
@@ -126,8 +134,8 @@ export function FareGate({ trigger, onDone }: { trigger: FareGateTrigger; onDone
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(color, 0.18) }, scrimStyle]} />
 
       {/* gate arms — dark panels with a lit inner edge */}
-      <Animated.View style={[styles.gate, { left: 0, width: HALF + 1, borderRightWidth: 4, borderRightColor: color }, leftGate]} />
-      <Animated.View style={[styles.gate, { left: HALF, width: HALF + 1, borderLeftWidth: 4, borderLeftColor: color }, rightGate]} />
+      <Animated.View style={[styles.gate, { left: 0, width: half + 1, borderRightWidth: 4, borderRightColor: color }, leftGate]} />
+      <Animated.View style={[styles.gate, { left: half, width: half + 1, borderLeftWidth: 4, borderLeftColor: color }, rightGate]} />
 
       <View style={styles.center}>
         <Animated.View style={[styles.ring, { borderColor: color }, ringStyle]} />

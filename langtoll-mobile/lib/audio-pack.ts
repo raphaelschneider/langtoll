@@ -1,5 +1,5 @@
-// Pre-rendered pronunciation audio, fetched silently — the answer to "we're
-// not going to make users download this manually."
+// Pre-rendered pronunciation audio, fetched ON THE FLY — per exercise, as the
+// trainer needs it. There is no pack, no bundle and no install step.
 //
 // Apple's good voices exist but sit behind four Settings levels and a 400MB
 // manual download (whose compact preview is bad enough that Anna reads as a
@@ -7,12 +7,20 @@
 // on it: every authored word and sentence is rendered ONCE by a neural voice
 // (scripts/gen-audio.js), hosted as static files, and fetched here on demand.
 //
+// FETCH GRANULARITY IS DELIBERATE, and it is what App Review 4.2.3(ii) is
+// about. Builds up to 21 pre-downloaded a whole level's audio during
+// onboarding and DISABLED the finish button until it completed — a required
+// download of undisclosed size, which is exactly what the guideline forbids.
+// Nothing here may reintroduce that: audio arrives one ~30KB file at a time,
+// on demand, never gating the UI. ensureAudio() warms one session's worth on
+// a 6s leash and the session starts regardless.
+//
 // Files are keyed sha1(lang + '|' + text): derived from the exact string the
 // trainer speaks, so the lookup needs no id plumbing and sentences work the
 // same as words. A cache hit plays natively; a miss falls back to on-device
-// TTS and queues the download — first session may sound robotic, every one
-// after is studio audio. AI topic packs have no files by construction and
-// simply always fall back.
+// TTS and queues the fetch — that one play may sound robotic, every play of
+// the same text after is studio audio. AI topic packs synthesize server-side
+// on first request; anything with no audio anywhere falls back forever.
 import * as FileSystem from 'expo-file-system/legacy';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { activePack } from '@/lib/pack';
@@ -78,6 +86,22 @@ let player: AudioPlayer | null = null;
 
 /** Misses already fetched this session — a 404 must not be retried per play. */
 const misses = new Set<string>();
+
+/**
+ * True when a fetch THREW — i.e. the network is genuinely unreachable.
+ *
+ * Deliberately NOT set by a 404. A 404 means this particular text has no
+ * recording anywhere (AI-generated pack items never do, by construction) and
+ * TTS is the permanent, correct answer for it — telling a connected user they
+ * are offline because they drew an AI item would simply be a lie. Only the
+ * catch branch below sets this, and any successful fetch clears it, so it
+ * heals itself the moment connectivity comes back.
+ */
+let networkFailed = false;
+
+export function audioNetworkFailed(): boolean {
+  return networkFailed;
+}
 let downloading = 0;
 
 /**
@@ -186,6 +210,7 @@ async function download(lang: string, text: string): Promise<void> {
     // file is already on disk; otherwise retry once with a cache-buster that
     // no URLCache entry can match.
     let res = await FileSystem.downloadAsync(remoteFor(lang, text), path);
+    networkFailed = false; // a response of any kind means we are online
     if (res.status === 304) {
       const kept = await FileSystem.getInfoAsync(path);
       if (kept.exists && (kept.size ?? 0) > 512) {
@@ -219,6 +244,7 @@ async function download(lang: string, text: string): Promise<void> {
     misses.add(key); // no audio exists for this text — stop asking
   } catch (e) {
     console.log(`[audio] download THREW: ${e instanceof Error ? e.message : String(e)}`);
+    networkFailed = true;
     // offline — retry naturally on a future play
   } finally {
     downloading--;
@@ -226,73 +252,36 @@ async function download(lang: string, text: string): Promise<void> {
 }
 
 /**
- * Download one language pack's full audio, reporting progress — the onboarding
- * "printing your plan" step runs this and WAITS. The founder's call, and the
- * install-time logic backs it: you cannot install the app without internet, so
- * onboarding always has the connectivity the first session needs. No user ever
- * hears the robot fallback as their first impression.
- *
- * Bounded retries per file, and files that repeatedly fail are skipped rather
- * than trapping the user on a dying hotel wifi — TTS covers stragglers, and
- * the background prefetch heals them later.
- */
-export async function downloadPackAudio(
-  vocabTexts: string[],
-  sentenceTexts: string[],
-  lang: string,
-  onProgress?: (done: number, total: number) => void
-): Promise<void> {
-  const texts = [...new Set([...vocabTexts, ...sentenceTexts])];
-  let done = 0;
-  for (const text of texts) {
-    const path = fileFor(lang, text);
-    if (cachedInfo.get(path) !== true) {
-      const stat = await FileSystem.getInfoAsync(path).catch(() => ({ exists: false }));
-      cachedInfo.set(path, !!stat.exists);
-      if (!stat.exists) {
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await download(lang, text);
-          if (cachedInfo.get(path) === true || misses.has(`${lang}|${text}`)) break;
-        }
-      }
-    }
-    onProgress?.(++done, texts.length);
-  }
-}
-
-/**
- * Best-effort await of the audio for one session's exercises — covers AI-pack
- * items the corpus download can't know about (JIT synthesis takes a couple of
- * seconds per item server-side). Bounded: past the deadline the session starts
- * and TTS covers any straggler.
+ * Best-effort warm-up of the audio for ONE session's exercises — a few dozen
+ * files, fetched while the first card is held. This is the only place that
+ * fetches ahead of the exact moment of play, and it is bounded on purpose:
+ * past the deadline the session starts anyway and TTS covers any straggler,
+ * so a slow or dead network can never hold the user up.
  */
 export async function ensureAudio(texts: string[], timeoutMs = 6000): Promise<void> {
   const lang = activePack().language;
+  const pending = [...new Set(texts)];
   const work = (async () => {
-    for (const text of [...new Set(texts)]) {
-      const path = fileFor(lang, text);
-      if (cachedInfo.get(path) === true) continue;
-      const stat = await FileSystem.getInfoAsync(path).catch(() => ({ exists: false }));
-      cachedInfo.set(path, !!stat.exists);
-      if (!stat.exists) await download(lang, text);
-    }
+    // Bounded-parallel, and the bound matters twice over. Fetching these one
+    // after another took ~150ms each, so a 30-exercise session needed most of
+    // the 6s budget and routinely lost the tail to the timeout — survivable
+    // when onboarding had already bulk-downloaded the course, the whole game
+    // now that this is the only warm-up there is. Six at a time is also
+    // exactly what download() will admit before it starts shedding.
+    let next = 0;
+    const worker = async (): Promise<void> => {
+      for (;;) {
+        const i = next++;
+        if (i >= pending.length) return;
+        const text = pending[i];
+        const path = fileFor(lang, text);
+        if (cachedInfo.get(path) === true) continue;
+        const stat = await FileSystem.getInfoAsync(path).catch(() => ({ exists: false }));
+        cachedInfo.set(path, !!stat.exists);
+        if (!stat.exists) await download(lang, text);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(6, pending.length) }, worker));
   })();
   await Promise.race([work, new Promise((r) => setTimeout(r, timeoutMs))]);
-}
-
-/**
- * Background-fetch the active pack's audio, current material first. Fire and
- * forget from app launch / language change; bails quietly offline. Words
- * before sentences: they play in every exercise type, sentences only in two.
- */
-export async function prefetchActivePack(limit = 400): Promise<void> {
-  const pack = activePack();
-  const texts = [...pack.vocab.map((v) => v.de), ...pack.sentences.map((s) => s.de)].slice(0, limit);
-  for (const text of texts) {
-    const path = fileFor(pack.language, text);
-    if (cachedInfo.get(path) === true) continue;
-    const stat = await FileSystem.getInfoAsync(path);
-    cachedInfo.set(path, stat.exists);
-    if (!stat.exists) await download(pack.language, text);
-  }
 }

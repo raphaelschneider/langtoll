@@ -97,6 +97,32 @@ course language and the CEFR level.
 The app teaches English, German, Spanish, French, Italian and Portuguese, with
 the interface available in all six.
 
+**What changed in this build (resubmission)**
+
+This build addresses both issues raised in the previous review.
+
+*Guideline 4 — iPad layout.* The app now supports iPad as a first-class device
+rather than running in iPhone compatibility mode. Every screen has a capped,
+centred content column, so text, buttons and the pass card keep a readable size
+instead of stretching the full width of the display, and the type scale steps up
+at iPad width. The home screen uses a two-pane layout whenever the window is
+wide enough, with the pass beside the wallet, the route and the most recently
+collected words. Actions sit with the content they belong to rather than pinned
+to the bottom edge, which on a large tablet is the longest reach. All four
+orientations are supported on iPad, and the layout responds to live window
+resizing (Split View, Slide Over and the iPadOS 26 resizable window) rather than
+reading a size once at launch.
+
+*Guideline 4.2.3(ii) — additional downloads.* The previous build pre-downloaded
+a whole course's pronunciation audio during onboarding and disabled the final
+button until it finished. That step is gone. Pronunciation audio is now fetched
+one short clip at a time, as each individual exercise needs it — roughly 30 KB
+per word or sentence — in the same way any app loads the media for the screen
+the user is currently on. There is no resource pack, no unpacking step, and
+nothing the user has to wait behind: if a clip has not arrived, the app speaks
+that word with the on-device system voice and carries on. The app is fully
+usable, including offline, without downloading anything beyond itself.
+
 ---
 
 ## Internal checklist — do not paste
@@ -109,3 +135,9 @@ the interface available in all six.
 - [ ] App Privacy: declare the anonymous device identifier and telemetry. No
       app-usage or app-selection data is collected — Family Controls selections
       never leave the device.
+- [ ] **iPad screenshots.** Now that the app ships as iPhone + iPad, App Store
+      Connect requires a 13-inch iPad screenshot set as well as the iPhone one.
+      The listing cannot be submitted without it.
+- [ ] Check the iPad build on a physical iPad if one is available: Family
+      Controls and the shield behave the same as on iPhone, but the simulator
+      cannot exercise either.

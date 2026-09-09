@@ -39,3 +39,6 @@ yarn-error.*
 # misc
 *.orig.*
 recordings/
+
+# design exploration output (2.5MB seeded canvas); the decision lives in the code
+design-canvas/

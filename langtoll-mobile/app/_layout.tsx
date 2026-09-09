@@ -25,7 +25,6 @@ import { advanceWordRotation } from '@/modules/langtoll-activity/src';
 import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
 import { refreshGoalPack } from '@/lib/ai/topics';
-import { prefetchActivePack } from '@/lib/audio-pack';
 import { effectiveLevel } from '@/lib/plans';
 import { handleNotificationTaps, scheduleTrialEndNotice } from '@/lib/notify';
 import { primeVoices, configureAudioSession, applyStoredShaping, stopSpeaking } from '@/lib/tts';
@@ -77,11 +76,6 @@ export default function RootLayout() {
       // The goal's own pack — generated once per (goal, language, level) and
       // merged into sessions. Fire-and-forget like the pool.
       void refreshGoalPack();
-      // Pre-rendered pronunciation audio for the active pack, fetched in the
-      // background — same contract as initPool: never awaited, quietly resumes
-      // where it left off, bails offline. First plays may fall back to TTS;
-      // everything after comes from the studio files.
-      void prefetchActivePack();
       // Re-adopt the island countdown if a pass is still running — iOS ends Live
       // Activities on every app update/reboot, and the pass must survive both.
       syncPassActivity();
