@@ -593,7 +593,10 @@ export default function Session() {
                       backgroundColor: withAlpha(theme.accent, 0.18),
                     }}
                   >
-                    <Text variant="caption" color="accent">
+                    {/* Uppercased here rather than in the strings: every locale
+                        keeps its natural casing in lib/i18n and still renders as
+                        a signage label, the same shape as the row's other one. */}
+                    <Text variant="caption" color="accent" style={{ textTransform: 'uppercase' }}>
                       {ex.source === 'goal' ? t('session.fromGoal') : t('session.fromTopic')}
                     </Text>
                   </View>
