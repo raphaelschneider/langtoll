@@ -384,10 +384,10 @@ export default function Onboarding() {
   //
   // 'printing' centres at EVERY size — it is a 2.7s loading beat with no CTA,
   // and three ticking lines pinned to the top of an empty screen read as a
-  // broken page rather than a pause. Everything else centres only at iPad
-  // width, and only when the window is tall enough that a long step (the
-  // language picker) cannot be pushed off the top.
-  const centreStep = step === 'printing' || (L.regular && L.height >= 900 && step !== 'paywall');
+  // broken page rather than a pause. Everything else centres at iPad width in
+  // BOTH orientations: the body scrolls, so a step taller than a short
+  // landscape window scrolls instead of losing its top.
+  const centreStep = step === 'printing' || (L.regular && step !== 'paywall');
   const centreStyle = { justifyContent: 'center' as const, paddingBottom: opticalBias(L) };
 
   // printing-step stage ticker — pure theater, and FAST: the paywall must
@@ -506,36 +506,8 @@ export default function Onboarding() {
       </View>
     );
 
-  return (
-    <View style={[styles.root, { backgroundColor: theme.paper }]}>
-      <AuroraBackground mood={step === 'paywall' || step === 'summary' ? 0.7 : 0.35} />
-      <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          {/* header: back + progress + skip */}
-          <View style={[styles.header, band(L)]}>
-            <PressableScale onPress={back} style={styles.headerBtn} haptic={null}>
-              {stepIdx > 0 && step !== 'printing' ? (
-                <Ionicons name="arrow-back" size={20} color={theme.inkSoft} />
-              ) : null}
-            </PressableScale>
-            <View style={[styles.track, { backgroundColor: theme.fillStrong }]}>
-              <View
-                style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: theme.accent }]}
-              />
-            </View>
-            <PressableScale onPress={next} style={styles.headerBtn} haptic={null}>
-              {showSkip ? (
-                <Text variant="label" color="inkFaint">
-                  {t('common.skip')}
-                </Text>
-              ) : null}
-            </PressableScale>
-          </View>
-
-          <View style={[styles.body, band(L), centreStep && centreStyle]}>
+  const stepBody = (
+    <>
             {step === 'hook' && (
               <Entrance key="hook">
                 <Text variant="overline" color="accent">
@@ -785,15 +757,8 @@ export default function Onboarding() {
 
             {step === 'goal' && (
               <Entrance key="goal">
-                {/* Scrollable: with the keyboard up, the pinned Continue used to
-                    sit directly ON the custom-goal input. Focusing the input
-                    scrolls it clear of both keyboard and CTA. */}
-                <ScrollView
-                  ref={goalScrollRef}
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ paddingBottom: 96 }}
-                >
+                {/* The body scrolls (see below), so focusing the custom-goal
+                    input can scroll it clear of the keyboard and the CTA. */}
                 <Text variant="title">{t('ob.goalTitle', { lang })}</Text>
                 <View style={{ marginTop: space.xl, gap: space.sm }}>
                   {GOAL_KEYS.map((k) => (
@@ -820,7 +785,6 @@ export default function Onboarding() {
                   returnKeyType="done"
                   onFocus={() => setTimeout(() => goalScrollRef.current?.scrollToEnd({ animated: true }), 250)}
                 />
-                </ScrollView>
               </Entrance>
             )}
 
@@ -964,8 +928,57 @@ export default function Onboarding() {
                 </View>
               </Entrance>
             )}
-            {L.regular ? <View style={{ marginTop: space.xxl }}>{footerCta}</View> : null}
+    </>
+  );
+
+  return (
+    <View style={[styles.root, { backgroundColor: theme.paper }]}>
+      <AuroraBackground mood={step === 'paywall' || step === 'summary' ? 0.7 : 0.35} />
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {/* header: back + progress + skip */}
+          <View style={[styles.header, band(L)]}>
+            <PressableScale onPress={back} style={styles.headerBtn} haptic={null}>
+              {stepIdx > 0 && step !== 'printing' ? (
+                <Ionicons name="arrow-back" size={20} color={theme.inkSoft} />
+              ) : null}
+            </PressableScale>
+            <View style={[styles.track, { backgroundColor: theme.fillStrong }]}>
+              <View
+                style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: theme.accent }]}
+              />
+            </View>
+            <PressableScale onPress={next} style={styles.headerBtn} haptic={null}>
+              {showSkip ? (
+                <Text variant="label" color="inkFaint">
+                  {t('common.skip')}
+                </Text>
+              ) : null}
+            </PressableScale>
           </View>
+
+          {/* The paywall keeps a plain flex:1 View: PlusOffer fills it and pins
+              its own controls, and it scrolls its own list — nesting it in a
+              ScrollView would fight both. Every other step scrolls, which is
+              what lets the body centre when it fits and scroll when it does
+              not, in EITHER orientation, with no height guard. */}
+          {step === 'paywall' ? (
+            <View style={[styles.body, band(L)]}>{stepBody}</View>
+          ) : (
+            <ScrollView
+              ref={goalScrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={[styles.bodyScroll, band(L), centreStep && centreStyle]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {stepBody}
+              {L.regular ? <View style={{ marginTop: space.xxl }}>{footerCta}</View> : null}
+            </ScrollView>
+          )}
           {L.regular ? null : footerCta}
 
         </KeyboardAvoidingView>
@@ -988,6 +1001,7 @@ const styles = StyleSheet.create({
   track: { flex: 1, height: 3, borderRadius: 1.5, overflow: 'hidden' },
   fill: { height: 3, borderRadius: 1.5 },
   body: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
+  bodyScroll: { flexGrow: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
   footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm },
   chipWrap: {
     flexDirection: 'row',

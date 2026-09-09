@@ -268,9 +268,15 @@ export default function Home() {
             {wordsSeen(state)}
           </Text>
         </View>
-        <View style={{ gap: space.md }}>
+        {/* Across on a wide window, stacked otherwise. Three stubs side by side
+            fill the band under the panes; the same three in a 640pt column
+            would be a narrow ladder with a word and a translation squeezed
+            into a third of the width. */}
+        <View style={L.wide ? styles.ticketRow : { gap: space.md }}>
           {recentTickets.map(({ v, streak }, i) => (
-            <TicketRow key={v.id} v={v} streak={streak} index={i} />
+            <View key={v.id} style={L.wide ? { flex: 1 } : undefined}>
+              <TicketRow v={v} streak={streak} index={i} />
+            </View>
           ))}
         </View>
       </>
@@ -338,9 +344,9 @@ export default function Home() {
                     {secCta}
                     {secWallet}
                     {secJourney}
-                    {secTickets}
                   </View>
                 </View>
+                {secTickets}
               </>
             ) : (
               <>
@@ -398,6 +404,7 @@ const styles = StyleSheet.create({
   columnFill: { flexGrow: 1 },
   // The flex half of optical centring; opticalCenter(L) supplies the rest.
   centeredBody: { flexGrow: 1 },
+  ticketRow: { flexDirection: 'row', gap: space.md, alignItems: 'stretch' },
   ticketHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',
