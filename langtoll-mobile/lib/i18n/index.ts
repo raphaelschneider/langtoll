@@ -4,6 +4,7 @@
 //  - Target language (content pack): what the user is LEARNING. Pack "flavor"
 //    strings (taglines, "Entsperrt!") live with the pack, not here.
 // t() falls back to English for any key a locale hasn't translated yet.
+import { Platform } from 'react-native';
 import { getLocales } from 'expo-localization';
 import { en, type StringKey } from './en';
 import { de } from './de';
@@ -45,8 +46,29 @@ export function resolvedLocale(): LocaleCode {
   return pref === 'system' ? detectSystemLocale() : pref;
 }
 
+// Some copy names the Dynamic Island, which NO iPad has — the sensor cutout is
+// an iPhone 14 Pro-and-later part. On iPad that copy is a promise the hardware
+// cannot keep (the paywall was selling island vocabulary to iPad buyers), so any
+// key with a `@noisland` twin resolves to the twin there. The Live Activity
+// itself is real on iPad — it appears on the Lock Screen — so the variants say
+// Lock Screen rather than dropping the feature.
+//
+// `Platform.isPad` is the right test for THIS problem and is deliberately not a
+// general "has an island" check: an iPhone SE or a 14 non-Pro has no island
+// either and still reads the island copy. Fixing that needs a native capability
+// probe; this does not pretend to be one.
+const NO_ISLAND = Platform.OS === 'ios' && Platform.isPad;
+
 export function t(key: StringKey, vars?: Record<string, string | number>): string {
-  let s = dictionaries[resolvedLocale()][key] ?? en[key] ?? key;
+  const dict = dictionaries[resolvedLocale()];
+  let s: string | undefined;
+  if (NO_ISLAND) {
+    // Localized twin first, English twin second — never a localized string that
+    // still names the island, which is the thing being corrected.
+    const twin = `${key}@noisland` as StringKey;
+    s = dict[twin] ?? en[twin];
+  }
+  s ??= dict[key] ?? en[key] ?? key;
   if (vars) {
     for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
   }

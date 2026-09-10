@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
+import { useLayout, opticalCenter } from '@/design/layout';
 import { PLUS_FEATURES, LEGAL_URLS, type Period } from '@/lib/plans';
 import {
   getPackages,
@@ -50,6 +51,7 @@ export function PlusOffer({ onDone, source }: { onDone: () => void; source: Payw
   const t = useT();
   const [packages, setPackages] = useState<PlusPackage[]>([]);
   const [selected, setSelected] = useState<Period>('yearly');
+  const L = useLayout();
   const [busy, setBusy] = useState(false);
   // A failed purchase used to do NOTHING visible: the button pressed, the promise
   // resolved 'error', and the screen sat there. Every failure now says something.
@@ -107,7 +109,17 @@ export function PlusOffer({ onDone, source }: { onDone: () => void; source: Payw
     <ScrollView
       style={{ flex: 1 }}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: space.lg }}
+      /* The pitch is far shorter than a 13" iPad, so top-aligned it left the
+         bottom 40% of the sheet empty and the CTA stranded mid-screen. Centring
+         the CONTENT CONTAINER (never a pinned sibling — see the note above)
+         keeps the offer as one block in the middle of the window; flexGrow only
+         claims slack, so a window too short to hold the pitch still scrolls
+         normally and the centring goes inert. */
+      contentContainerStyle={[
+        { paddingBottom: space.lg },
+        L.regular && { flexGrow: 1 },
+        L.regular && opticalCenter(L),
+      ]}
     >
       <View style={{ gap: space.sm }}>
         {PLUS_FEATURES.slice(0, 3).map((f) => (

@@ -567,6 +567,15 @@ export default function Settings() {
                   key={d}
                   haptic={null}
                   onPress={() => updateProfile({ difficulty: d })}
+                  /* The dot stays 24pt because the row reads as a scale, not as
+                     ten buttons — but 24pt is well under the 44pt minimum touch
+                     target, and ten of them in a row is the hardest thing in the
+                     app to hit. hitSlop buys the full 44 without moving a pixel;
+                     the dots sit ~39pt apart, so the targets never overlap. */
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('settings.difficulty')} ${d}/10`}
+                  accessibilityState={{ selected: d === state.difficulty }}
                   style={[
                     styles.diffDot,
                     {

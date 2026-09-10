@@ -420,7 +420,15 @@ export default function Session() {
           )}
         </>
       ) : (
-        ex.options!.map((opt, i) => {
+        /* Multiple choice. On a phone the options are a single stacked column —
+           the thumb runs down one line. On iPad that same column leaves a
+           640pt-wide button holding the word "milk" and pushes the last option
+           a long way from the question, so the options pair up two-across: the
+           set stays one glance wide and half as tall. The wrapper carries the
+           gap the parent used to apply between the options themselves, so the
+           compact layout is unchanged. */
+        <View style={L.regular ? styles.optionGrid : styles.optionList}>
+        {ex.options!.map((opt, i) => {
           const isPicked = phase === 'feedback' && picked === opt;
           const isAnswer = phase === 'feedback' && opt === ex.answer;
           const bg = isAnswer
@@ -434,7 +442,12 @@ export default function Session() {
           // says which is which without relying on colour alone.
           const bystander = phase === 'feedback' && !isAnswer && !isPicked;
           return (
-            <Entrance key={`${ex.key}-${opt}-${i}:r${resumeTick}`} delay={40 * i} from={8}>
+            <Entrance
+              key={`${ex.key}-${opt}-${i}:r${resumeTick}`}
+              delay={40 * i}
+              from={8}
+              style={L.regular ? styles.optionCell : undefined}
+            >
               <PressableScale
                 onPress={() => answer(opt)}
                 disabled={phase !== 'answer'}
@@ -464,7 +477,8 @@ export default function Session() {
               </PressableScale>
             </Entrance>
           );
-        })
+        })}
+        </View>
       )}
 
       {phase === 'feedback' && (
@@ -815,6 +829,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   answers: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm },
+  // The phone stack, with the gap the parent used to own.
+  optionList: { gap: space.sm },
+  // Two-across on iPad. flexBasis 45% + grow means exactly two per row, each
+  // filling its half; an odd last option grows to the full width rather than
+  // sitting orphaned at half.
+  optionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  optionCell: { flexGrow: 1, flexBasis: '45%' },
   answersInline: { paddingHorizontal: 0, paddingBottom: 0 },
   option: {
     minHeight: 56,

@@ -25,7 +25,21 @@ import os
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-W, H = 1320, 2868  # App Store 6.9" portrait spec
+# App Store portrait specs. The iPhone set is 0.46 aspect, the iPad slot 0.75 —
+# not a rescale, so each canvas carries its own SHOTS geometry below. Everything
+# else (palette, fonts, aurora, device frame, text ramp) is shared, because two
+# copies of a brand drift apart the moment one of them is edited.
+CANVASES = {
+    "iphone": (1320, 2868),  # App Store 6.9" portrait
+    "ipad": (2064, 2752),    # App Store 13" iPad portrait
+}
+W, H = CANVASES["iphone"]
+
+
+def set_canvas(name: str) -> None:
+    """Point the module at one of CANVASES. Call before building any shot."""
+    global W, H
+    W, H = CANVASES[name]
 
 # Brand — design/tokens.ts (dark set)
 NAVY = (15, 22, 27)        # #0F161B rail navy
@@ -91,16 +105,21 @@ def with_shadow(card: Image.Image, blur: int = 40, alpha: int = 110, dy: int = 2
     return canvas
 
 
-def device(raw: Image.Image, width: int, tilt: float = 0.0) -> Image.Image:
-    """The phone: near-black bezel + rounded screenshot, shadowed, optionally tilted."""
-    bezel = 26
+def device(raw: Image.Image, width: int, tilt: float = 0.0,
+           bezel: int = 26, corner: int = 120) -> Image.Image:
+    """The device: near-black bezel + rounded screenshot, shadowed, optionally tilted.
+
+    `corner` is the screen's corner radius in RAW capture pixels, so it scales
+    with the frame. An iPad's corners are far less round relative to its size
+    than a phone's, and reusing the phone's 120 gives a tablet the silhouette of
+    a huge iPhone — pass a smaller corner for iPad."""
     screen_w = width - bezel * 2
     scale = screen_w / raw.width
     screen = raw.resize((screen_w, int(raw.height * scale)), Image.LANCZOS)
-    screen = rounded(screen, radius=int(120 * scale))
+    screen = rounded(screen, radius=int(corner * scale))
     body = Image.new("RGBA", (width, screen.height + bezel * 2), (0, 0, 0, 0))
     ImageDraw.Draw(body).rounded_rectangle(
-        [0, 0, body.width, body.height], radius=int(120 * scale) + bezel, fill=(8, 12, 15, 255)
+        [0, 0, body.width, body.height], radius=int(corner * scale) + bezel, fill=(8, 12, 15, 255)
     )
     body.alpha_composite(screen, (bezel, bezel))
     shadowed = with_shadow(body, blur=60, alpha=130, dy=40)
@@ -114,24 +133,29 @@ def draw_text(canvas: Image.Image, kicker: str, headline: str,
     """Kicker (letter-spaced Inter caps) + up-to-2-line Fraunces headline, centered.
     Headline auto-shrinks until every line fits — long outcome lines can't clip."""
     d = ImageDraw.Draw(canvas)
-    y = top
+    # The ramp was authored against the 1320pt-wide iPhone canvas. Scaling it by
+    # canvas width keeps the headline the same SIZE RELATIVE TO THE SHOT on a
+    # 2064pt iPad slot; leaving it fixed would render a caption where a headline
+    # belongs. k == 1.0 for iPhone, so that set renders exactly as before.
+    k = W / CANVASES["iphone"][0]
+    y = int(top * k)
     if kicker:
         spaced = " ".join(kicker.upper())
-        ksize = 42
-        while ksize > 28:
+        ksize = int(42 * k)
+        while ksize > int(28 * k):
             f = inter(ksize, 640)
-            if d.textlength(spaced, font=f) <= W - 100:
+            if d.textlength(spaced, font=f) <= W - int(100 * k):
                 break
             ksize -= 2
         f = inter(ksize, 640)
         tw = d.textlength(spaced, font=f)
         d.text(((W - tw) / 2, y), spaced, font=f, fill=kicker_ink)
-        y += 96
+        y += int(96 * k)
     lines = headline.split("\n")
-    size = 128
-    while size > 84:
+    size = int(128 * k)
+    while size > int(84 * k):
         f = serif(size)
-        if max(d.textlength(line, font=f) for line in lines) <= W - 110:
+        if max(d.textlength(line, font=f) for line in lines) <= W - int(110 * k):
             break
         size -= 4
     f = serif(size)
@@ -140,7 +164,7 @@ def draw_text(canvas: Image.Image, kicker: str, headline: str,
         tw = d.textlength(line, font=f)
         d.text(((W - tw) / 2, y), line, font=f, fill=ink)
         y += line_h
-    return y + 30
+    return y + int(30 * k)
 
 
 def strip(path: str, width: int, tilt: float = 0.0, radius: int = 46) -> Image.Image:
@@ -194,7 +218,8 @@ def build_shot(spec: dict, raw_dir: str) -> Image.Image:
             canvas.alpha_composite(card, (sx, s["y"]))
     else:
         raw = Image.open(os.path.join(raw_dir, spec["raw"])).convert("RGB")
-        dev = device(raw, width=spec.get("device_w", 1090), tilt=spec.get("tilt", 0.0))
+        dev = device(raw, width=spec.get("device_w", 1090), tilt=spec.get("tilt", 0.0),
+                     bezel=spec.get("bezel", 26), corner=spec.get("corner", 120))
         dx = spec.get("device_x", (W - dev.width) // 2)
         dy = spec.get("device_y", text_bottom + 40)
         canvas.alpha_composite(dev, (dx, dy))
@@ -304,17 +329,106 @@ SHOTS = [
 ]
 
 
+
+# ---------------------------------------------------------------- iPad set
+# The 13" iPad slot (2064x2752) is 0.75 aspect against the phone's 0.46, so this
+# is a REDRAW, not a rescale: every device_w / y below is tuned to the squarer
+# canvas, and the frame is an iPad frame (thinner bezel, much less round corners).
+#
+# Same six beats and the same captions as the phone set — they sell outcomes, not
+# hardware, so they carry across — and the same one-language-per-shot rule:
+# 01 German (home) · 02 the catalogue raining down the Lock Screen · 03 Spanish
+# (a whole sentence) · 04 Portuguese (the payoff) · 05 French (wallet) ·
+# 06 Italian (hook).
+#
+# 02's kicker differs from the phone set's twice over, and both are deliberate.
+# The phone says "always on your screen" because an iPhone has both the Lock
+# Screen and the Dynamic Island; NO iPad has an island, so this names the surface
+# it actually has, and the art follows — lock-screen cards only, never an island
+# pill. And it says "your next word" rather than the phone's "word · translation"
+# because these captures are a FREE profile, where the card carries the word
+# alone; the translation beside it is the Plus gate. A caption must never promise
+# more than the screen behind it proves. If these are ever re-shot on a Plus
+# profile, the card gains its translation and the phone's wording can come back.
+IPAD_FRAME = {"bezel": 22, "corner": 80}
+
+SHOTS_IPAD = [
+    {
+        "name": "01_hero",
+        "raw": "raw_home_de.png",
+        "kicker": "your apps, behind a language toll",
+        "headline": "Your doomscroll\nfinally pays rent",
+        "aurora": [(TEAL_DEEP, 0.15, 0.22, 0.7), (CORAL, 0.95, 0.72, 0.5), (TEAL, 0.6, 0.02, 0.38)],
+        "device_w": 1660, "tilt": -2.0, "device_y": 820, **IPAD_FRAME,
+    },
+    {
+        # No device frame: these are crops of the real Lock Screen card, cascading
+        # down the canvas so the catalogue reads at a glance. Source AND target
+        # vary across the pairs, exactly as the phone set does.
+        "name": "02_watch",
+        "kicker": "your next word · always on your lock screen",
+        "headline": "He watches the clock.\nYou soak up the words.",
+        "aurora": [(TEAL, 0.85, 0.2, 0.5), (TEAL_DEEP, 0.15, 0.8, 0.55), (AMBER, 0.2, 0.05, 0.3)],
+        "strips": [
+            {"path": "raw-ipad/card_de.png", "w": 1300, "tilt": 2.0,  "x": 180, "y": 950},
+            {"path": "raw-ipad/card_fr.png", "w": 1300, "tilt": -2.5, "x": 330, "y": 1280},
+            {"path": "raw-ipad/card_es.png", "w": 1300, "tilt": 2.5,  "x": 170, "y": 1610},
+            {"path": "raw-ipad/card_pt.png", "w": 1300, "tilt": -2.0, "x": 340, "y": 1940},
+            {"path": "raw-ipad/card_it.png", "w": 1300, "tilt": 1.5,  "x": 200, "y": 2270},
+        ],
+        "tollys": [{"name": "tolly-celebrate", "w": 620, "x": 1330, "y": 2180, "tilt": 4.0}],
+    },
+    {
+        "name": "03_practice",
+        "raw": "raw_practice_es.png",
+        "kicker": "whole sentences, from day one",
+        "headline": "Speak in sentences,\nnot in single words",
+        "aurora": [(TEAL, 0.2, 0.18, 0.55), (AMBER, 0.9, 0.7, 0.5), (TEAL_DEEP, 0.5, 1.0, 0.45)],
+        "device_w": 1660, "tilt": 2.0, "device_y": 820, **IPAD_FRAME,
+    },
+    {
+        "name": "04_pass",
+        "raw": "raw_home_pt_active.png",
+        "kicker": "fare paid — 30 minutes of phone",
+        "headline": "Scroll guilt-free.\nYou earned it.",
+        "aurora": [(MINT, 0.18, 0.25, 0.55), (TEAL, 0.9, 0.75, 0.5), (TEAL_DEEP, 0.4, 0.0, 0.4)],
+        "device_w": 1660, "tilt": -1.5, "device_y": 820, **IPAD_FRAME,
+    },
+    {
+        "name": "05_wallet",
+        "raw": "raw_wallet_fr.png",
+        "kicker": "every unlock leaves words behind",
+        "headline": "Your wasted minutes,\nnow a new vocabulary",
+        "aurora": [(TEAL_DEEP, 0.1, 0.2, 0.6), (AMBER, 0.9, 0.8, 0.45), (TEAL, 0.3, 0.95, 0.4)],
+        "device_w": 1660, "tilt": 2.0, "device_y": 820, **IPAD_FRAME,
+        "tollys": [{"name": "tolly-happy", "w": 380, "x": 120, "y": 2360, "tilt": -6.0}],
+    },
+    {
+        "name": "06_hook",
+        "raw": "raw_hook_it.png",
+        "kicker": "a new language, without the willpower",
+        "headline": "Fluency you can't\nprocrastinate",
+        "aurora": [(CORAL, 0.15, 0.2, 0.5), (TEAL, 0.88, 0.65, 0.55), (TEAL_DEEP, 0.4, 1.0, 0.45)],
+        "device_w": 1660, "tilt": -2.0, "device_y": 820, **IPAD_FRAME,
+    },
+]
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--raw", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--only", help="comma-separated shot names to render")
+    ap.add_argument("--canvas", default="iphone", choices=sorted(CANVASES),
+                    help="which App Store slot to render for (default iphone)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
+    set_canvas(args.canvas)
+    shots = SHOTS_IPAD if args.canvas == "ipad" else SHOTS
+
     only = set(args.only.split(",")) if args.only else None
     rendered = []
-    for spec in SHOTS:
+    for spec in shots:
         if only and spec["name"] not in only:
             continue
         img = build_shot(spec, args.raw)

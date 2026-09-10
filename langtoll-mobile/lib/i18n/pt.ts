@@ -184,9 +184,13 @@ export const pt: Partial<Record<StringKey, string>> = {
   'settings.strictMode': 'Modo estrito',
   'settings.strictModeDetail': 'Tranca no instante em que seu passe expira — sem janela de tolerância.',
   'home.activityOff': 'A contagem e o vocabulário da ilha sumiram — as Atividades ao Vivo estão desativadas. Toque para reativar.',
+  'home.activityOff@noisland': 'A contagem e o vocabulário da tela de bloqueio sumiram — as Atividades ao Vivo estão desativadas. Toque para reativar.',
   'settings.liveActivities': 'Tela de bloqueio e Dynamic Island',
+  'settings.liveActivities@noisland': 'Tela de bloqueio',
   'settings.laEnabled': 'Ativadas — contagem na tela de bloqueio, vocabulário na Dynamic Island',
+  'settings.laEnabled@noisland': 'Ativadas — contagem e vocabulário na tela de bloqueio',
   'settings.laIdle': 'Ativadas — aparecem na tela de bloqueio e na Dynamic Island enquanto um passe está ativo',
+  'settings.laIdle@noisland': 'Ativadas — aparecem na tela de bloqueio enquanto um passe está ativo',
   'settings.laOff': 'Desativadas — toque aqui e reative as Atividades ao Vivo em Ajustes → Apps → LangToll.',
   'settings.voice': 'Voz',
   'settings.speechSpeed': 'Velocidade da fala',
@@ -258,7 +262,9 @@ export const pt: Partial<Record<StringKey, string>> = {
   'plus.f7Title': 'A rota inteira',
   'plus.f7Detail': 'A2, B1 e B2 — o grátis treina o curso A1',
   'plus.f8Title': 'Suas palavras na Dynamic Island',
+  'plus.f8Title@noisland': 'Suas palavras na tela de bloqueio',
   'plus.f8Detail': 'Palavra e tradução viajam na ilha o dia todo, e a tela de bloqueio traduz — o grátis fica com a contagem regressiva',
+  'plus.f8Detail@noisland': 'Palavra e tradução viajam na tela de bloqueio o dia todo — o grátis fica com a contagem regressiva',
 
   // trial-end downgrade warning
   'trial.title': 'Seu teste termina amanhã.',
@@ -266,4 +272,5 @@ export const pt: Partial<Record<StringKey, string>> = {
   'trial.lossLevel': 'seu curso volta para {level}',
   'trial.lossFare': 'sua tarifa volta para {ex} exercícios por {min} min',
   'trial.lossIsland': 'suas palavras saem da Dynamic Island',
+  'trial.lossIsland@noisland': 'suas palavras saem da tela de bloqueio',
 };

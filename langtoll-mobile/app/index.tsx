@@ -76,7 +76,13 @@ export default function Home() {
   // empty state: a learner with nothing collected gets no section at all
   // rather than a box explaining its own emptiness ("just don't show anything
   // if there's nothing to show").
-  const recentTickets = L.regular ? ticketsForActivePack().slice(0, 3) : [];
+  // Three across on a wide window, two on a regular one. The COUNT changes with
+  // the layout on purpose: the stubs always sit in one row, so taking three into
+  // a 640pt column would mean ~200pt cells that clip "guten Morgen", and
+  // wrapping them would leave an orphan on a second row. Two cells of ~310pt is
+  // the same stub width the wide layout uses — the row gets shorter, never
+  // narrower.
+  const recentTickets = L.regular ? ticketsForActivePack().slice(0, L.wide ? 3 : 2) : [];
 
   // What a lapse would change, as one localized clause — shared with the notification.
   const lapseChanges = describePlusLoss(t);
@@ -268,13 +274,12 @@ export default function Home() {
             {wordsSeen(state)}
           </Text>
         </View>
-        {/* Across on a wide window, stacked otherwise. Three stubs side by side
-            fill the band under the panes; the same three in a 640pt column
-            would be a narrow ladder with a word and a translation squeezed
-            into a third of the width. */}
-        <View style={L.wide ? styles.ticketRow : { gap: space.md }}>
+        {/* One row on any iPad, stacked on a phone. Equal flex children rather
+            than a wrapping grid: the count is already chosen for the width
+            above, so the row never wraps and never leaves an orphan cell. */}
+        <View style={L.regular ? styles.ticketRow : { gap: space.md }}>
           {recentTickets.map(({ v, streak }, i) => (
-            <View key={v.id} style={L.wide ? { flex: 1 } : undefined}>
+            <View key={v.id} style={L.regular ? { flex: 1 } : undefined}>
               <TicketRow v={v} streak={streak} index={i} />
             </View>
           ))}
@@ -313,6 +318,7 @@ export default function Home() {
             L.regular && styles.contentCentered,
           ]}
           showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           alwaysBounceVertical={false}
         >
           {/* The content column. On a phone this is simply the screen width; on

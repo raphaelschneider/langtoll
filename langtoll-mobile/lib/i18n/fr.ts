@@ -184,9 +184,13 @@ export const fr: Partial<Record<StringKey, string>> = {
   'settings.strictMode': 'Mode strict',
   'settings.strictModeDetail': "Reverrouille à l'expiration exacte de ton pass — sans délai de grâce.",
   'home.activityOff': "Le compte à rebours et le vocabulaire de l'îlot ont disparu — les activités en direct sont désactivées. Touche pour les réactiver.",
+  'home.activityOff@noisland': "Le compte à rebours et le vocabulaire de l'écran verrouillé ont disparu — les activités en direct sont désactivées. Touche pour les réactiver.",
   'settings.liveActivities': 'Écran verrouillé et Dynamic Island',
+  'settings.liveActivities@noisland': 'Écran verrouillé',
   'settings.laEnabled': "Activées — compte à rebours sur l'écran verrouillé, vocabulaire sur la Dynamic Island",
+  'settings.laEnabled@noisland': "Activées — compte à rebours et vocabulaire sur l'écran verrouillé",
   'settings.laIdle': "Activées — visibles sur l'écran verrouillé et la Dynamic Island tant qu'un pass est actif",
+  'settings.laIdle@noisland': "Activées — visibles sur l'écran verrouillé tant qu'un pass est actif",
   'settings.laOff': 'Désactivées — touche ici puis active les activités en direct dans Réglages → Apps → LangToll.',
   'settings.voice': 'Voix',
   'settings.speechSpeed': 'Vitesse de parole',
@@ -258,7 +262,9 @@ export const fr: Partial<Record<StringKey, string>> = {
   'plus.f7Title': 'Tout le trajet',
   'plus.f7Detail': 'A2, B1 et B2 — gratuit entraîne le cours A1',
   'plus.f8Title': 'Tes mots sur la Dynamic Island',
+  'plus.f8Title@noisland': "Tes mots sur l'écran verrouillé",
   'plus.f8Detail': 'Le mot et sa traduction voyagent sur l\'île toute la journée, et l\'écran verrouillé traduit — gratuit garde le compte à rebours',
+  'plus.f8Detail@noisland': "Le mot et sa traduction voyagent sur l'écran verrouillé toute la journée — gratuit garde le compte à rebours",
 
   // trial-end downgrade warning
   'trial.title': 'Ton essai se termine demain.',
@@ -266,4 +272,5 @@ export const fr: Partial<Record<StringKey, string>> = {
   'trial.lossLevel': 'ton cours revient à {level}',
   'trial.lossFare': 'ton tarif repasse à {ex} exercices pour {min} min',
   'trial.lossIsland': 'tes mots quittent la Dynamic Island',
+  'trial.lossIsland@noisland': "tes mots quittent l'écran verrouillé",
 };

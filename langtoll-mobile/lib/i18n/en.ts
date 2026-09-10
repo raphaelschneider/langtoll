@@ -193,9 +193,13 @@ export const en = {
   'settings.strictMode': 'Strict mode',
   'settings.strictModeDetail': 'Re-locks the instant your pass expires — no grace window.',
   'home.activityOff': 'Your countdown and island vocabulary are gone — Live Activities are off. Tap to turn them back on.',
+  'home.activityOff@noisland': 'Your countdown and Lock Screen vocabulary are gone — Live Activities are off. Tap to turn them back on.',
   'settings.liveActivities': 'Lock Screen & Dynamic Island',
+  'settings.liveActivities@noisland': 'Lock Screen',
   'settings.laEnabled': 'Enabled — countdown on the Lock Screen, vocabulary on the Dynamic Island',
+  'settings.laEnabled@noisland': 'Enabled — countdown and vocabulary on the Lock Screen',
   'settings.laIdle': 'Enabled — appears on the Lock Screen and Dynamic Island while a pass is running',
+  'settings.laIdle@noisland': 'Enabled — appears on the Lock Screen while a pass is running',
   'settings.laOff': 'Off — tap here, then turn on Live Activities under Settings → Apps → LangToll.',
   'settings.voice': 'Voice',
   'settings.speechSpeed': 'Speech speed',
@@ -268,7 +272,9 @@ export const en = {
   'plus.f7Title': 'The whole route',
   'plus.f7Detail': 'A2, B1 and B2 — free trains the A1 course',
   'plus.f8Title': 'Your words on the Dynamic Island',
+  'plus.f8Title@noisland': 'Your words on the Lock Screen',
   'plus.f8Detail': 'Word and translation ride the island all day, and the lock screen translates — free keeps the countdown',
+  'plus.f8Detail@noisland': 'Word and translation ride the Lock Screen all day — free keeps the countdown',
 
   // trial-end downgrade warning
   'trial.title': 'Your trial ends tomorrow.',
@@ -276,6 +282,7 @@ export const en = {
   'trial.lossLevel': 'your course returns to {level}',
   'trial.lossFare': 'your fare goes back to {ex} exercises for {min} min',
   'trial.lossIsland': 'your words leave the Dynamic Island',
+  'trial.lossIsland@noisland': 'your words leave the Lock Screen',
 } as const;
 
 export type StringKey = keyof typeof en;

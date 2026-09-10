@@ -184,9 +184,13 @@ export const de: Partial<Record<StringKey, string>> = {
   'settings.strictMode': 'Strikter Modus',
   'settings.strictModeDetail': 'Sperrt exakt beim Ablauf deines Passes — ohne Karenzzeit.',
   'home.activityOff': 'Countdown und Insel-Vokabeln sind weg — Live-Aktivitäten sind aus. Tippe, um sie wieder einzuschalten.',
+  'home.activityOff@noisland': 'Countdown und Vokabeln auf dem Sperrbildschirm sind weg — Live-Aktivitäten sind aus. Tippe, um sie wieder einzuschalten.',
   'settings.liveActivities': 'Sperrbildschirm & Dynamic Island',
+  'settings.liveActivities@noisland': 'Sperrbildschirm',
   'settings.laEnabled': 'Aktiviert — Countdown auf dem Sperrbildschirm, Vokabeln auf der Dynamic Island',
+  'settings.laEnabled@noisland': 'Aktiviert — Countdown und Vokabeln auf dem Sperrbildschirm',
   'settings.laIdle': 'Aktiviert — erscheint auf Sperrbildschirm und Dynamic Island, solange ein Pass läuft',
+  'settings.laIdle@noisland': 'Aktiviert — erscheint auf dem Sperrbildschirm, solange ein Pass läuft',
   'settings.laOff': 'Aus — tippe hier und aktiviere Live-Aktivitäten unter Einstellungen → Apps → LangToll.',
   'settings.voice': 'Stimme',
   'settings.speechSpeed': 'Sprechtempo',
@@ -258,7 +262,9 @@ export const de: Partial<Record<StringKey, string>> = {
   'plus.f7Title': 'Die ganze Strecke',
   'plus.f7Detail': 'A2, B1 und B2 — gratis übt den A1-Kurs',
   'plus.f8Title': 'Deine Wörter auf der Dynamic Island',
+  'plus.f8Title@noisland': 'Deine Wörter auf dem Sperrbildschirm',
   'plus.f8Detail': 'Wort und Übersetzung fahren den ganzen Tag auf der Island mit, und der Sperrbildschirm übersetzt — gratis behält den Countdown',
+  'plus.f8Detail@noisland': 'Wort und Übersetzung fahren den ganzen Tag auf dem Sperrbildschirm mit — gratis behält den Countdown',
 
   // trial-end downgrade warning
   'trial.title': 'Morgen endet deine Testphase.',
@@ -266,4 +272,5 @@ export const de: Partial<Record<StringKey, string>> = {
   'trial.lossLevel': 'dein Kurs geht zurück auf {level}',
   'trial.lossFare': 'dein Tarif geht zurück auf {ex} Übungen für {min} Min',
   'trial.lossIsland': 'deine Wörter verschwinden von der Dynamic Island',
+  'trial.lossIsland@noisland': 'deine Wörter verschwinden vom Sperrbildschirm',
 };

@@ -184,9 +184,13 @@ export const it: Partial<Record<StringKey, string>> = {
   'settings.strictMode': 'Modalità rigorosa',
   'settings.strictModeDetail': 'Riblocca nell’istante in cui scade il tuo pass — senza margine.',
   'home.activityOff': 'Conto alla rovescia e vocaboli dell’isola spariti: le Attività in tempo reale sono disattivate. Tocca per riattivarle.',
+  'home.activityOff@noisland': 'Conto alla rovescia e vocaboli della schermata di blocco spariti: le Attività in tempo reale sono disattivate. Tocca per riattivarle.',
   'settings.liveActivities': 'Schermata di blocco e Dynamic Island',
+  'settings.liveActivities@noisland': 'Schermata di blocco',
   'settings.laEnabled': 'Attive — conto alla rovescia nella schermata di blocco, vocaboli nella Dynamic Island',
+  'settings.laEnabled@noisland': 'Attive — conto alla rovescia e vocaboli nella schermata di blocco',
   'settings.laIdle': 'Attive — compaiono nella schermata di blocco e nella Dynamic Island finché un pass è attivo',
+  'settings.laIdle@noisland': 'Attive — compaiono nella schermata di blocco finché un pass è attivo',
   'settings.laOff': 'Disattivate — tocca qui e riattiva le Attività in tempo reale in Impostazioni → App → LangToll.',
   'settings.voice': 'Voce',
   'settings.speechSpeed': 'Velocità della voce',
@@ -258,7 +262,9 @@ export const it: Partial<Record<StringKey, string>> = {
   'plus.f7Title': 'Tutto il percorso',
   'plus.f7Detail': 'A2, B1 e B2 — gratis allena il corso A1',
   'plus.f8Title': 'Le tue parole sulla Dynamic Island',
+  'plus.f8Title@noisland': 'Le tue parole sulla schermata di blocco',
   'plus.f8Detail': 'Parola e traduzione viaggiano sull’isola tutto il giorno, e la schermata di blocco traduce — gratis tiene il conto alla rovescia',
+  'plus.f8Detail@noisland': 'Parola e traduzione viaggiano sulla schermata di blocco tutto il giorno — gratis tiene il conto alla rovescia',
 
   // trial-end downgrade warning
   'trial.title': 'La tua prova finisce domani.',
@@ -266,4 +272,5 @@ export const it: Partial<Record<StringKey, string>> = {
   'trial.lossLevel': 'il tuo corso torna a {level}',
   'trial.lossFare': 'la tua tariffa torna a {ex} esercizi per {min} min',
   'trial.lossIsland': 'le tue parole lasciano la Dynamic Island',
+  'trial.lossIsland@noisland': 'le tue parole lasciano la schermata di blocco',
 };

@@ -3,7 +3,7 @@
 // a green validation stamp. The rest are in-progress: faded, with a 3-dot streak meter showing
 // how close they are to being collected. So the wallet is always populated and reads as a
 // collection filling up, not an empty list. CEFR/word data comes from the pack; nothing hardcoded.
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -14,7 +14,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Entrance } from '@/components/ui/Entrance';
 import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space } from '@/design/theme';
-import { useLayout, band } from '@/design/layout';
+import { useLayout, band, MAX_WIDE_CONTENT } from '@/design/layout';
 import { activePack } from '@/lib/pack';
 import { useT } from '@/lib/i18n';
 import { canUseAudio } from '@/lib/plans';
@@ -23,6 +23,27 @@ import { MASTER, TicketRow, ticketsForActivePack } from '@/components/wallet/Tic
 export default function Wallet() {
   const theme = useTheme();
   const L = useLayout();
+  // The wallet is a deck of short cards, not prose, so the 640pt reading cap
+  // that suits a paragraph just strands them in a column down the middle of a
+  // 1032pt sheet. Widen the band where there is room and lay the tickets out
+  // across it: three up on a wide window, two on a regular one (an 11" iPad in
+  // portrait), one on a phone. Every cell lands near 310pt either way, which is
+  // the same stub width the iPad home screen already uses.
+  const walletBand = L.wide ? MAX_WIDE_CONTENT : L.maxContent;
+  // Columns come from the MEASURED grid width, not from the window. Two reasons.
+  // The wallet is a modal sheet — it is inset from the window (936pt inside a
+  // 1032pt iPad), so window-derived breakpoints describe a box this content is
+  // not in. And percentage flexBasis proved unreliable here: `flexBasis: '30%'`
+  // resolved against something wider than the capped container and wrapped
+  // three 30% cells onto two rows, so the column count did not match the rule
+  // that chose it. Measuring once and handing each cell an exact width removes
+  // both guesses. gridW = 0 on the first frame, which renders the phone stack —
+  // correct as a starting point, and it settles on the same frame's layout pass.
+  const [gridW, setGridW] = useState(0);
+  const GAP = space.md;
+  const cols = gridW >= 820 ? 3 : gridW >= 540 ? 2 : 1;
+  const cellW = cols > 1 ? (gridW - GAP * (cols - 1)) / cols : undefined;
+  const cellStyle = cellW ? { width: cellW } : undefined;
   const t = useT();
   const pack = useMemo(() => activePack(), []);
   const audioAllowed = canUseAudio();
@@ -38,7 +59,7 @@ export default function Wallet() {
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
       <AuroraBackground mood={0.3} />
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={[styles.header, band(L)]}>
+        <View style={[styles.header, band(L, walletBand)]}>
           <PressableScale
             onPress={() => router.back()}
             style={styles.close}
@@ -54,7 +75,10 @@ export default function Wallet() {
           <View style={styles.close} />
         </View>
 
-        <ScrollView contentContainerStyle={[styles.scroll, band(L)]} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.scroll, band(L, walletBand)]}
+          showsVerticalScrollIndicator={false}
+        >
           <Entrance>
             {/* Nested <Text> is our themed component, which resets to the body
                 scale — the count used to render at body size inside a hero. */}
@@ -87,7 +111,7 @@ export default function Wallet() {
               </Text>
             </Entrance>
           ) : (
-            <>
+            <View onLayout={(e) => setGridW(e.nativeEvent.layout.width)}>
               {collected.length > 0 && (
                 <>
                   <View style={styles.sectionRow}>
@@ -98,9 +122,11 @@ export default function Wallet() {
                       {collected.length}
                     </Text>
                   </View>
-                  <View style={{ gap: space.md }}>
+                  <View style={cols > 1 ? styles.grid : { gap: space.md }}>
                     {collected.map(({ v, streak }, i) => (
-                      <TicketRow key={v.id} v={v} streak={streak} index={i} />
+                      <View key={v.id} style={cellStyle}>
+                        <TicketRow v={v} streak={streak} index={i} />
+                      </View>
                     ))}
                   </View>
                 </>
@@ -115,14 +141,16 @@ export default function Wallet() {
                       {pending.length}
                     </Text>
                   </View>
-                  <View style={{ gap: space.md }}>
+                  <View style={cols > 1 ? styles.grid : { gap: space.md }}>
                     {pending.map(({ v, streak }, i) => (
-                      <TicketRow key={v.id} v={v} streak={streak} index={collected.length + i} />
+                      <View key={v.id} style={cellStyle}>
+                        <TicketRow v={v} streak={streak} index={collected.length + i} />
+                      </View>
                     ))}
                   </View>
                 </>
               )}
-            </>
+            </View>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -139,7 +167,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingTop: space.sm,
   },
-  close: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  // 44pt, the minimum comfortable touch target.
+  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingHorizontal: space.xl, paddingTop: space.lg, paddingBottom: space.xxxl },
   bar: { height: 4, borderRadius: 2, overflow: 'hidden', marginTop: space.md },
   barFill: { height: 4, borderRadius: 2 },
@@ -152,4 +181,5 @@ const styles = StyleSheet.create({
     marginBottom: space.md,
   },
   empty: { alignItems: 'center', marginTop: space.xxxl },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
 });

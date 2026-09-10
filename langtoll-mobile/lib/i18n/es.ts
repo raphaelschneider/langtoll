@@ -184,9 +184,13 @@ export const es: Partial<Record<StringKey, string>> = {
   'settings.strictMode': 'Modo estricto',
   'settings.strictModeDetail': 'Bloquea justo cuando caduca tu pase — sin margen extra.',
   'home.activityOff': 'La cuenta atrás y el vocabulario de la isla han desaparecido: las Actividades en Vivo están desactivadas. Toca para reactivarlas.',
+  'home.activityOff@noisland': 'La cuenta atrás y el vocabulario de la pantalla de bloqueo han desaparecido: las Actividades en Vivo están desactivadas. Toca para reactivarlas.',
   'settings.liveActivities': 'Pantalla de bloqueo y Dynamic Island',
+  'settings.liveActivities@noisland': 'Pantalla de bloqueo',
   'settings.laEnabled': 'Activadas — cuenta atrás en la pantalla de bloqueo, vocabulario en la Dynamic Island',
+  'settings.laEnabled@noisland': 'Activadas — cuenta atrás y vocabulario en la pantalla de bloqueo',
   'settings.laIdle': 'Activadas — aparecen en la pantalla de bloqueo y la Dynamic Island mientras un pase está activo',
+  'settings.laIdle@noisland': 'Activadas — aparecen en la pantalla de bloqueo mientras un pase está activo',
   'settings.laOff': 'Desactivadas — toca aquí y activa Actividades en Vivo en Ajustes → Apps → LangToll.',
   'settings.voice': 'Voz',
   'settings.speechSpeed': 'Velocidad de voz',
@@ -258,7 +262,9 @@ export const es: Partial<Record<StringKey, string>> = {
   'plus.f7Title': 'La ruta completa',
   'plus.f7Detail': 'A2, B1 y B2 — gratis entrena el curso A1',
   'plus.f8Title': 'Tus palabras en la Dynamic Island',
+  'plus.f8Title@noisland': 'Tus palabras en la pantalla de bloqueo',
   'plus.f8Detail': 'Palabra y traducción viajan en la isla todo el día, y la pantalla de bloqueo traduce — gratis se queda con la cuenta atrás',
+  'plus.f8Detail@noisland': 'Palabra y traducción viajan en la pantalla de bloqueo todo el día — gratis se queda con la cuenta atrás',
 
   // trial-end downgrade warning
   'trial.title': 'Tu prueba termina mañana.',
@@ -266,4 +272,5 @@ export const es: Partial<Record<StringKey, string>> = {
   'trial.lossLevel': 'tu curso vuelve a {level}',
   'trial.lossFare': 'tu tarifa vuelve a {ex} ejercicios por {min} min',
   'trial.lossIsland': 'tus palabras desaparecen de la Dynamic Island',
+  'trial.lossIsland@noisland': 'tus palabras desaparecen de la pantalla de bloqueo',
 };

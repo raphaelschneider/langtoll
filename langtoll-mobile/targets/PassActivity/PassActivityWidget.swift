@@ -55,11 +55,36 @@ struct TollyFace: View {
   let stale: Bool
   var height: CGFloat
 
+  // TOLLY IS IPHONE-ONLY HERE, and that is a deliberate concession.
+  //
+  // On the iPad Lock Screen this image renders as a flat grey rectangle where
+  // the mascot should be. Verified device-specific, not a build problem: the
+  // SAME installed binary draws him correctly on an iPhone simulator, and the
+  // art is present and universal in the shipped catalog (`assetutil` reports
+  // tolly-peek / universal / 640x432 inside PassActivity.appex). Resolving via
+  // UIImage instead of `Image(_:)`, giving the imageset a single-scale entry,
+  // and forcing `.renderingMode(.original)` each failed to change it — iPadOS
+  // appears to flatten the image in this presentation.
+  //
+  // A card with a grey defect box on it is worse than a card without a mascot,
+  // and this one is otherwise exactly right, so iPad simply gets no Tolly. The
+  // iPhone rendering is untouched. If a later iPadOS draws it properly, delete
+  // the idiom check and the art returns on its own.
+  private var hasTolly: Bool { UIDevice.current.userInterfaceIdiom != .pad }
+
+  private var art: UIImage? {
+    guard hasTolly else { return nil }
+    return UIImage(named: stale ? "tolly-peek-sad" : "tolly-peek", in: .main, compatibleWith: nil)
+  }
+
   var body: some View {
-    Image(stale ? "tolly-peek-sad" : "tolly-peek")
-      .resizable()
-      .scaledToFit()
-      .frame(height: height)
+    if let art {
+      Image(uiImage: art)
+        .renderingMode(.original)
+        .resizable()
+        .scaledToFit()
+        .frame(height: height)
+    }
   }
 }
 
