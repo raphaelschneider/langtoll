@@ -135,9 +135,9 @@ usable, including offline, without downloading anything beyond itself.
 - [ ] App Privacy: declare the anonymous device identifier and telemetry. No
       app-usage or app-selection data is collected — Family Controls selections
       never leave the device.
-- [ ] **iPad screenshots.** Now that the app ships as iPhone + iPad, App Store
-      Connect requires a 13-inch iPad screenshot set as well as the iPhone one.
-      The listing cannot be submitted without it.
+- [x] **iPad screenshots.** DONE 2026-09-10 — six composed shots at 2064x2752 in
+      `store/screenshots/ipad-13/`, one language each, same treatment as the
+      iPhone set (`marketing/appstore/store_shots.py --canvas ipad`).
 - [ ] Check the iPad build on a physical iPad if one is available: Family
       Controls and the shield behave the same as on iPhone, but the simulator
       cannot exercise either.
