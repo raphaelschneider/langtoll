@@ -66,8 +66,12 @@ No remote push is used.
 **Live Activities**
 
 While a pass is active, a Live Activity shows the remaining time on the Lock
-Screen and rotates vocabulary (word and translation) in the Dynamic Island.
-It ends automatically when the pass expires.
+Screen and rotates the vocabulary being learned. On iPhone the word also rides
+the Dynamic Island. No iPad has a Dynamic Island, so on iPad the same Live
+Activity appears on the Lock Screen only — and the app's own wording follows the
+hardware: on iPad, Settings and the subscription screen say "Lock Screen" and
+never mention the Dynamic Island, so nothing is offered that the device cannot
+do. The Live Activity ends automatically when the pass expires.
 
 **In-app purchases**
 
@@ -78,8 +82,9 @@ six language courses work without paying. Free locks a single app, trains the
 complete A1 course with multiple-choice exercises, chooses between the stricter
 fares (5 or 8 exercises for 15 or 30 minutes), and shows the pass countdown on
 the Lock Screen. Plus adds: the A2 to B2 levels; vocabulary on the Dynamic
-Island and translations on the Lock Screen; unlimited apps, whole categories and
-websites; any fare (down to 3 exercises, up to 60 minutes); strict mode; typed,
+Island and translations on the Lock Screen (on iPad, which has no Dynamic
+Island, this is the translation on the Lock Screen); unlimited apps, whole
+categories and websites; any fare (down to 3 exercises, up to 60 minutes); strict mode; typed,
 sentence-building and listening exercises; spoken audio in a native voice; and
 AI-generated topic packs. Purchases go through StoreKit via RevenueCat; Restore
 Purchases is on the same screen.
@@ -112,6 +117,14 @@ to the bottom edge, which on a large tablet is the longest reach. All four
 orientations are supported on iPad, and the layout responds to live window
 resizing (Split View, Slide Over and the iPadOS 26 resizable window) rather than
 reading a size once at launch.
+
+Beyond the layout itself, this build finishes the iPad pass: the wallet and the
+practice answers lay out across the tablet's width instead of running as a
+single narrow column down the middle; the subscription screen centres its offer
+rather than leaving the lower half of the sheet empty; small controls were
+raised to a 44pt touch target and given VoiceOver labels; and every place the
+interface named the Dynamic Island now names the Lock Screen when running on
+iPad, since that is the surface an iPad actually has.
 
 *Guideline 4.2.3(ii) — additional downloads.* The previous build pre-downloaded
 a whole course's pronunciation audio during onboarding and disabled the final
