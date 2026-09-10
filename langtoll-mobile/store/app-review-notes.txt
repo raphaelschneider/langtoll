@@ -1,4 +1,4 @@
-WHAT CHANGED IN THIS BUILD (RESUBMISSION)
+WHAT HAS CHANGED IN THIS VERSION
 
 This build addresses both issues from the previous review.
 
