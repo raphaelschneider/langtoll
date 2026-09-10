@@ -1,49 +1,43 @@
-No account or login is required. There is no sign-in of any kind; the app works immediately on launch. Users are identified only by an anonymous per-device identifier.
+WHAT CHANGED IN THIS BUILD (RESUBMISSION)
+
+This build addresses both issues from the previous review.
+
+Guideline 4 - iPad layout. iPad is now a first-class device rather than iPhone compatibility mode. Every screen caps and centres its content instead of stretching across the display, and the type scale steps up at iPad width. Home uses a two-pane layout when the window is wide enough: the pass beside the wallet, the route and recently collected words. The wallet and the practice answers lay out across the width instead of one narrow column. Actions sit with the content they belong to rather than pinned to the bottom edge, the longest reach on a tablet. Small controls were raised to 44pt targets and given VoiceOver labels. All four orientations are supported, and the layout responds to live window resizing (Split View, Slide Over, iPadOS 26 resizable windows) rather than reading a size once.
+
+Guideline 4.2.3(ii) - additional downloads. The previous build pre-downloaded a whole course's pronunciation audio during onboarding and disabled the final button until it finished. That step is gone. Audio is now fetched one clip at a time as each exercise needs it, roughly 30 KB per word, the way any app loads media for the screen in front of the user. There is no resource pack and nothing to wait behind: if a clip has not arrived, the app speaks the word with the on-device voice and carries on. The app is fully usable, including offline, without downloading anything beyond itself.
+
+NO ACCOUNT REQUIRED
+
+There is no sign-in of any kind. The app works immediately on launch; users are identified only by an anonymous per-device identifier.
 
 WHY THIS APP USES FAMILY CONTROLS (SCREEN TIME)
 
-LangToll is a self-control tool: the user puts their own distracting apps behind a language exercise, and must complete a short practice session to reopen them. The Screen Time shield is the core mechanism of the product.
+LangToll is a self-control tool: the user puts their own distracting apps behind a language exercise and must complete a short practice session to reopen them. The shield is the core mechanism of the product, not an ancillary feature.
 
-- Authorization is requested as .individual: an adult restricting their own device. This is not a parental-control product and never manages another person's device.
-- The user picks the apps to block in Apple's own FamilyActivityPicker. We never see or store which apps were chosen; the selection is opaque to us by design. We only read the COUNT of selected items to apply the free tier's one-app limit.
+- Authorization is .individual: an adult restricting their own device. This is not a parental-control product and never manages another person's device.
+- The user picks the apps in Apple's own FamilyActivityPicker. We never see or store which apps were chosen; the selection is opaque to us by design. We read only the COUNT, to apply the free tier's one-app limit.
 - No app-usage or selection data leaves the device.
-- The shield can be removed at any time by clearing the selection in Settings, revoking Screen Time authorization in iOS Settings, or deleting the app.
+- The shield can be removed at any time: clear the selection in Settings, revoke Screen Time authorization in iOS Settings, or delete the app.
 
 HOW TO REPRODUCE (PHYSICAL DEVICE REQUIRED)
 
-1. Launch and complete onboarding (under a minute; every step can be skipped). The paywall is the last step; Skip is top-right.
-2. At the lock step, grant Screen Time authorization and select at least one app. A notification permission prompt follows.
+1. Launch and complete onboarding (name, language, level, fare). The paywall is last, "Skip" is top-right.
+2. At the lock step, grant Screen Time authorization and select at least one app.
 3. Finish onboarding. Home shows an expired pass.
-4. Tap "Practice to unlock" and complete the session (5 multiple-choice exercises by default).
-5. The pass is issued and the selected apps unlock for 30 minutes. Opening a locked app before that shows the Screen Time shield.
+4. Tap "Practice to unlock" and complete the session (5 exercises).
+5. The pass is issued and the selected apps unlock for 30 minutes. Opening a locked app before this shows the shield.
 6. After 30 minutes the apps re-lock automatically.
 
-The shield cannot function in the iOS Simulator; Family Controls only works on physical hardware.
+IMPORTANT: the Screen Time shield cannot function in the iOS Simulator. Family Controls is only active on physical hardware.
 
 NOTIFICATIONS
 
-The shield's "Practice now" button cannot open the app directly (extension limitation), so it posts a local notification that opens LangToll when tapped. This is why notification permission is requested. Other local notifications: an optional daily reminder at the user's chosen hour, a pass-expiry notice, and a one-time notice the day before a cancelled trial ends. No remote push.
+The shield's "Practice now" button cannot open its own app, so it posts a local notification that opens LangToll; this is why notification permission is requested.
 
 LIVE ACTIVITIES
 
-While a pass is active, a Live Activity shows the remaining time on the Lock Screen and rotates the vocabulary being learned. On iPhone the word also rides the Dynamic Island. No iPad has a Dynamic Island, so on iPad the same Live Activity appears on the Lock Screen only, and the app's wording follows the hardware: on iPad, Settings and the subscription screen say "Lock Screen" and never mention the Dynamic Island, so nothing is offered that the device cannot do. It ends when the pass expires.
+While a pass is active, a Live Activity shows the remaining time on the Lock Screen and rotates the vocabulary. On iPhone the word also rides the Dynamic Island. No iPad has one, so on iPad it is Lock Screen only and the app's wording says Lock Screen throughout.
 
 IN-APP PURCHASES
 
-LangToll Plus is an auto-renewing subscription (weekly, monthly, yearly). Monthly and yearly include a 7-day free trial; weekly does not. The free tier is fully functional: the lock, practice sessions and all six language courses work without paying. Free locks one app, trains the complete A1 course with multiple choice, chooses between the stricter fares (5 or 8 exercises for 15 or 30 minutes), and shows the pass countdown on the Lock Screen. Plus adds the A2 to B2 levels; vocabulary on the Dynamic Island and translations on the Lock Screen (on iPad, which has no Dynamic Island, this is the translation on the Lock Screen); unlimited apps, categories and websites; any fare; strict mode; typed, sentence-building and listening exercises; spoken audio; and AI topic packs. Purchases use StoreKit via RevenueCat; Restore Purchases is on the same screen.
-
-AI TOPIC PACKS (PLUS)
-
-The user types a topic and the app requests vocabulary and example sentences for it from our server. Output is language-learning content only. Nothing personal is sent: only the topic text, course language and CEFR level.
-
-LANGUAGES
-
-Teaches English, German, Spanish, French, Italian and Portuguese; interface available in all six.
-
-WHAT CHANGED IN THIS BUILD (RESUBMISSION)
-
-This build addresses both issues raised in the previous review.
-
-Guideline 4 - iPad layout. The app now supports iPad as a first-class device rather than running in iPhone compatibility mode. Every screen caps and centres its content column, so text, buttons and the pass card keep a readable size instead of stretching the full width of the display, and the type scale steps up at iPad width. The home screen uses a two-pane layout whenever the window is wide enough, with the pass beside the wallet, the route and the most recently collected words. Actions sit with the content they belong to rather than pinned to the bottom edge, which on a large tablet is the longest reach. All four orientations are supported on iPad, and the layout responds to live window resizing (Split View, Slide Over and the iPadOS 26 resizable window) rather than reading a size once at launch. Beyond the layout itself: the wallet and the practice answers lay out across the tablet's width instead of running as a single narrow column down the middle; the subscription screen centres its offer rather than leaving the lower half of the sheet empty; small controls were raised to a 44pt touch target and given VoiceOver labels; and every place the interface named the Dynamic Island now names the Lock Screen when running on iPad, since that is the surface an iPad actually has.
-
-Guideline 4.2.3(ii) - additional downloads. The previous build pre-downloaded a whole course's pronunciation audio during onboarding and disabled the final button until it finished. That step is gone. Pronunciation audio is now fetched one short clip at a time, as each individual exercise needs it - roughly 30 KB per word or sentence - in the same way any app loads the media for the screen the user is currently on. There is no resource pack, no unpacking step, and nothing the user has to wait behind: if a clip has not arrived, the app speaks that word with the on-device system voice and carries on. The app is fully usable, including offline, without downloading anything beyond itself.
+LangToll Plus is auto-renewing (weekly, monthly, yearly); monthly and yearly include a 7-day free trial. The free tier is fully functional: the lock, practice and all six courses work without paying. StoreKit via RevenueCat; Restore Purchases is on the same screen.
