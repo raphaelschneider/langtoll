@@ -233,6 +233,8 @@ export const en = {
 
   // plus / paywall
   'settings.contact': 'Contact support',
+  'settings.gateLog': 'Gate diagnostics',
+  'settings.gateLogHint': 'Show what the gate did in the background',
   'plus.title': 'Unlock everything.',
   'plus.weekly': 'Weekly',
   'plus.monthly': 'Monthly',

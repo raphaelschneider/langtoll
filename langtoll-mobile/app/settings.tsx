@@ -27,7 +27,7 @@ import {
   applyEntitlement,
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
-import { isNativeAvailable, relockStatus, grantUnlock } from '@/lib/blocking';
+import { isNativeAvailable, relockStatus, grantUnlock, gateDiagnostics } from '@/lib/blocking';
 import { supportCode, SUPPORT_EMAIL } from '@/lib/device';
 import { scheduleTrialEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
@@ -363,6 +363,7 @@ export default function Settings() {
   const theme = useTheme();
   const L = useLayout();
   const t = useT();
+  const [gateLogOpen, setGateLogOpen] = useState(false);
   const state = useAppState();
 
   const [nameDraft, setNameDraft] = useState(state.name ?? '');
@@ -901,6 +902,32 @@ export default function Settings() {
               <Ionicons name="mail-outline" size={20} color={theme.accent} />
             </PressableScale>
           </Section>
+
+          {/* Gate diagnostics — what the Screen Time machinery actually did,
+              readable in a TestFlight build where the dev levers are stripped.
+              Collapsed by default; a tap unfolds it. Real devices only: the
+              simulator's gate is a timestamp, there is nothing to read. */}
+          {isNativeAvailable() && (
+            <Section title={t('settings.gateLog')}>
+              <PressableScale
+                onPress={() => setGateLogOpen((o) => !o)}
+                haptic={null}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: gateLogOpen }}
+                style={[styles.topicRow, { borderColor: theme.line }]}
+              >
+                <Text variant="bodyMedium" style={{ flex: 1 }}>
+                  {t('settings.gateLogHint')}
+                </Text>
+                <Ionicons name={gateLogOpen ? 'chevron-up' : 'chevron-down'} size={20} color={theme.accent} />
+              </PressableScale>
+              {gateLogOpen && (
+                <Text selectable variant="caption" color="inkSoft" style={{ marginTop: space.sm, fontFamily: font.mono }}>
+                  {gateDiagnostics().join('\n')}
+                </Text>
+              )}
+            </Section>
+          )}
 
           {/* dev */}
           {DEV_TOOLS && <VoiceLab />}

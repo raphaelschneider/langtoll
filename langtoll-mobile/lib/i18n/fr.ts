@@ -223,6 +223,8 @@ export const fr: Partial<Record<StringKey, string>> = {
     'Identifie uniquement cette installation — pas de nom, pas d’e-mail, rien de personnel. Joins-le quand tu écris à l’assistance pour qu’on puisse vraiment t’aider.',
 
   'settings.contact': 'Contacter le support',
+  'settings.gateLog': 'Diagnostic de la barrière',
+  'settings.gateLogHint': 'Voir ce que la barrière a fait en arrière-plan',
   'plus.title': 'Débloque tout.',
   'plus.weekly': 'Hebdomadaire',
   'plus.monthly': 'Mensuel',

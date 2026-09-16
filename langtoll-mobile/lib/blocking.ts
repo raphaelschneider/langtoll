@@ -74,13 +74,14 @@ const WORD_MONITOR_PREFIX = 'langtoll-word';
  *  is not possible on iOS at all: island content is static between updates
  *  and only Text(timerInterval:) self-animates. */
 const ROTATION_MINUTES = 2;
-/** Cap on rotation monitors: iOS allows ~20 concurrent monitors, the re-lock
- *  machinery needs its two, and headroom matters more than coverage — a
- *  re-lock that fails to arm because vocabulary ate its slot would be the
- *  tail wagging the dog. 14 covers a 28-minute pass at 2-minute cadence;
- *  longer passes stop rotating near the end (the app also rotates on every
- *  foregrounding, so a long pass still refreshes whenever LangToll opens). */
-const ROTATION_MAX_WAKEUPS = 14;
+/** Cap on rotation monitors. Each one launches the monitor EXTENSION twice
+ *  (interval start and end), and that extension lives under a hard 6 MB
+ *  memory ceiling while importing ActivityKit to touch the Live Activity. At
+ *  14 per pass that was up to 28 extra launches sharing the process budget of
+ *  the re-lock — and a memory-killed extension is one iOS stops trusting. The
+ *  re-lock is the product; three rotations early in the pass are decoration.
+ *  Longer passes still refresh on every foregrounding. */
+const ROTATION_MAX_WAKEUPS = 3;
 
 // Lazy so the app never crashes when the native module isn't in the binary
 // (Expo Go, or before the dev build exists).
@@ -225,8 +226,8 @@ export function lockNow(): void {
 
 /**
  * Lift the shield for `minutes` after a completed session. In native mode also
- * schedules the re-lock via a DeviceActivity interval + a shield action, so the
- * shield returns even if the user never reopens LangToll.
+ * arms the background re-lock (see armRelock), so the shield returns even if
+ * the user never reopens LangToll.
  */
 export function grantUnlock(minutes: number): void {
   const m = native();
@@ -240,9 +241,63 @@ export function grantUnlock(minutes: number): void {
     } catch {
       // hatch cleanup is best-effort
     }
+    const now = Date.now();
+    armRelock(now, now + minutes * 60_000);
+  } catch (e) {
+    console.warn('[blocking] unblock/schedule failed', e);
+  }
+}
 
-    const now = new Date();
-    const end = new Date(now.getTime() + minutes * 60_000);
+/** Every monitor name this module owns — re-lock machinery and word rotation. */
+function ownedMonitors(m: any): string[] {
+  const active: string[] = m.getActivities?.() ?? [];
+  return active.filter(
+    (n: string) => n.startsWith(ACTIVITY_PREFIX) || n.startsWith(WORD_MONITOR_PREFIX)
+  );
+}
+
+/** Whether a re-lock monitor is registered with iOS right now. */
+function relockArmed(m: any): boolean {
+  return ownedMonitors(m).some((n) => n.startsWith(ACTIVITY_PREFIX));
+}
+
+/**
+ * Schedule the shield's return for a pass that ends at `endMs`. Runs in the
+ * DeviceActivity monitor extension even if the app is closed — and that is the
+ * whole problem: on iOS 26 the extension's callbacks are not reliably delivered
+ * (Apple's forums carry reports of exactly this pattern, a non-repeating timed
+ * unlock whose intervalDidEnd never arrives; an Apple engineer there says their
+ * own apps do not rely on that callback). Build 24 hung the entire re-lock on
+ * that one callback, and on Ralph's phone the gate simply stayed open until
+ * LangToll was next foregrounded.
+ *
+ * So the deadline is armed FOUR ways. Every one of them is idempotent — the
+ * blocklist is a set and the extension re-applies it whole — so the first to
+ * fire wins and the rest are no-ops:
+ *
+ *   1. `main`      — an interval that ENDS at the deadline (intervalDidEnd).
+ *                    Apple's 15-minute floor applies to its length, so a short
+ *                    pass is late here; the others are exact.
+ *   2. `gate`      — an interval that STARTS at the deadline (intervalDidStart).
+ *                    A different callback, delivered on a different code path.
+ *   3. `gate`'s usage events — the moment the user has spent one minute inside
+ *                    a blocked app after the deadline, eventDidReachThreshold
+ *                    fires. This is the callback that survives even when the
+ *                    interval ones are dropped: it is driven by actual usage of
+ *                    the very apps that should be shut.
+ *   4. the app itself — maybeRelock on every foregrounding (and the expiry
+ *                    notification that brings the user there).
+ *
+ * The "2 more minutes" hatch gets the same treatment: its whitelist is cleared
+ * by an interval END, an interval START, and a usage threshold, each two
+ * minutes after the deadline.
+ */
+function armRelock(nowMs: number, endMs: number): void {
+  const m = native();
+  if (!isNativeAvailable() || !hasSelection()) return;
+  try {
+    const now = new Date(nowMs);
+    const end = new Date(endMs);
     // The shield does NOT slam mid-flow: the pass expires on time (UI, island and
     // countdown all use the store's timestamp), but the re-lock lands GRACE
     // minutes later, so whatever the user is in the middle of gets an off-ramp.
@@ -252,13 +307,14 @@ export function grantUnlock(minutes: number): void {
     // there is no delay to explain.
     const grace = strictModeActive() ? 0 : RELOCK_GRACE_MINUTES;
     const relockAt = new Date(end.getTime() + grace * 60_000);
-    if (grace > 0) schedulePassExpiryNotice(end.getTime(), grace);
+    if (grace > 0 && endMs > nowMs) schedulePassExpiryNotice(end.getTime(), grace);
+    const lastCallAt = new Date(relockAt.getTime() + LASTCALL_MINUTES * 60_000);
 
     // FULL date components, not just hour/minute. With time-of-day only,
     // DeviceActivity reads the schedule as a daily wall-clock pattern — so an
     // unlock crossing midnight (23:50 + 30min → end "00:20") is inverted and the
-    // re-lock never fires. This was the background-relock bug: apps stayed open
-    // until LangToll was next foregrounded and maybeRelock ran.
+    // re-lock never fires. This was the first background-relock bug: apps stayed
+    // open until LangToll was next foregrounded and maybeRelock ran.
     const dc = (d: Date) => ({
       year: d.getFullYear(),
       month: d.getMonth() + 1,
@@ -267,28 +323,28 @@ export function grantUnlock(minutes: number): void {
       minute: d.getMinutes(),
       second: d.getSeconds(),
     });
+    const MIN_INTERVAL_MS = 15 * 60_000; // Apple rejects shorter intervals outright
+    const atLeast15 = (from: Date, to: Date) =>
+      to.getTime() - from.getTime() < MIN_INTERVAL_MS
+        ? new Date(from.getTime() + MIN_INTERVAL_MS)
+        : to;
+    // How long the deadline-start monitors stay registered. Long enough that a
+    // usage threshold reached hours later still fires; the next grant tears them
+    // down regardless.
+    const GATE_WINDOW_MS = 24 * 60 * 60_000;
 
-    // Apple rejects DeviceActivity intervals under 15 minutes outright. Plus can
-    // customise the unlock length, so clamp the MONITOR (not the store's
-    // countdown): a 10-minute pass still re-locks, at most 15 minutes in — and
-    // maybeRelock on foreground stays the earlier bound.
-    const monitorEnd =
-      relockAt.getTime() - now.getTime() < 15 * 60_000
-        ? new Date(now.getTime() + 15 * 60_000)
-        : relockAt;
-
-    // Neutralize EVERY prior relock monitor: empty its actions first (so a
-    // mid-flight interval that can't be stopped fires into a no-op), then stop it.
+    // Neutralize EVERY prior monitor of ours: wipe its actions first (so a
+    // mid-flight callback that can't be cancelled fires into a no-op), then stop
+    // it. stopMonitoring alone was proven insufficient — a stale intervalDidEnd
+    // from the previous pass re-blocked a freshly paid one on Ralph's phone.
     const stamp = Date.now();
-    const activityName = `${ACTIVITY_PREFIX}.main.${stamp}`;
-    const lastCallName = `${ACTIVITY_PREFIX}.lastcall.${stamp}`;
     try {
-      const prior: string[] = (m.getActivities?.() ?? []).filter(
-        (n: string) => n.startsWith(ACTIVITY_PREFIX) || n.startsWith(WORD_MONITOR_PREFIX)
-      );
+      const prior = ownedMonitors(m);
       for (const name of prior) {
         try {
+          m.cleanUpAfterActivity?.(name);
           m.configureActions({ activityName: name, callbackName: 'intervalDidEnd', actions: [] });
+          m.configureActions({ activityName: name, callbackName: 'intervalDidStart', actions: [] });
         } catch {
           // best-effort — stopMonitoring below is the second line of defense
         }
@@ -297,47 +353,87 @@ export function grantUnlock(minutes: number): void {
     } catch {
       // no prior monitor — fine
     }
-    // The "2 more minutes" hatch is time-boxed by its own monitor: whenever the
-    // shield's secondary button whitelists the app being interrupted, this interval
-    // re-blocks it LASTCALL_MINUTES after the main re-lock. Armed in advance —
-    // an extension cannot start monitors — and harmless if the hatch is never used
-    // (clearing an empty whitelist is a no-op). Apple's 15-minute floor applies.
-    const lastCallEnd =
-      new Date(
-        Math.max(
-          relockAt.getTime() + LASTCALL_MINUTES * 60_000,
-          now.getTime() + 15 * 60_000
-        )
-      );
+
+    const names = {
+      main: `${ACTIVITY_PREFIX}.main.${stamp}`,
+      gate: `${ACTIVITY_PREFIX}.gate.${stamp}`,
+      lastCall: `${ACTIVITY_PREFIX}.lastcall.${stamp}`,
+      lastGate: `${ACTIVITY_PREFIX}.lastgate.${stamp}`,
+    };
+    const block = { type: 'blockSelection', familyActivitySelectionId: SELECTION_ID };
+    const closeHatch = { type: 'clearWhitelistAndUpdateBlock' };
+    // Actions are written BEFORE the monitors start: a monitor whose interval
+    // begins now can fire intervalDidStart immediately, and it must find its
+    // action list already in place.
+    //
+    // KEY NAME MATTERS: generic ACTION dicts are read by the extension as
+    // action["familyActivitySelectionId"]. The direct blockSelection() CALL uses
+    // a different parser that takes `activitySelectionId`, and copying that key
+    // here made the action a silent no-op — intervalDidEnd fired on schedule for
+    // days while the extension found no selection id in the dict and did
+    // nothing. That was the second background-relock bug.
+    m.configureActions({ activityName: names.main, callbackName: 'intervalDidEnd', actions: [block] });
+    m.configureActions({ activityName: names.gate, callbackName: 'intervalDidStart', actions: [block] });
+    m.configureActions({
+      activityName: names.gate,
+      callbackName: 'eventDidReachThreshold',
+      eventName: 'used',
+      actions: [block],
+    });
+    // Last call: whatever the hatch whitelisted goes back behind the gate. The
+    // block is re-applied in the same breath — one more chance for the shield
+    // to land if every deadline callback was dropped.
+    m.configureActions({ activityName: names.lastCall, callbackName: 'intervalDidEnd', actions: [closeHatch, block] });
+    m.configureActions({ activityName: names.lastGate, callbackName: 'intervalDidStart', actions: [closeHatch, block] });
+    m.configureActions({
+      activityName: names.gate,
+      callbackName: 'eventDidReachThreshold',
+      eventName: 'lastcall',
+      actions: [closeHatch, block],
+    });
+
+    // The usage events watch the user's own selection: one minute of use after
+    // the deadline shuts the gate; three minutes closes the hatch too.
+    const selection: string | null = m.getFamilyActivitySelectionId(SELECTION_ID);
+    const usageEvents = selection
+      ? [
+          { eventName: 'used', familyActivitySelection: selection, threshold: { minute: 1 } },
+          {
+            eventName: 'lastcall',
+            familyActivitySelection: selection,
+            threshold: { minute: LASTCALL_MINUTES + 1 },
+          },
+        ]
+      : [];
+
     void (async () => {
-      try {
-        await m.startMonitoring(
-          activityName,
-          { intervalStart: dc(now), intervalEnd: dc(monitorEnd), repeats: false },
-          []
-        );
-        await m.startMonitoring(
-          lastCallName,
-          { intervalStart: dc(now), intervalEnd: dc(lastCallEnd), repeats: false },
-          []
-        );
-        // Trust nothing: read back whether iOS actually registered the monitor.
-        const active: string[] = m.getActivities?.() ?? [];
-        const ok = active.includes(activityName);
-        lastRelock = {
-          at: new Date().toLocaleTimeString(),
-          ok,
-          detail: ok
-            ? `armed until ${monitorEnd.toLocaleTimeString()}`
-            : `startMonitoring resolved but monitor is MISSING (activities: ${active.join(',') || 'none'})`,
-        };
-      } catch (e) {
-        lastRelock = {
-          at: new Date().toLocaleTimeString(),
-          ok: false,
-          detail: `startMonitoring REJECTED: ${e instanceof Error ? e.message : String(e)}`,
-        };
-      }
+      const armed: string[] = [];
+      const failed: string[] = [];
+      const start = async (name: string, from: Date, to: Date, events: any[] = []) => {
+        try {
+          await m.startMonitoring(name, { intervalStart: dc(from), intervalEnd: dc(to), repeats: false }, events);
+          armed.push(name);
+        } catch (e) {
+          failed.push(`${name.split('.')[1]}: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      };
+      // Deadline-start monitors first: they are the exact ones.
+      await start(names.gate, relockAt, new Date(relockAt.getTime() + GATE_WINDOW_MS), usageEvents);
+      await start(names.main, now, atLeast15(now, relockAt));
+      await start(names.lastGate, lastCallAt, new Date(lastCallAt.getTime() + GATE_WINDOW_MS));
+      await start(names.lastCall, now, atLeast15(now, lastCallAt));
+
+      // Trust nothing: read back what iOS actually registered.
+      const active: string[] = m.getActivities?.() ?? [];
+      const live = Object.values(names).filter((n) => active.includes(n));
+      const ok = live.includes(names.gate) || live.includes(names.main);
+      lastRelock = {
+        at: new Date().toLocaleTimeString(),
+        ok,
+        detail: ok
+          ? `${live.length}/4 monitors armed for ${relockAt.toLocaleTimeString()}${failed.length ? ` (${failed.join('; ')})` : ''}`
+          : `NOT armed — registered: ${live.join(',') || 'none'}; ${failed.join('; ') || 'startMonitoring resolved but monitors are missing'}`,
+      };
       console.log('[blocking] relock:', JSON.stringify(lastRelock));
 
       // Island vocabulary wake-ups: one future-dated monitor per rotation. The
@@ -354,7 +450,7 @@ export function grantUnlock(minutes: number): void {
           // START matters to us, and starts may be staggered freely.
           await m.startMonitoring(
             `${WORD_MONITOR_PREFIX}.${k}.${stamp}`,
-            { intervalStart: dc(at), intervalEnd: dc(new Date(at.getTime() + 15 * 60_000)), repeats: false },
+            { intervalStart: dc(at), intervalEnd: dc(new Date(at.getTime() + MIN_INTERVAL_MS)), repeats: false },
             []
           );
         }
@@ -362,41 +458,25 @@ export function grantUnlock(minutes: number): void {
         console.log('[blocking] word rotation monitors failed (non-fatal):', e);
       }
     })();
-    // When the interval ends, re-block — runs in the extension even if the app is closed.
-    //
-    // KEY NAME MATTERS: generic ACTION dicts are read by the extension as
-    // action["familyActivitySelectionId"]. The direct blockSelection() CALL uses
-    // a different parser that takes `activitySelectionId`, and copying that key
-    // here made the action a silent no-op — intervalDidEnd fired on schedule for
-    // days while the extension found no selection id in the dict and did
-    // nothing. This was the background-relock bug.
-    m.configureActions({
-      activityName,
-      callbackName: 'intervalDidEnd',
-      actions: [{ type: 'blockSelection', familyActivitySelectionId: SELECTION_ID }],
-    });
-    // Last call: whatever the hatch whitelisted goes back behind the gate.
-    m.configureActions({
-      activityName: lastCallName,
-      callbackName: 'intervalDidEnd',
-      actions: [{ type: 'clearWhitelistAndUpdateBlock' }],
-    });
   } catch (e) {
-    console.warn('[blocking] unblock/schedule failed', e);
+    console.warn('[blocking] relock scheduling failed', e);
   }
 }
 
 /**
  * Re-shield if the grant has expired. Call on launch + foreground. `isUnlocked`
- * comes from the store's timestamp (the source of truth for the UI countdown).
+ * comes from the store's timestamp (the source of truth for the UI countdown);
+ * `expiresAtMs` is that timestamp, so a live pass whose background re-lock has
+ * gone missing can be re-armed for what remains of it.
  */
-export function maybeRelock(isUnlocked: boolean): void {
+export function maybeRelock(isUnlocked: boolean, expiresAtMs?: number | null): void {
   if (!isNativeAvailable() || !hasSelection()) return;
+  const m = native();
   // Expired pass ⇒ any lingering "2 more minutes" hatch is over (covers taps that
   // happened after the last-call monitor already fired).
   if (!isUnlocked) {
     try {
-      native()?.clearWhitelistAndUpdateBlock?.('langtoll:maybeRelock');
+      m?.clearWhitelistAndUpdateBlock?.('langtoll:maybeRelock');
     } catch {
       // best-effort
     }
@@ -406,13 +486,79 @@ export function maybeRelock(isUnlocked: boolean): void {
   // means a stale monitor callback slammed it (the pay-during-grace race) — any
   // time the app comes to the foreground, an honest pass lifts the gate.
   if (isUnlocked && isShieldActive()) {
-    const m = native();
     try {
       m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langtoll:selfHeal');
     } catch (e) {
       console.warn('[blocking] self-heal unblock failed', e);
     }
   }
+  // A live pass with NO re-lock registered (iOS dropped it, or the app was
+  // updated or reinstalled mid-pass) would otherwise stay open until the next
+  // foregrounding — the exact failure this module exists to prevent. Re-arm
+  // for the remaining time.
+  if (isUnlocked && expiresAtMs && !relockArmed(m)) {
+    console.log('[blocking] live pass with no re-lock monitor — re-arming');
+    armRelock(Date.now(), expiresAtMs);
+  }
+}
+
+// ── diagnostics ─────────────────────────────────────────────────────────────
+
+/**
+ * What the gate machinery actually did, read back from the app group — the
+ * extension records every callback it receives and every block it applies.
+ * Plain text, for a readout in Settings that works in a TestFlight build,
+ * where the dev levers are stripped.
+ */
+export function gateDiagnostics(): string[] {
+  const m = native();
+  if (!isNativeAvailable()) return ['Simulator / no native module — gate is simulated.'];
+  const lines: string[] = [];
+  const when = (ms: number) => new Date(ms).toLocaleString();
+  try {
+    lines.push(`Screen Time: ${['not asked', 'denied', 'authorized'][authorizationStatus()] ?? '?'}`);
+    lines.push(`Shield up now: ${isShieldActive() ? 'yes' : 'no'}`);
+    const counts = selectionCounts();
+    lines.push(
+      counts
+        ? `Selection: ${counts.applicationCount} apps · ${counts.categoryCount} categories · ${counts.webDomainCount} sites`
+        : 'Selection: none'
+    );
+    lines.push(
+      lastRelock
+        ? `Last arm @ ${lastRelock.at}: ${lastRelock.detail}`
+        : 'Last arm: no unlock this launch yet'
+    );
+    const monitors = ownedMonitors(m);
+    lines.push(
+      `Monitors registered: ${monitors.length}` +
+        (monitors.length ? ` — ${monitors.map((n) => n.replace(`${ACTIVITY_PREFIX}.`, '').replace(WORD_MONITOR_PREFIX, 'word')).join(', ')}` : '')
+    );
+    const lastBlock = m.userDefaultsGet?.('lastBlockUpdate') as
+      | { triggeredBy?: string; blockedAt?: string; blocklistAppCount?: number; blocklistCategoryCount?: number; whitelistAppCount?: number }
+      | undefined;
+    lines.push(
+      lastBlock
+        ? `Last block update: ${lastBlock.blockedAt ?? '?'} by ${lastBlock.triggeredBy ?? '?'} — ${lastBlock.blocklistAppCount ?? 0} apps, ${lastBlock.blocklistCategoryCount ?? 0} categories blocked, ${lastBlock.whitelistAppCount ?? 0} whitelisted`
+        : 'Last block update: none recorded'
+    );
+    const events: { activityName: string; callbackName: string; eventName?: string; lastCalledAt: Date }[] =
+      m.getEvents?.() ?? [];
+    const ours = events
+      .filter((e) => e.activityName?.startsWith(ACTIVITY_PREFIX))
+      .slice(-8)
+      .map(
+        (e) =>
+          `${when(e.lastCalledAt.getTime())} ${e.activityName.replace(`${ACTIVITY_PREFIX}.`, '')} ${e.callbackName}${e.eventName ? `:${e.eventName}` : ''}`
+      );
+    lines.push(ours.length ? `Extension callbacks (latest ${ours.length}):` : 'Extension callbacks: NONE ever recorded');
+    lines.push(...ours);
+    const wordWakes = events.filter((e) => e.activityName?.startsWith(WORD_MONITOR_PREFIX)).length;
+    lines.push(`Word-rotation wake-ups recorded: ${wordWakes}`);
+  } catch (e) {
+    lines.push(`Diagnostics failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  return lines;
 }
 
 // ── shield appearance ───────────────────────────────────────────────────────

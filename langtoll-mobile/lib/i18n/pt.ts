@@ -223,6 +223,8 @@ export const pt: Partial<Record<StringKey, string>> = {
     'Identifica apenas esta instalação — sem nome, sem e-mail, nada pessoal. Inclua-o ao escrever para o suporte para podermos ajudar de verdade.',
 
   'settings.contact': 'Falar com o suporte',
+  'settings.gateLog': 'Diagnóstico da cancela',
+  'settings.gateLogHint': 'Ver o que a cancela fez em segundo plano',
   'plus.title': 'Libere tudo.',
   'plus.weekly': 'Semanal',
   'plus.monthly': 'Mensal',

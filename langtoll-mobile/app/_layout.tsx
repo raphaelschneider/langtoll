@@ -94,13 +94,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (!ready) return;
     void configureShieldAppearance(); // async now: stages Tolly into the app group first
-    maybeRelock(isUnlocked(getState()));
+    maybeRelock(isUnlocked(getState()), getState().unlockExpiresAt);
     // The shield's button posts a notification instead of opening the app —
     // iOS gives an extension no way to do the latter. This routes the tap.
     const stopTaps = handleNotificationTaps();
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && next === 'active') {
-        maybeRelock(isUnlocked(getState()));
+        maybeRelock(isUnlocked(getState()), getState().unlockExpiresAt);
         // Fresh card on the island every time LangToll comes forward mid-pass.
         // This is the DOCUMENTED activity-update path, so the rotation works
         // even if the extension's background updates turn out to be blocked.

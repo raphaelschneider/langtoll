@@ -223,6 +223,8 @@ export const de: Partial<Record<StringKey, string>> = {
     'Identifiziert nur diese Installation — kein Name, keine E-Mail, nichts Persönliches. Gib ihn an, wenn du dem Support schreibst, damit wir wirklich helfen können.',
 
   'settings.contact': 'Support kontaktieren',
+  'settings.gateLog': 'Schranken-Diagnose',
+  'settings.gateLogHint': 'Zeigen, was die Schranke im Hintergrund getan hat',
   'plus.title': 'Schalte alles frei.',
   'plus.weekly': 'Wöchentlich',
   'plus.monthly': 'Monatlich',
