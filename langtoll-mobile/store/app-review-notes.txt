@@ -21,7 +21,7 @@ LangToll is a self-control tool: the user puts their own distracting apps behind
 
 HOW TO REPRODUCE (PHYSICAL DEVICE REQUIRED)
 
-1. Launch and complete onboarding (name, language, level, fare). The paywall is last, "Skip" is top-right.
+1. Launch and complete onboarding (name, language, level, fare). The paywall is last and has no skip: start the 7-day trial on monthly or yearly (sandbox purchase works) or tap Restore Purchases.
 2. At the lock step, grant Screen Time authorization and select at least one app.
 3. Finish onboarding. Home shows an expired pass.
 4. Tap "Practice to unlock" and complete the session (5 exercises).
@@ -40,4 +40,4 @@ While a pass is active, a Live Activity shows the remaining time on the Lock Scr
 
 IN-APP PURCHASES
 
-LangToll Plus is auto-renewing (weekly, monthly, yearly); monthly and yearly include a 7-day free trial. The free tier is fully functional: the lock, practice and all six courses work without paying. StoreKit via RevenueCat; Restore Purchases is on the same screen.
+LangToll Plus is auto-renewing (weekly, monthly, yearly); monthly and yearly include a 7-day free trial. A lapsed trial falls back to a fully usable free tier: the lock, practice and all six courses keep working. StoreKit via RevenueCat; Restore Purchases is on the same screen.

@@ -249,6 +249,7 @@ export const en = {
   'plus.purchaseFailed': 'The App Store could not complete that. Try again in a moment.',
   'plus.startTrial': 'Start my {days}-day free trial',
   'plus.subscribe': 'Get LangToll Plus',
+  'plus.continueWithout': 'Continue without Plus for now',
   'plus.restore': 'Restore',
   'plus.terms': 'Terms of Use',
   'plus.privacy': 'Privacy Policy',

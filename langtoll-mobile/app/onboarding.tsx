@@ -427,10 +427,12 @@ export default function Onboarding() {
   const dailyM = dailyMinutes % 60;
   const daysPerYear = Math.round((dailyMinutes * 365) / 1440);
 
-  // 'paywall' skips via the header — a quiet exit in the corner instead of a
-  // "Maybe later" advertised under the CTA (relift dropped theirs for the same
-  // reason: the exit must exist, not be promoted).
-  const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms', 'paywall'];
+  // 'paywall' does NOT skip. The way past it is starting the trial (or
+  // restoring a purchase): founder call, 2026-09-16 — "they should at least
+  // select a trial". The free tier still exists, as what a lapsed trial falls
+  // back to, not as a door you can walk through on day one. PlusOffer keeps
+  // one safety valve for a store that cannot sell (offline, products missing).
+  const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms'];
   const showSkip = skippable.includes(step);
   const progress = stepIdx / (STEPS.length - 1);
 
@@ -885,7 +887,7 @@ export default function Onboarding() {
                   </Text>
                 )}
                 <View style={{ marginTop: space.lg, flex: 1 }}>
-                  <PlusOffer onDone={next} source="onboarding" />
+                  <PlusOffer onDone={next} onStoreUnavailable={next} source="onboarding" />
                 </View>
               </View>
             )}

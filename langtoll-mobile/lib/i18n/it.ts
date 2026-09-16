@@ -239,6 +239,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'plus.purchaseFailed': 'L’App Store non è riuscito a completare. Riprova tra un attimo.',
   'plus.startTrial': 'Inizia i miei {days} giorni gratis',
   'plus.subscribe': 'Passa a LangToll Plus',
+  'plus.continueWithout': 'Continua senza Plus per ora',
   'plus.restore': 'Ripristina',
   'plus.terms': 'Termini di utilizzo',
   'plus.privacy': 'Privacy',

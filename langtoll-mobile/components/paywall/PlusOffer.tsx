@@ -46,7 +46,21 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
   );
 }
 
-export function PlusOffer({ onDone, source }: { onDone: () => void; source: PaywallSource }) {
+export function PlusOffer({
+  onDone,
+  onStoreUnavailable,
+  source,
+}: {
+  onDone: () => void;
+  /**
+   * Onboarding's paywall has no skip — the trial IS the way in. But a wall the
+   * store itself cannot open (offline, products not live, StoreKit refusing)
+   * must not brick a fresh install, so after a failed purchase attempt this
+   * lets the user through. Rendered only when provided.
+   */
+  onStoreUnavailable?: () => void;
+  source: PaywallSource;
+}) {
   const theme = useTheme();
   const t = useT();
   const [packages, setPackages] = useState<PlusPackage[]>([]);
@@ -240,9 +254,16 @@ export function PlusOffer({ onDone, source }: { onDone: () => void; source: Payw
           )}
         </>
       )}
-      {/* No "Maybe later" here: the surface's own exit (the X on /paywall, the header
-          skip in onboarding) already grants the way out without advertising it under
-          the CTA — relift dropped theirs for exactly this reason. */}
+      {failed && onStoreUnavailable && (
+        <PressableScale onPress={onStoreUnavailable} haptic={null} style={styles.link}>
+          <Text variant="callout" color="inkSoft" center>
+            {t('plus.continueWithout')}
+          </Text>
+        </PressableScale>
+      )}
+      {/* No "Maybe later" here. In onboarding the trial is the only door (founder
+          call, 2026-09-16); on /paywall the X is the exit. Neither is advertised
+          under the CTA — relift dropped theirs for exactly this reason. */}
       <PressableScale onPress={onRestore} haptic={null} style={styles.link}>
         <Text variant="callout" color="inkSoft" center>
           {t('plus.restore')}

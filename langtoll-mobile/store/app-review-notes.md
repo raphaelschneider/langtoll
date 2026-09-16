@@ -70,9 +70,10 @@ Specifically:
 
 **How to reproduce the core flow (physical device required)**
 
-1. Launch the app and complete onboarding (name, language, level, fare). Every
-   step can be skipped; the whole flow takes under a minute. The paywall is the
-   last step — "Skip" is in the top-right corner.
+1. Launch the app and complete onboarding (name, language, level, fare). The
+   whole flow takes under a minute. The paywall is the last step and has no
+   skip: start the 7-day free trial on the monthly or yearly plan (a sandbox
+   purchase works), or tap Restore Purchases, to pass it.
 2. At the "lock" step, grant Screen Time authorization when prompted and select
    at least one app in the picker. A notification permission prompt follows
    (see "Notifications" below).
@@ -111,8 +112,8 @@ do. The Live Activity ends automatically when the pass expires.
 
 LangToll Plus is an auto-renewing subscription, offered weekly, monthly or
 yearly. The monthly and yearly plans include a 7-day free trial; the weekly plan
-does not. The free tier is fully functional: the lock, practice sessions and all
-six language courses work without paying. Free locks a single app, trains the
+does not. When a trial lapses the app stays fully usable on the free tier: the
+lock, practice sessions and all six language courses keep working without paying. Free locks a single app, trains the
 complete A1 course with multiple-choice exercises, chooses between the stricter
 fares (5 or 8 exercises for 15 or 30 minutes), and shows the pass countdown on
 the Lock Screen. Plus adds: the A2 to B2 levels; vocabulary on the Dynamic
