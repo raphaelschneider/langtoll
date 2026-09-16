@@ -57,7 +57,7 @@ export const pt: Partial<Record<StringKey, string>> = {
   'session.check': 'Conferir',
   'session.article': 'Escolha o artigo',
   'session.order': 'Monte a frase',
-  'session.orderHint': 'Toque nas palavras na ordem certa',
+  'session.orderHint': 'Toque ou arraste as palavras na ordem certa',
   'session.listen': 'O que você ouviu?',
   'session.cantHear': 'Não consigo ouvir agora',
   'session.fromGoal': 'Seu objetivo',

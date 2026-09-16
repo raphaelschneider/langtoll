@@ -63,7 +63,7 @@ export const en = {
   'session.check': 'Check',
   'session.article': 'Pick the article',
   'session.order': 'Build the sentence',
-  'session.orderHint': 'Tap the words in order',
+  'session.orderHint': 'Tap or drag the words into order',
   'session.listen': 'What do you hear?',
   'session.cantHear': 'I can’t listen right now',
   'session.fromGoal': 'Your goal',
