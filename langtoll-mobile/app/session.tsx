@@ -37,7 +37,8 @@ import { track } from '@/lib/telemetry';
 import { openPaywall } from '@/lib/paywall';
 import { Tolly } from '@/components/ui/Tolly';
 import { syncPassActivity } from '@/lib/pass-activity';
-import { OrderBuilder } from '@/components/session/OrderBuilder';
+import { OrderBuilder, type OrderBuilderHandle } from '@/components/session/OrderBuilder';
+import { OrderBank } from '@/components/session/OrderBank';
 import { audioNetworkFailed, ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
 import { clearDeliveredNotifications } from '@/lib/notify';
@@ -81,6 +82,8 @@ export default function Session() {
   const [picked, setPicked] = useState<string | null>(null);
   const [typed, setTyped] = useState('');
   const [orderPicked, setOrderPicked] = useState<number[]>([]);
+  // The sentence line, for drops that start in the bank below it.
+  const orderLineRef = useRef<OrderBuilderHandle>(null);
   const [grade, setGrade] = useState<Grade>('wrong');
   const [correctCount, setCorrectCount] = useState(0);
   const [collected, setCollected] = useState<string | null>(null); // word just mastered → collect badge
@@ -383,31 +386,36 @@ export default function Session() {
         </>
       ) : isOrder ? (
         <>
-          <View style={styles.orderWrap}>
-            {ex.options!.map((word, i) => {
-              const used = orderPicked.includes(i);
-              return (
-                <PressableScale
-                  key={`${word}-${i}`}
-                  disabled={phase !== 'answer' || used}
-                  onPress={() => {
-                    speakTarget(word);
-                    setOrderPicked((cur) => [...cur, i]);
-                  }}
-                  style={[
-                    styles.orderChip,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.line,
-                      opacity: used ? 0.25 : 1,
-                    },
-                  ]}
-                >
-                  <Text variant="bodyMedium">{word}</Text>
-                </PressableScale>
-              );
-            })}
-          </View>
+          {/* Tap sends a word to the end of the sentence; DRAG drops it between
+              two placed words. The slot is resolved by the line itself against
+              a fresh window measurement at release. */}
+          <OrderBank
+            words={ex.options!}
+            used={orderPicked}
+            interactive={phase === 'answer'}
+            onTap={(i) => {
+              speakTarget(ex.options![i]);
+              setOrderPicked((cur) => [...cur, i]);
+            }}
+            onDrop={(i, pageX, pageY) => {
+              const line = orderLineRef.current;
+              const place = (slot: number) => {
+                speakTarget(ex.options![i]);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setOrderPicked((cur) => {
+                  const next = [...cur];
+                  next.splice(Math.min(slot, next.length), 0, i);
+                  return next;
+                });
+              };
+              // No line yet (empty sentence): anything dropped above the bank
+              // starts the sentence.
+              if (!line) return place(0);
+              line.slotAt(pageX, pageY, (slot) => {
+                if (slot !== null) place(slot);
+              });
+            }}
+          />
           {phase === 'answer' && (
             <Button
               label={t('session.check')}
@@ -729,6 +737,7 @@ export default function Session() {
                   // place — changing your mind about the order no longer means
                   // dismantling the sentence.
                   <OrderBuilder
+                    ref={orderLineRef}
                     words={orderPicked.map((optIdx) => ex.options![optIdx])}
                     interactive={phase === 'answer'}
                     onRemoveAt={(i) =>
@@ -852,13 +861,6 @@ const styles = StyleSheet.create({
     marginTop: space.xl,
     justifyContent: 'center',
     paddingBottom: space.sm,
-  },
-  orderWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  orderChip: {
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
   },
   input: {
     height: 56,

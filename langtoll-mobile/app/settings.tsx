@@ -56,6 +56,7 @@ import {
   freeMinutes,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
+import { DifficultyScale } from '@/components/ui/DifficultyScale';
 import {
   primeVoices,
   voicesForActivePack,
@@ -562,42 +563,14 @@ export default function Settings() {
             <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
               {t('settings.difficulty')}
             </Text>
-            <View style={styles.diffRow}>
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((d) => (
-                <PressableScale
-                  key={d}
-                  haptic={null}
-                  onPress={() => updateProfile({ difficulty: d })}
-                  /* The dot stays 24pt because the row reads as a scale, not as
-                     ten buttons — but 24pt is well under the 44pt minimum touch
-                     target, and ten of them in a row is the hardest thing in the
-                     app to hit. hitSlop buys the full 44 without moving a pixel;
-                     the dots sit ~39pt apart, so the targets never overlap. */
-                  hitSlop={10}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t('settings.difficulty')} ${d}/10`}
-                  accessibilityState={{ selected: d === state.difficulty }}
-                  style={[
-                    styles.diffDot,
-                    {
-                      backgroundColor:
-                        d <= state.difficulty ? withAlpha(theme.accent, 0.16) : theme.fill,
-                      borderColor: d <= state.difficulty ? theme.accent : theme.line,
-                    },
-                  ]}
-                >
-                  <View />
-                </PressableScale>
-              ))}
-            </View>
-            <View style={styles.diffLabels}>
-              <Text variant="caption" color="inkFaint">
-                {t('settings.easier')}
-              </Text>
-              <Text variant="caption" color="inkFaint">
-                {t('settings.harder')}
-              </Text>
-            </View>
+            <DifficultyScale
+              value={state.difficulty}
+              onChange={(d) => updateProfile({ difficulty: d })}
+              easierLabel={t('settings.easier')}
+              harderLabel={t('settings.harder')}
+              accessibilityLabel={t('settings.difficulty')}
+              size={24}
+            />
           </Section>
 
           {/* fare — free can make it harder, only Plus can make it easier
@@ -1041,9 +1014,6 @@ const styles = StyleSheet.create({
   },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   planRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  diffRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: space.sm },
-  diffDot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1 },
-  diffLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: space.xs },
   topicRow: {
     flexDirection: 'row',
     alignItems: 'center',

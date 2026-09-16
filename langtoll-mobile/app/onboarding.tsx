@@ -60,6 +60,7 @@ import {
   freeMinutes,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
+import { DifficultyScale } from '@/components/ui/DifficultyScale';
 import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 import { LOCALE_ENDONYMS } from '@/lib/locales';
@@ -599,34 +600,14 @@ export default function Onboarding() {
                 <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
                   {t('ob.diffSub')}
                 </Text>
-                <View style={styles.diffRow}>
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((d) => (
-                    <PressableScale
-                      key={d}
-                      haptic={null}
-                      onPress={() => setDifficulty(d)}
-                      style={[
-                        styles.diffDot,
-                        {
-                          backgroundColor:
-                            d <= difficulty ? withAlpha(theme.accent, 0.16) : theme.fill,
-                          borderColor: d <= difficulty ? theme.accent : theme.line,
-                        },
-                      ]}
-                    >
-                      {d === difficulty && (
-                        <View style={[styles.diffCore, { backgroundColor: theme.accent }]} />
-                      )}
-                    </PressableScale>
-                  ))}
-                </View>
-                <View style={styles.diffLabels}>
-                  <Text variant="caption" color="inkFaint">
-                    {t('ob.diffEasier')}
-                  </Text>
-                  <Text variant="caption" color="inkFaint">
-                    {t('ob.diffHarder')}
-                  </Text>
+                <View style={{ marginTop: space.xxl }}>
+                  <DifficultyScale
+                    value={difficulty}
+                    onChange={setDifficulty}
+                    easierLabel={t('ob.diffEasier')}
+                    harderLabel={t('ob.diffHarder')}
+                    accessibilityLabel={t('ob.diffTitle')}
+                  />
                 </View>
                 <View style={[styles.levelBadge, { borderColor: withAlpha(theme.accent, 0.4), backgroundColor: withAlpha(theme.accent, 0.08) }]}>
                   <Text variant="label" style={{ color: theme.accent }}>
@@ -1046,25 +1027,6 @@ const styles = StyleSheet.create({
   printWrap: { flex: 1, justifyContent: 'center', paddingBottom: 80 },
   printRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   ghostLink: { paddingVertical: space.sm },
-  diffRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: space.xxl,
-  },
-  diffDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  diffCore: { width: 12, height: 12, borderRadius: 6 },
-  diffLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: space.sm,
-  },
   fareNote: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -3,20 +3,24 @@
 // Tap a placed word to send it back (the original behavior). Drag it and it
 // follows the finger; drop it near another word and the sentence reorders
 // around it — changing your mind no longer means dismantling the sentence.
+// Drop it clear below the line and it goes back to the bank.
 //
-// PanResponder, not react-native-gesture-handler, for the same reason as
-// FareSlider: no GestureHandlerRootView in the tree, and RNGH fails silently
-// without one. Two lessons from that slider are baked in: never trust
-// locationX (relative to the touched child), and never trust a cached page
-// origin (stale after scrolls) — the drop target is computed from page
-// coordinates against a measureInWindow taken at RELEASE time.
-import React, { useRef, useState } from 'react';
-import { View, StyleSheet, PanResponder, Animated as RNAnimated } from 'react-native';
+// The bank below drags INTO this line too: `slotAt` (via ref) turns a page
+// point into an insertion index, so the session can resolve a drop from
+// outside without knowing where the words sit.
+//
+// Two lessons from FareSlider are baked in: never trust locationX (relative
+// to the touched child), and never trust a cached page origin (stale after
+// scrolls) — every drop is resolved against a measureInWindow taken at
+// RELEASE time.
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { View, StyleSheet, Animated as RNAnimated } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Text } from '@/components/ui/Text';
 import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
+import { useChipDrag } from './useChipDrag';
 
 interface Rect {
   x: number;
@@ -24,6 +28,11 @@ interface Rect {
   w: number;
   h: number;
 }
+
+/** How far below the line a placed word may be dropped and still count as "back to the bank". */
+const REMOVE_BELOW_PT = 32;
+/** How far outside the line a bank word may be dropped and still land in it. */
+const INSERT_SLACK_PT = 28;
 
 function DraggableChip({
   label,
@@ -37,53 +46,11 @@ function DraggableChip({
   index: number;
   interactive: boolean;
   onTap: (index: number) => void;
-  /** pageX/pageY of the finger at release — parent resolves the drop slot. */
   onDrop: (index: number, pageX: number, pageY: number) => void;
   registerRect: (index: number, rect: Rect) => void;
 }) {
   const theme = useTheme();
-  const pan = useRef(new RNAnimated.ValueXY()).current;
-  const [dragging, setDragging] = useState(false);
-
-  // Refs so the once-created responder never closes over stale props.
-  const live = useRef({ index, interactive, onTap, onDrop, moved: false });
-  live.current = { ...live.current, index, interactive, onTap, onDrop };
-
-  const responder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => live.current.interactive,
-      onMoveShouldSetPanResponder: (_e, g) =>
-        live.current.interactive && (Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4),
-      // Own the gesture — the surrounding scroll must not steal a reorder.
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => {
-        live.current.moved = false;
-      },
-      onPanResponderMove: (_e, g) => {
-        if (Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4) {
-          if (!live.current.moved) {
-            live.current.moved = true;
-            setDragging(true);
-            Haptics.selectionAsync();
-          }
-          pan.setValue({ x: g.dx, y: g.dy });
-        }
-      },
-      onPanResponderRelease: (_e, g) => {
-        pan.setValue({ x: 0, y: 0 });
-        setDragging(false);
-        if (live.current.moved) {
-          live.current.onDrop(live.current.index, g.moveX, g.moveY);
-        } else {
-          live.current.onTap(live.current.index);
-        }
-      },
-      onPanResponderTerminate: () => {
-        pan.setValue({ x: 0, y: 0 });
-        setDragging(false);
-      },
-    })
-  ).current;
+  const { panHandlers, pan, dragging } = useChipDrag({ index, interactive, onTap, onDrop });
 
   return (
     <Animated.View
@@ -99,7 +66,7 @@ function DraggableChip({
       style={dragging ? styles.lifted : undefined}
     >
       <RNAnimated.View
-        {...responder.panHandlers}
+        {...panHandlers}
         style={[
           styles.chip,
           {
@@ -121,53 +88,98 @@ function DraggableChip({
   );
 }
 
-export function OrderBuilder({
-  words,
-  interactive,
-  onRemoveAt,
-  onReorder,
-}: {
-  words: string[];
-  interactive: boolean;
-  onRemoveAt: (index: number) => void;
-  onReorder: (from: number, to: number) => void;
-}) {
+export interface OrderBuilderHandle {
+  /**
+   * Resolve a page point to an insertion index into `words`, or null when the
+   * point is not over the line. Async because the line's origin is measured
+   * fresh at call time.
+   */
+  slotAt: (pageX: number, pageY: number, cb: (slot: number | null) => void) => void;
+}
+
+export const OrderBuilder = forwardRef<
+  OrderBuilderHandle,
+  {
+    words: string[];
+    interactive: boolean;
+    onRemoveAt: (index: number) => void;
+    onReorder: (from: number, to: number) => void;
+  }
+>(function OrderBuilder({ words, interactive, onRemoveAt, onReorder }, ref) {
   const wrapRef = useRef<View>(null);
   const rects = useRef(new Map<number, Rect>());
+  const size = useRef({ w: 0, h: 0 });
 
   function registerRect(index: number, rect: Rect) {
     rects.current.set(index, rect);
   }
 
+  /** Nearest placed word to a point in the line's own coordinates. */
+  function nearest(x: number, y: number): { index: number; rect: Rect } | null {
+    let best: { index: number; rect: Rect } | null = null;
+    let bestDist = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < words.length; i++) {
+      const r = rects.current.get(i);
+      if (!r) continue;
+      const cx = r.x + r.w / 2;
+      const cy = r.y + r.h / 2;
+      // Rows matter more than columns in a wrapped line: weight y heavier so
+      // a drop lands in the row under the finger, not a nearer chip one row up.
+      const dist = (x - cx) ** 2 + 3 * (y - cy) ** 2;
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = { index: i, rect: r };
+      }
+    }
+    return best;
+  }
+
+  useImperativeHandle(ref, () => ({
+    slotAt(pageX, pageY, cb) {
+      const node = wrapRef.current;
+      if (!node) return cb(null);
+      node.measureInWindow((wx, wy, ww, wh) => {
+        const x = pageX - wx;
+        const y = pageY - wy;
+        const inside =
+          x >= -INSERT_SLACK_PT && x <= (ww || size.current.w) + INSERT_SLACK_PT &&
+          y >= -INSERT_SLACK_PT && y <= (wh || size.current.h) + INSERT_SLACK_PT;
+        if (!inside) return cb(null);
+        const n = nearest(x, y);
+        if (!n) return cb(words.length);
+        // Left half of the nearest word → before it; right half → after it.
+        cb(x < n.rect.x + n.rect.w / 2 ? n.index : n.index + 1);
+      });
+    },
+  }));
+
   function handleDrop(from: number, pageX: number, pageY: number) {
     // Fresh origin at release time — a cached one goes stale under scrolling.
-    wrapRef.current?.measureInWindow((wx, wy) => {
+    wrapRef.current?.measureInWindow((wx, wy, _ww, wh) => {
       const x = pageX - wx;
       const y = pageY - wy;
-      let best = from;
-      let bestDist = Number.POSITIVE_INFINITY;
-      for (let i = 0; i < words.length; i++) {
-        const r = rects.current.get(i);
-        if (!r) continue;
-        const cx = r.x + r.w / 2;
-        const cy = r.y + r.h / 2;
-        // Rows matter more than columns in a wrapped line: weight y heavier so
-        // a drop lands in the row under the finger, not a nearer chip one row up.
-        const dist = (x - cx) ** 2 + 3 * (y - cy) ** 2;
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = i;
-        }
-      }
-      if (best !== from) {
+      // Clear below the line: the word goes back to the bank.
+      if (y > (wh || size.current.h) + REMOVE_BELOW_PT) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onReorder(from, best);
+        onRemoveAt(from);
+        return;
+      }
+      const n = nearest(x, y);
+      if (n && n.index !== from) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onReorder(from, n.index);
       }
     });
   }
 
   return (
-    <View ref={wrapRef} style={styles.wrap}>
+    <View
+      ref={wrapRef}
+      style={styles.wrap}
+      onLayout={(e) => {
+        size.current = { w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height };
+      }}
+    >
       {words.map((word, i) => (
         <DraggableChip
           key={`${word}-${i}`}
@@ -181,10 +193,10 @@ export function OrderBuilder({
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, minHeight: 36 },
   chip: {
     borderWidth: 1,
     borderRadius: radius.pill,
