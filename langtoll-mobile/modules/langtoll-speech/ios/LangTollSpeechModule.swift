@@ -108,16 +108,28 @@ public final class LangTollSpeechModule: Module {
 
     // Session mode iOS reserves for speech content. expo-audio can set the
     // category but not the MODE, which is the half that matters here.
+    // Category and mode ONLY. The session is activated right before a word
+    // plays and released right after (releaseSession below), because an active
+    // `.duckOthers` session ducks everyone else for as long as it is active —
+    // activating it here, at launch, turned every open of LangToll into "my
+    // video just went quiet" (Ralph, 2026-09-17, build 29), and it stayed quiet
+    // until the app was killed.
     AsyncFunction("configureSession") { () -> Void in
       let session = AVAudioSession.sharedInstance()
       do {
         try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-        try session.setActive(true, options: [])
         self.lastError = nil
       } catch {
         self.lastError = "session: \(error.localizedDescription)"
         throw error
       }
+    }
+
+    // Hand the audio focus back: pause our engine (an engine with running I/O
+    // makes deactivation throw) and deactivate with notifyOthersOnDeactivation,
+    // which is what tells the ducked app to come back up to full volume.
+    AsyncFunction("releaseSession") { () -> Void in
+      self.releaseSession()
     }
 
     // Diagnostics. The session calls and the render path both fail silently by
@@ -159,6 +171,7 @@ public final class LangTollSpeechModule: Module {
       _ = self.bumpEpoch()
       self.player.stop()
       self.synthesizer.stopSpeaking(at: .immediate)
+      self.releaseSession()
     }
 
     // Render → shape → play. Resolves once playback has been scheduled, not when
@@ -333,11 +346,33 @@ public final class LangTollSpeechModule: Module {
     return buffer
   }
 
+  private func releaseSession() {
+    if engine.isRunning { engine.pause() }
+    do {
+      try AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    } catch {
+      // Another player (a pre-rendered clip via expo-audio) may still hold the
+      // session; it releases on its own completion.
+      lastError = "release: \(error.localizedDescription)"
+    }
+  }
+
   private func play(_ buffer: AVAudioPCMBuffer) throws {
+    // Activate for exactly this utterance: ducking starts here, and the
+    // completion below ends it.
+    try AVAudioSession.sharedInstance().setActive(true, options: [])
     try ensureEngine(format: buffer.format)
     if !engine.isRunning { try engine.start() }
     player.stop()
-    player.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+    let epoch = currentEpoch()
+    player.scheduleBuffer(buffer, at: nil, options: [.interrupts]) { [weak self] in
+      guard let self = self else { return }
+      // Runs on the render thread when the buffer has been consumed. A newer
+      // utterance has its own completion; only the latest one releases.
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        if epoch == self.currentEpoch() { self.releaseSession() }
+      }
+    }
     player.play()
   }
 

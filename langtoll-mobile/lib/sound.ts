@@ -11,6 +11,12 @@ function play(key: string, mod: number): void {
     if (!players[key]) players[key] = createAudioPlayer(mod);
     players[key].seekTo(0);
     players[key].play();
+    // A chime is under a second; hand the audio focus back right after it so a
+    // podcast in the background is not left ducked by a UI tick.
+    setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      (require('@/lib/tts') as typeof import('@/lib/tts')).releaseAudioSession();
+    }, 1500);
   } catch {
     // audio unavailable (web / asset / not-yet-linked) — silently skip; the haptic still fires
   }

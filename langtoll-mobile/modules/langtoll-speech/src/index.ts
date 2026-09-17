@@ -50,6 +50,7 @@ export interface SpeechDiagnostics {
 interface NativeSpeech {
   getDiagnostics(): Promise<SpeechDiagnostics>;
   configureSession(): Promise<void>;
+  releaseSession(): Promise<void>;
   setShaping(opts: Shaping): Promise<void>;
   speak(text: string, opts: SpeakOptions): Promise<boolean>;
   stop(): Promise<void>;
@@ -63,6 +64,10 @@ export const isNativeSpeechAvailable = (): boolean => native != null;
 
 export async function configureSession(): Promise<void> {
   await native?.configureSession();
+}
+
+export async function releaseSession(): Promise<void> {
+  await native?.releaseSession();
 }
 
 export async function setShaping(opts: Shaping): Promise<void> {

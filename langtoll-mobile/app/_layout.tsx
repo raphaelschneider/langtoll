@@ -99,6 +99,10 @@ export default function RootLayout() {
     // iOS gives an extension no way to do the latter. This routes the tap.
     const stopTaps = handleNotificationTaps();
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      // Leaving the app must never leave the audio focus behind: stop any word
+      // in flight and give the session back, or the video the user switched to
+      // stays ducked.
+      if (next.match(/inactive|background/)) stopSpeaking();
       if (appState.current.match(/inactive|background/) && next === 'active') {
         maybeRelock(isUnlocked(getState()), getState().unlockExpiresAt);
         // Fresh card on the island every time LangToll comes forward mid-pass.

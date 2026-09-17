@@ -14,7 +14,7 @@
 //     Portuguese word comes out in an American accent. For a pronunciation
 //     teacher that is worse than silence, so we stay quiet instead.
 import * as Speech from 'expo-speech';
-import { setAudioModeAsync } from 'expo-audio';
+import { setAudioModeAsync, setIsAudioActiveAsync } from 'expo-audio';
 import { getState, updateProfile } from '@/lib/store';
 import { activePack } from '@/lib/pack';
 import { canUseAudio } from '@/lib/plans';
@@ -26,6 +26,7 @@ import {
   configureSession as nativeConfigureSession,
   setShaping as nativeSetShaping,
   type Shaping,
+  releaseSession as nativeReleaseSession,
 } from '@/modules/langtoll-speech/src';
 
 /**
@@ -82,6 +83,21 @@ export async function configureAudioSession(): Promise<void> {
   } catch {
     // Non-fatal: worst case we keep the default session.
   }
+}
+
+/**
+ * Give the audio focus back to whatever was playing before us. The session is
+ * `.playback` + duckOthers, and an ACTIVE session of that kind keeps every
+ * other app ducked — so it is activated only around a word and released the
+ * moment the word ends (native speech does this itself; pre-rendered clips and
+ * chimes call this on completion; backgrounding calls it unconditionally).
+ */
+export function releaseAudioSession(): void {
+  if (isNativeSpeechAvailable()) {
+    void nativeReleaseSession();
+    return;
+  }
+  void setIsAudioActiveAsync(false).catch(() => {});
 }
 
 export function primeVoices(): Promise<void> {

@@ -168,6 +168,19 @@ export async function playPrerendered(
         // natural speed is an acceptable fallback
       }
     }
+    // Release the audio focus when the clip ends, so the app the learner was
+    // listening to comes back up to full volume (see tts.releaseAudioSession).
+    // expo-audio reports no "finished" flag in this version: a status that is
+    // not playing at (or past) the end is the end.
+    const mine = player;
+    player.addListener('playbackStatusUpdate', (st) => {
+      if (mine !== player) return;
+      if (!st.playing && st.isLoaded && st.duration > 0 && st.currentTime >= st.duration - 0.05) {
+        // Lazy require: tts imports this module, so the direct import would be a cycle.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        (require('@/lib/tts') as typeof import('@/lib/tts')).releaseAudioSession();
+      }
+    });
     player.play();
     return true;
   } catch (e) {
