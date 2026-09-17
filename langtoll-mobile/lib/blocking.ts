@@ -572,6 +572,12 @@ export function gateDiagnostics(): string[] {
         ? `Extension read-back @ ${readback.at ?? '?'} (${(readback.triggeredBy ?? '?').replace('actions_for_', '')}): wrote ${readback.apps ?? 0} apps/${readback.cats ?? 0} cats · same store says shield ${readback.sameStore ? 'UP' : 'DOWN'} · fresh store says ${readback.freshStore ? 'UP' : 'DOWN'}`
         : 'Extension read-back: none recorded'
     );
+    const lastCall = m.userDefaultsGet?.('langtoll.ext.lastCall') as { at?: string; apps?: number; triggeredBy?: string } | undefined;
+    lines.push(
+      lastCall
+        ? `Last call re-shield @ ${lastCall.at ?? '?'}: ${lastCall.apps ?? 0} hatch app(s) shielded by token (${(lastCall.triggeredBy ?? '?').replace('actions_for_', '')})`
+        : 'Last call re-shield: none recorded'
+    );
     const events: { activityName: string; callbackName: string; eventName?: string; lastCalledAt: Date }[] =
       m.getEvents?.() ?? [];
     const ours = events
