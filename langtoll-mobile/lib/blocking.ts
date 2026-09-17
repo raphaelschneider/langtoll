@@ -171,7 +171,11 @@ export function selectionCounts(): { applicationCount: number; categoryCount: nu
   try {
     const selection = m.getFamilyActivitySelectionId(SELECTION_ID);
     if (!selection) return null;
-    const meta = m.activitySelectionMetadata({ familyActivitySelection: selection });
+    // KEY NAME MATTERS (again): the native parser reads `activitySelectionToken`
+    // for a serialized selection. `familyActivitySelection` was silently ignored,
+    // so this returned 0/0/0 for every real selection — which also meant the
+    // free tier's one-app limit never saw a count to enforce.
+    const meta = m.activitySelectionMetadata({ activitySelectionToken: selection });
     if (!meta) return null;
     return {
       applicationCount: meta.applicationCount ?? 0,
@@ -472,6 +476,16 @@ function armRelock(nowMs: number, endMs: number): void {
 export function maybeRelock(isUnlocked: boolean, expiresAtMs?: number | null): void {
   if (!isNativeAvailable() || !hasSelection()) return;
   const m = native();
+  // Preserve what the EXTENSION last did before this app-side pass overwrites
+  // `lastBlockUpdate` — the diagnostics need the background story, not ours.
+  try {
+    const last = m.userDefaultsGet?.('lastBlockUpdate');
+    if (last && typeof last.triggeredBy === 'string' && last.triggeredBy.startsWith('actions_for_')) {
+      m.userDefaultsSet?.('langtoll.lastExtensionBlock', last);
+    }
+  } catch {
+    // diagnostics only
+  }
   // Expired pass ⇒ any lingering "2 more minutes" hatch is over (covers taps that
   // happened after the last-call monitor already fired).
   if (!isUnlocked) {
@@ -541,6 +555,22 @@ export function gateDiagnostics(): string[] {
       lastBlock
         ? `Last block update: ${lastBlock.blockedAt ?? '?'} by ${lastBlock.triggeredBy ?? '?'} — ${lastBlock.blocklistAppCount ?? 0} apps, ${lastBlock.blocklistCategoryCount ?? 0} categories blocked, ${lastBlock.whitelistAppCount ?? 0} whitelisted`
         : 'Last block update: none recorded'
+    );
+    const extBlock = m.userDefaultsGet?.('langtoll.lastExtensionBlock') as
+      | { triggeredBy?: string; blockedAt?: string; blocklistAppCount?: number; blocklistCategoryCount?: number }
+      | undefined;
+    lines.push(
+      extBlock
+        ? `Last EXTENSION block: ${extBlock.blockedAt ?? '?'} by ${(extBlock.triggeredBy ?? '?').replace('actions_for_', '')} — ${extBlock.blocklistAppCount ?? 0} apps, ${extBlock.blocklistCategoryCount ?? 0} categories`
+        : 'Last EXTENSION block: none recorded'
+    );
+    const readback = m.userDefaultsGet?.('langtoll.ext.readback') as
+      | { at?: string; triggeredBy?: string; cats?: number; apps?: number; sameStore?: boolean; freshStore?: boolean }
+      | undefined;
+    lines.push(
+      readback
+        ? `Extension read-back @ ${readback.at ?? '?'} (${(readback.triggeredBy ?? '?').replace('actions_for_', '')}): wrote ${readback.apps ?? 0} apps/${readback.cats ?? 0} cats · same store says shield ${readback.sameStore ? 'UP' : 'DOWN'} · fresh store says ${readback.freshStore ? 'UP' : 'DOWN'}`
+        : 'Extension read-back: none recorded'
     );
     const events: { activityName: string; callbackName: string; eventName?: string; lastCalledAt: Date }[] =
       m.getEvents?.() ?? [];

@@ -1440,6 +1440,33 @@ func updateBlock(triggeredBy: String) {
     currentBlocklist: currentBlocklist,
     currentWhitelist: currentWhitelist
   )
+
+  // LangToll: read the write straight back, through the same store object and
+  // through a fresh one, and record both. On Ralph's iPhone (iOS 26.6.1) every
+  // extension callback fired on time yet the shield never appeared until the
+  // app was foregrounded; this says whether the daemon accepted the write at
+  // all. The pause afterwards is deliberate: an extension is suspended the
+  // moment its callback returns, and a write still in flight over XPC would
+  // go with it.
+  if triggeredBy.hasPrefix("actions_for_") {
+    let fresh = ManagedSettingsStore()
+    let sameUp = isShieldActive()
+    let freshUp =
+      (fresh.shield.applications?.count ?? 0) > 0
+      || (fresh.shield.applicationCategories != nil
+        && fresh.shield.applicationCategories != ShieldSettings.ActivityCategoryPolicy<Application>.none)
+    userDefaults?.set(
+      [
+        "at": Date.now.ISO8601Format(),
+        "triggeredBy": triggeredBy,
+        "apps": currentBlocklist.applicationTokens.count,
+        "cats": currentBlocklist.categoryTokens.count,
+        "sameStore": sameUp,
+        "freshStore": freshUp,
+      ], forKey: "langtoll.ext.readback")
+    CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+    sleep(ms: 750)
+  }
 }
 
 @available(iOS 15.0, *)
