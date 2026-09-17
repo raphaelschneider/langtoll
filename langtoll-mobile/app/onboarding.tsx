@@ -872,23 +872,32 @@ export default function Onboarding() {
 
             {step === 'paywall' && (
               <View style={{ flex: 1 }}>
-                <Text variant="overline" color="accent">
-                  {t('ob.payOver')}
-                </Text>
-                <Text variant="headline" style={{ marginTop: space.xs }}>
-                  {firstName
-                    ? t('ob.payTitleNamed', { name: firstName, lang })
-                    : t('ob.payTitle', { lang })}
-                </Text>
-                {/* Quote the dream back (relift's move): their own answer, at the moment of the ask. */}
-                {goal && (
-                  <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
-                    {t('ob.payDream', { goal: t(goal as StringKey) })}
-                  </Text>
-                )}
-                <View style={{ marginTop: space.lg, flex: 1 }}>
-                  <PlusOffer onDone={next} onStoreUnavailable={next} source="onboarding" />
-                </View>
+                {/* Title and the learner's own goal line ride INSIDE the offer's
+                    scroll, so a long goal can never push the plans or the legal
+                    links off the bottom. */}
+                <PlusOffer
+                  onDone={next}
+                  onStoreUnavailable={next}
+                  source="onboarding"
+                  header={
+                    <>
+                      <Text variant="overline" color="accent">
+                        {t('ob.payOver')}
+                      </Text>
+                      <Text variant="headline" style={{ marginTop: space.xs }}>
+                        {firstName
+                          ? t('ob.payTitleNamed', { name: firstName, lang })
+                          : t('ob.payTitle', { lang })}
+                      </Text>
+                      {/* Quote the dream back (relift's move): their own answer, at the moment of the ask. */}
+                      {goal && (
+                        <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
+                          {t('ob.payDream', { goal: t(goal as StringKey) })}
+                        </Text>
+                      )}
+                    </>
+                  }
+                />
               </View>
             )}
 

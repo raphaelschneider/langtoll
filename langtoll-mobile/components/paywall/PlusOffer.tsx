@@ -50,8 +50,16 @@ export function PlusOffer({
   onDone,
   onStoreUnavailable,
   source,
+  header,
 }: {
   onDone: () => void;
+  /**
+   * Rendered INSIDE the scroll, above the pitch. Onboarding used to draw its
+   * title and the learner's own goal line as a sibling above this component;
+   * one extra line there pushed Terms · Privacy off the bottom of a 6.1" phone
+   * with no way to reach them (Ralph, build 30). Everything scrolls as one now.
+   */
+  header?: React.ReactNode;
   /**
    * Onboarding's paywall has no skip — the trial IS the way in. But a wall the
    * store itself cannot open (offline, products not live, StoreKit refusing)
@@ -135,6 +143,7 @@ export function PlusOffer({
         L.regular && opticalCenter(L),
       ]}
     >
+      {header ? <View style={{ marginBottom: space.lg }}>{header}</View> : null}
       <View style={{ gap: space.sm }}>
         {PLUS_FEATURES.slice(0, 3).map((f) => (
           <HowRow key={f.title} icon={f.icon} title={t(f.title)} detail={t(f.detail)} />
@@ -142,7 +151,7 @@ export function PlusOffer({
       </View>
 
       {/* package cards */}
-      <View style={{ marginTop: space.lg, gap: space.md }}>
+      <View style={{ marginTop: space.lg, gap: space.sm + 2 }}>
         {packages.length === 0 ? (
           <ActivityIndicator color={theme.accent} />
         ) : (
@@ -264,14 +273,19 @@ export function PlusOffer({
       {/* No "Maybe later" here. In onboarding the trial is the only door (founder
           call, 2026-09-16); on /paywall the X is the exit. Neither is advertised
           under the CTA — relift dropped theirs for exactly this reason. */}
-      <PressableScale onPress={onRestore} haptic={null} style={styles.link}>
-        <Text variant="callout" color="inkSoft" center>
-          {t('plus.restore')}
-        </Text>
-      </PressableScale>
-      {/* Guideline 3.1.2: Terms of Use and Privacy Policy reachable from the
-          subscription screen itself, not only from the store page. */}
+      {/* One footer line: Restore · Terms · Privacy. Two stacked rows here were
+          the ~30pt that decided whether the legal links fit above the home
+          indicator. Guideline 3.1.2: Terms of Use and Privacy Policy reachable
+          from the subscription screen itself, not only from the store page. */}
       <View style={styles.legalRow}>
+        <PressableScale onPress={onRestore} haptic={null} style={styles.legalLink}>
+          <Text variant="caption" color="inkSoft">
+            {t('plus.restore')}
+          </Text>
+        </PressableScale>
+        <Text variant="caption" color="inkFaint">
+          ·
+        </Text>
         <PressableScale
           onPress={() => Linking.openURL(LEGAL_URLS.terms)}
           haptic={null}
@@ -344,6 +358,6 @@ const styles = StyleSheet.create({
   pkgTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   link: { paddingVertical: 6, paddingHorizontal: space.md, alignSelf: 'center' },
-  legalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, marginTop: 2 },
+  legalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
   legalLink: { paddingVertical: 6, paddingHorizontal: 4 },
 });
