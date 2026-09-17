@@ -1,7 +1,7 @@
 // Settings — every lever in one place, in the ticket language: passenger,
 // course (level + difficulty), fare, voice, app language, blocked apps, and
 // the AI topic pack generator (lib/ai/topics behind a demo-mode fallback).
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TextInput, ScrollView, Switch, Alert, AppState, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -365,6 +365,8 @@ export default function Settings() {
   const L = useLayout();
   const t = useT();
   const [gateLogOpen, setGateLogOpen] = useState(false);
+  const [gateLogRevealed, setGateLogRevealed] = useState(DEV_TOOLS);
+  const gateTaps = useRef(0);
   const state = useAppState();
 
   const [nameDraft, setNameDraft] = useState(state.name ?? '');
@@ -850,9 +852,22 @@ export default function Settings() {
                   {t('settings.supportHint')}
                 </Text>
               </View>
-              <Text selectable variant="bodyMedium" color="accent" style={{ fontFamily: font.mono }}>
-                {supportCode()}
-              </Text>
+              {/* Five taps on the support code reveal the gate readout below —
+                  a support-call move, never something a user finds by browsing.
+                  It shipped visible in builds 27–30 (TestFlight IS the store
+                  binary); this keeps it out of sight without losing it. */}
+              <PressableScale
+                haptic={null}
+                onPress={() => {
+                  const n = gateTaps.current + 1;
+                  gateTaps.current = n;
+                  if (n >= 5) setGateLogRevealed(true);
+                }}
+              >
+                <Text selectable variant="bodyMedium" color="accent" style={{ fontFamily: font.mono }}>
+                  {supportCode()}
+                </Text>
+              </PressableScale>
             </View>
             {/* The way to reach a human. The support code rides along in the
                 subject so the reply can start from the install, not from "hi". */}
@@ -880,7 +895,7 @@ export default function Settings() {
               readable in a TestFlight build where the dev levers are stripped.
               Collapsed by default; a tap unfolds it. Real devices only: the
               simulator's gate is a timestamp, there is nothing to read. */}
-          {isNativeAvailable() && (
+          {isNativeAvailable() && gateLogRevealed && (
             <Section title={t('settings.gateLog')}>
               <PressableScale
                 onPress={() => setGateLogOpen((o) => !o)}
