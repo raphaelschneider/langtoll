@@ -181,6 +181,24 @@ func handleAction(
     categoryToken: categoryToken
   ) {
     let actionButton = action == .primaryButtonPressed ? "primary" : "secondary"
+    // LangToll: the hatch is capped per pass (see langtollHatchCap in the
+    // shield config). Past the cap the tap just closes the shield.
+    if actionButton == "secondary" {
+      let cap = (shieldActionConfig["langtollHatchCap"] as? Int)
+        ?? (getActivitySelectionPrefixedConfigFromUserDefaults(
+              keyPrefix: SHIELD_CONFIGURATION_FOR_SELECTION_PREFIX,
+              fallbackKey: FALLBACK_SHIELD_CONFIGURATION_KEY,
+              applicationToken: applicationToken,
+              webDomainToken: webdomainToken,
+              categoryToken: categoryToken)?["langtollHatchCap"] as? Int)
+      let used = userDefaults?.integer(forKey: "langtoll.hatch.count") ?? 0
+      if let cap = cap, used >= cap {
+        completionHandler(.close)
+        return
+      }
+      userDefaults?.set(used + 1, forKey: "langtoll.hatch.count")
+      CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+    }
     let familyActivitySelectionId = getPossibleFamilyActivitySelectionIds(
       applicationToken: applicationToken,
       webDomainToken: webdomainToken,

@@ -93,7 +93,14 @@ func buildShield(placeholders: [String: String?], config: [String: Any]?)
     let primaryButtonBackgroundColor = getColor(
       color: config["primaryButtonBackgroundColor"] as? [String: Double])
 
-    let secondaryButtonLabel = config["secondaryButtonLabel"] as? String
+    // LangToll: the "2 more minutes" hatch is capped per pass. The app writes
+    // the cap into the shield config and zeroes the counter at grant; the
+    // shield action increments it. At the cap the button simply is not there.
+    var secondaryButtonLabel = config["secondaryButtonLabel"] as? String
+    if let cap = config["langtollHatchCap"] as? Int,
+       (userDefaults?.integer(forKey: "langtoll.hatch.count") ?? 0) >= cap {
+      secondaryButtonLabel = nil
+    }
     let secondaryButtonLabelColor = getColor(
       color: config["secondaryButtonLabelColor"] as? [String: Double]
     )

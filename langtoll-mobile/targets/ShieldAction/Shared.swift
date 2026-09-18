@@ -186,25 +186,8 @@ func executeGenericAction(
     }
   } else if type == "clearWhitelistAndUpdateBlock" {
     logger.info("should clearWhitelistAndUpdateBlock")
-    // LangToll: the hatch ("2 more minutes") exempted ONE app by token inside a
-    // category shield. On Ralph's iPhone (iOS 26.6.1) taking that exemption
-    // back — re-applying the category policy with an empty `except:` — left the
-    // still-running app open every time, even though the deadline shield from
-    // this same process had landed on it minutes earlier. So last call does not
-    // rely on the category policy re-evaluating: it shields the hatch's app by
-    // its own token as well, which is the strongest setting there is and the
-    // form that is known to slam a running app.
-    let hatch = getCurrentWhitelist()
     clearWhitelist()
     updateBlock(triggeredBy: triggeredBy)
-    if !hatch.applicationTokens.isEmpty {
-      store.shield.applications = (store.shield.applications ?? Set()).union(hatch.applicationTokens)
-      userDefaults?.set(
-        ["at": Date.now.ISO8601Format(), "apps": hatch.applicationTokens.count, "triggeredBy": triggeredBy],
-        forKey: "langtoll.ext.lastCall")
-      CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
-      sleep(ms: 500)
-    }
     logger.info("done")
   } else if type == "resetBlocks" {
     resetBlocks(triggeredBy: triggeredBy)
