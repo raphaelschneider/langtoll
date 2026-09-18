@@ -29,44 +29,19 @@ import { strictModeActive } from '@/lib/plans';
  * Minutes between the pass expiring and the shield actually landing. The pass
  * itself is honest (countdown, island and home flip at the true expiry) — this
  * only softens the re-lock so it never cuts someone off mid-video. Strict Mode
- * (Plus) will set this to zero; that IS the "no mercy" it advertises.
+ * (Plus) sets this to zero; that IS the "no mercy" it advertises.
+ *
+ * There is no "2 more minutes" button on the shield any more. Six builds of
+ * it — per-app exemptions, then a whole-gate hatch closed by a clock ladder —
+ * and on device the re-lock after a tap eventually just stopped arriving.
+ * Founder call 2026-09-19: the shield lands and stays. One button: practise.
+ * Usage checkpoints stay as a backstop for a dropped deadline callback.
  */
 const RELOCK_GRACE_MINUTES = 2;
+/** Usage checkpoints on the gate monitor: one re-shield per this many minutes of use past the deadline. */
+const USAGE_CHECKPOINT_MINUTES = 2;
+const USAGE_CHECKPOINTS = 30;
 
-/**
- * The shield's "2 more minutes" hatch. Tapping it opens the WHOLE gate — every
- * locked app, not just the one being interrupted — and the gate closes again
- * after HATCH_MINUTES of actual use of the locked apps, via usage checkpoints
- * pre-armed on the gate monitor (an extension cannot start timers; the app
- * arms everything when the pass is issued). It can be tapped again after each
- * re-lock; the checkpoints run out after HATCH_CHECKPOINTS × HATCH_MINUTES of
- * post-deadline use, after which only foregrounding LangToll re-locks.
- *
- * Why the whole gate and not the one app: the per-app version exempted the
- * interrupted app from the category shield, and iOS kept honouring that
- * exemption after it was withdrawn — every re-lock that re-applied the
- * category rule found the app still open (Ralph's phone, iOS 26.6.1, builds
- * 27–31). Lifting and re-applying the shield as a whole is the one operation
- * that has never failed from the background.
- */
-const HATCH_MINUTES = 2;
-/** Taps of the hatch per pass; the shield drops the button after the last one. */
-const HATCH_CAP = 3;
-/**
- * Clock ladder: monitors that START every HATCH_MINUTES after the deadline,
- * each re-shielding the whole gate. A hatch tapped at any moment is closed by
- * the next rung, in the app or out of it — the re-lock must not depend on the
- * user still being inside the app they opened (Ralph, 2026-09-18). iOS allows
- * ~20 monitors per app; with main, gate and the island rotation this many
- * rungs fit, covering the first HATCH_LADDER × HATCH_MINUTES minutes after the
- * deadline, which is where hatch taps happen. Beyond the ladder the usage
- * checkpoints and foregrounding remain.
- */
-const HATCH_LADDER = 14;
-/** Usage checkpoints on the gate monitor (backstop past the ladder). */
-const HATCH_CHECKPOINTS = 30;
-/** App-group key: hatch taps this pass. Written by the app at grant (0) and by the shield action on each tap. */
-const HATCH_COUNT_KEY = 'langtoll.hatch.count';
 
 export type BlockingMode = 'native' | 'stub';
 
@@ -108,7 +83,7 @@ const ROTATION_MINUTES = 2;
  *  the re-lock — and a memory-killed extension is one iOS stops trusting. The
  *  re-lock is the product; three rotations early in the pass are decoration.
  *  Longer passes still refresh on every foregrounding. */
-const ROTATION_MAX_WAKEUPS = 2;
+const ROTATION_MAX_WAKEUPS = 3;
 
 // Lazy so the app never crashes when the native module isn't in the binary
 // (Expo Go, or before the dev build exists).
@@ -265,12 +240,6 @@ export function grantUnlock(minutes: number): void {
   if (!isNativeAvailable() || !hasSelection()) return;
   try {
     m.unblockSelection({ activitySelectionId: SELECTION_ID }, 'langtoll:grantUnlock');
-    // A fresh pass resets the hatch allowance.
-    try {
-      m.userDefaultsSet?.(HATCH_COUNT_KEY, 0);
-    } catch {
-      // best-effort
-    }
     const now = Date.now();
     armRelock(now, now + minutes * 60_000);
   } catch (e) {
@@ -310,12 +279,12 @@ function relockArmed(m: any): boolean {
  *                    pass is late here; the others are exact.
  *   2. `gate`      — an interval that STARTS at the deadline (intervalDidStart).
  *                    A different callback, delivered on a different code path.
- *   3. `gate`'s usage checkpoints — every HATCH_MINUTES of actual use of the
- *                    locked apps after the deadline, eventDidReachThreshold
- *                    fires and re-shields. This is the callback that survives
- *                    even when the interval ones are dropped, it is driven by
- *                    use of the very apps that should be shut, and it is what
- *                    closes the "2 more minutes" hatch, as often as it is used.
+ *   3. `gate`'s usage checkpoints — after every USAGE_CHECKPOINT_MINUTES of
+ *                    actual use of the locked apps past the deadline,
+ *                    eventDidReachThreshold fires and re-shields. This is the
+ *                    callback that survives even when the interval ones are
+ *                    dropped: it is driven by use of the very apps that should
+ *                    be shut.
  *   4. the app itself — maybeRelock on every foregrounding (and the expiry
  *                    notification that brings the user there).
  */
@@ -398,15 +367,14 @@ function armRelock(nowMs: number, endMs: number): void {
     m.configureActions({ activityName: names.main, callbackName: 'intervalDidEnd', actions: [block] });
     m.configureActions({ activityName: names.gate, callbackName: 'intervalDidStart', actions: [block] });
     // Usage checkpoints on the user's own selection: cumulative use of the
-    // locked apps since the deadline, one event per HATCH_MINUTES. Each one
-    // re-shields. The first closes a gate that a dropped deadline callback
-    // left open; every later one closes a "2 more minutes" hatch.
+    // locked apps since the deadline, one event per USAGE_CHECKPOINT_MINUTES.
+    // Each one re-shields — the backstop for a deadline callback iOS dropped.
     const selection: string | null = m.getFamilyActivitySelectionId(SELECTION_ID);
     const usageEvents = selection
-      ? Array.from({ length: HATCH_CHECKPOINTS }, (_, k) => ({
+      ? Array.from({ length: USAGE_CHECKPOINTS }, (_, k) => ({
           eventName: `used-${k + 1}`,
           familyActivitySelection: selection,
-          threshold: { minute: (k + 1) * HATCH_MINUTES },
+          threshold: { minute: (k + 1) * USAGE_CHECKPOINT_MINUTES },
         }))
       : [];
     for (const ev of usageEvents) {
@@ -416,15 +384,6 @@ function armRelock(nowMs: number, endMs: number): void {
         eventName: ev.eventName,
         actions: [block],
       });
-    }
-    // The clock ladder (see HATCH_LADDER): rung k starts HATCH_MINUTES × k after
-    // the deadline and re-shields on intervalDidStart.
-    const rungs = Array.from({ length: HATCH_LADDER }, (_, k) => ({
-      name: `${ACTIVITY_PREFIX}.rung${k + 1}.${stamp}`,
-      at: new Date(relockAt.getTime() + (k + 1) * HATCH_MINUTES * 60_000),
-    }));
-    for (const r of rungs) {
-      m.configureActions({ activityName: r.name, callbackName: 'intervalDidStart', actions: [block] });
     }
 
     void (async () => {
@@ -441,18 +400,16 @@ function armRelock(nowMs: number, endMs: number): void {
       // Deadline-start monitors first: they are the exact ones.
       await start(names.gate, relockAt, new Date(relockAt.getTime() + GATE_WINDOW_MS), usageEvents);
       await start(names.main, now, atLeast15(now, relockAt));
-      for (const r of rungs) await start(r.name, r.at, new Date(r.at.getTime() + MIN_INTERVAL_MS));
 
       // Trust nothing: read back what iOS actually registered.
       const active: string[] = m.getActivities?.() ?? [];
       const live = Object.values(names).filter((n) => active.includes(n));
-      const liveRungs = rungs.filter((r) => active.includes(r.name)).length;
       const ok = live.includes(names.gate) || live.includes(names.main);
       lastRelock = {
         at: new Date().toLocaleTimeString(),
         ok,
         detail: ok
-          ? `${live.length}/2 monitors + ${liveRungs}/${rungs.length} ladder rungs armed for ${relockAt.toLocaleTimeString()}${failed.length ? ` (${failed.join('; ')})` : ''}`
+          ? `${live.length}/2 monitors armed for ${relockAt.toLocaleTimeString()}${failed.length ? ` (${failed.join('; ')})` : ''}`
           : `NOT armed — registered: ${live.join(',') || 'none'}; ${failed.join('; ') || 'startMonitoring resolved but monitors are missing'}`,
       };
       console.log('[blocking] relock:', JSON.stringify(lastRelock));
@@ -572,8 +529,6 @@ export function gateDiagnostics(): string[] {
         ? `Last EXTENSION block: ${extBlock.blockedAt ?? '?'} by ${(extBlock.triggeredBy ?? '?').replace('actions_for_', '')} — ${extBlock.blocklistAppCount ?? 0} apps, ${extBlock.blocklistCategoryCount ?? 0} categories`
         : 'Last EXTENSION block: none recorded'
     );
-    const taps = m.userDefaultsGet?.(HATCH_COUNT_KEY);
-    lines.push(`Hatch taps this pass: ${typeof taps === 'number' ? taps : 0} of ${HATCH_CAP}`);
     const readback = m.userDefaultsGet?.('langtoll.ext.readback') as
       | { at?: string; triggeredBy?: string; cats?: number; apps?: number; sameStore?: boolean; freshStore?: boolean }
       | undefined;
@@ -640,7 +595,6 @@ export async function configureShieldAppearance(): Promise<void> {
         title: 'Locked until you practise.',
         subtitle: 'Finish a quick session in LangToll to earn your pass.',
         primaryButtonLabel: 'Practice now',
-        secondaryButtonLabel: '2 more minutes',
         // Tolly, stern, collecting the fare — the operator IS the shield. SF-Symbol
         // fallback only if staging the image into the app group failed.
         ...(hasTolly
@@ -652,9 +606,6 @@ export async function configureShieldAppearance(): Promise<void> {
         subtitleColor: { red: 162, green: 178, blue: 182, alpha: 1 },
         primaryButtonBackgroundColor: { red: 92, green: 189, blue: 205, alpha: 1 },
         primaryButtonLabelColor: { red: 11, green: 20, blue: 23, alpha: 1 },
-        // Read by our ShieldConfiguration/ShieldAction extensions: the hatch
-        // disappears after this many taps per pass (HATCH_COUNT_KEY counts).
-        langtollHatchCap: HATCH_CAP,
       },
       {
         // A shield extension CANNOT open its containing app. That is Apple's
@@ -683,14 +634,6 @@ export async function configureShieldAppearance(): Promise<void> {
             interruptionLevel: 'timeSensitive',
             userInfo: { url: 'langtoll://session' },
           },
-        },
-        // The escape hatch: opens the WHOLE gate (see HATCH_MINUTES). The
-        // usage checkpoints armed on the gate monitor close it again after two
-        // minutes of use. Never a per-app exemption: iOS kept honouring those
-        // after they were withdrawn.
-        secondary: {
-          behavior: 'close',
-          actions: [{ type: 'unblockSelection', familyActivitySelectionId: SELECTION_ID }],
         },
       },
       'langtoll:configureShield'
