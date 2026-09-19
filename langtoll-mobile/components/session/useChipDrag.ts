@@ -15,19 +15,27 @@ export function useChipDrag({
   interactive,
   onTap,
   onDrop,
+  onHold,
 }: {
   index: number;
   interactive: boolean;
   onTap: (index: number) => void;
   /** pageX/pageY of the finger at release — the parent resolves the target. */
   onDrop: (index: number, pageX: number, pageY: number) => void;
+  /**
+   * True from touch-down to release. The session turns its ScrollView's
+   * scrolling off for that span: refusing termination only fends off other JS
+   * responders, and iOS's native scroll pan still ran alongside the drag —
+   * pulling a word down rubber-banded the whole page down with it.
+   */
+  onHold?: (held: boolean) => void;
 }) {
   const pan = useRef(new Animated.ValueXY()).current;
   const [dragging, setDragging] = useState(false);
 
   // Refs so the once-created responder never closes over stale props.
-  const live = useRef({ index, interactive, onTap, onDrop, moved: false });
-  live.current = { ...live.current, index, interactive, onTap, onDrop };
+  const live = useRef({ index, interactive, onTap, onDrop, onHold, moved: false });
+  live.current = { ...live.current, index, interactive, onTap, onDrop, onHold };
 
   const responder = useRef(
     PanResponder.create({
@@ -38,6 +46,7 @@ export function useChipDrag({
       onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
         live.current.moved = false;
+        live.current.onHold?.(true);
       },
       onPanResponderMove: (_e, g) => {
         if (Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4) {
@@ -52,12 +61,14 @@ export function useChipDrag({
       onPanResponderRelease: (_e, g) => {
         pan.setValue({ x: 0, y: 0 });
         setDragging(false);
+        live.current.onHold?.(false);
         if (live.current.moved) live.current.onDrop(live.current.index, g.moveX, g.moveY);
         else live.current.onTap(live.current.index);
       },
       onPanResponderTerminate: () => {
         pan.setValue({ x: 0, y: 0 });
         setDragging(false);
+        live.current.onHold?.(false);
       },
     })
   ).current;

@@ -40,6 +40,7 @@ function DraggableChip({
   interactive,
   onTap,
   onDrop,
+  onHold,
   registerRect,
 }: {
   label: string;
@@ -47,10 +48,11 @@ function DraggableChip({
   interactive: boolean;
   onTap: (index: number) => void;
   onDrop: (index: number, pageX: number, pageY: number) => void;
+  onHold?: (held: boolean) => void;
   registerRect: (index: number, rect: Rect) => void;
 }) {
   const theme = useTheme();
-  const { panHandlers, pan, dragging } = useChipDrag({ index, interactive, onTap, onDrop });
+  const { panHandlers, pan, dragging } = useChipDrag({ index, interactive, onTap, onDrop, onHold });
 
   return (
     <Animated.View
@@ -104,8 +106,10 @@ export const OrderBuilder = forwardRef<
     interactive: boolean;
     onRemoveAt: (index: number) => void;
     onReorder: (from: number, to: number) => void;
+    /** A chip is under the finger — see useChipDrag. */
+    onHold?: (held: boolean) => void;
   }
->(function OrderBuilder({ words, interactive, onRemoveAt, onReorder }, ref) {
+>(function OrderBuilder({ words, interactive, onRemoveAt, onReorder, onHold }, ref) {
   const wrapRef = useRef<View>(null);
   const rects = useRef(new Map<number, Rect>());
   const size = useRef({ w: 0, h: 0 });
@@ -188,6 +192,7 @@ export const OrderBuilder = forwardRef<
           interactive={interactive}
           onTap={onRemoveAt}
           onDrop={handleDrop}
+          onHold={onHold}
           registerRect={registerRect}
         />
       ))}

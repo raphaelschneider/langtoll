@@ -25,6 +25,7 @@ function BankChip({
   used,
   onTap,
   onDrop,
+  onHold,
 }: {
   label: string;
   index: number;
@@ -32,6 +33,7 @@ function BankChip({
   used: boolean;
   onTap: (index: number) => void;
   onDrop: (index: number, pageX: number, pageY: number) => void;
+  onHold?: (held: boolean) => void;
 }) {
   const theme = useTheme();
   const { panHandlers, pan, dragging } = useChipDrag({
@@ -39,6 +41,7 @@ function BankChip({
     interactive: interactive && !used,
     onTap,
     onDrop,
+    onHold,
   });
 
   return (
@@ -75,6 +78,7 @@ export function OrderBank({
   interactive,
   onTap,
   onDrop,
+  onHold,
 }: {
   words: string[];
   /** Indices already placed in the sentence — shown dimmed, not draggable. */
@@ -83,6 +87,8 @@ export function OrderBank({
   onTap: (index: number) => void;
   /** pageX/pageY of the finger at release — the session resolves the slot. */
   onDrop: (index: number, pageX: number, pageY: number) => void;
+  /** A chip is under the finger — see useChipDrag. */
+  onHold?: (held: boolean) => void;
 }) {
   return (
     <View style={styles.wrap}>
@@ -95,6 +101,7 @@ export function OrderBank({
           used={used.includes(i)}
           onTap={onTap}
           onDrop={onDrop}
+          onHold={onHold}
         />
       ))}
     </View>

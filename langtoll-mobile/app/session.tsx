@@ -179,6 +179,11 @@ export default function Session() {
   // foreground re-runs the entrances cleanly.
   const [resumeTick, setResumeTick] = useState(0);
   const bodyScrollRef = useRef<ScrollView>(null);
+  // A word chip is under the finger: the body must not scroll (see useChipDrag).
+  const [chipHeld, setChipHeld] = useState(false);
+  // A chip unmounted mid-hold never reports its release; never carry the lock
+  // into the next exercise or the feedback phase.
+  useEffect(() => setChipHeld(false), [idx, phase]);
 
   // Long AI sentences overflow the body; it scrolls now, so the feedback
   // banner can land below the fold — bring it into view when it appears, and
@@ -390,6 +395,7 @@ export default function Session() {
               two placed words. The slot is resolved by the line itself against
               a fresh window measurement at release. */}
           <OrderBank
+            onHold={setChipHeld}
             words={ex.options!}
             used={orderPicked}
             interactive={phase === 'answer'}
@@ -589,6 +595,7 @@ export default function Session() {
           {/* prompt */}
           <ScrollView
             ref={bodyScrollRef}
+            scrollEnabled={!chipHeld}
             style={{ flex: 1 }}
             contentContainerStyle={[styles.body, band(L), opticalCenter(L)]}
             showsVerticalScrollIndicator={false}
@@ -738,6 +745,7 @@ export default function Session() {
                   // dismantling the sentence.
                   <OrderBuilder
                     ref={orderLineRef}
+                    onHold={setChipHeld}
                     words={orderPicked.map((optIdx) => ex.options![optIdx])}
                     interactive={phase === 'answer'}
                     onRemoveAt={(i) =>
