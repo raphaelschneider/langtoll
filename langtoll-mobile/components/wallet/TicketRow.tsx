@@ -16,6 +16,8 @@ import { useTheme, space, radius, font } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { progressRows } from '@/lib/store';
+import { t, type StringKey } from '@/lib/i18n';
+import { en } from '@/lib/i18n/en';
 import { speakTarget } from '@/lib/tts';
 import { canUseAudio } from '@/lib/plans';
 import { openPaywall } from '@/lib/paywall';
@@ -87,7 +89,7 @@ export function TicketRow({
             variant="caption"
             style={{ fontFamily: font.mono, color: theme.inkFaint, letterSpacing: 1.2, textTransform: 'uppercase' }}
           >
-            {v.pos}
+            {posLabel(v.pos)}
           </Text>
           <Text variant="headline" style={{ marginTop: 2 }} numberOfLines={1}>
             {v.de}
@@ -132,3 +134,11 @@ const styles = StyleSheet.create({
   meter: { flexDirection: 'row', gap: 5, alignItems: 'center' },
   mdot: { width: 7, height: 7, borderRadius: 3.5 },
 });
+
+// Content carries a part-of-speech CODE ('noun', 'phrase'…), not a label. Codes
+// the catalogs know are shown in the UI language; anything else (a generated
+// pack inventing its own) falls through as-is rather than as a raw 'pos.x' key.
+function posLabel(pos: string): string {
+  const key = `pos.${pos}` as StringKey;
+  return key in en ? t(key) : pos;
+}
