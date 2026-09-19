@@ -167,11 +167,15 @@ public final class LangTollSpeechModule: Module {
       self.applyShaping()
     }
 
-    AsyncFunction("stop") { () -> Void in
+    // `release` false = "stop, something else is about to play": the session
+    // stays active. Releasing here raced the next clip — this call and the new
+    // play travel independently, and a deactivation landing after the clip had
+    // started silenced it (replay that "sometimes plays").
+    AsyncFunction("stop") { (release: Bool?) -> Void in
       _ = self.bumpEpoch()
       self.player.stop()
       self.synthesizer.stopSpeaking(at: .immediate)
-      self.releaseSession()
+      if release ?? true { self.releaseSession() }
     }
 
     // Render → shape → play. Resolves once playback has been scheduled, not when

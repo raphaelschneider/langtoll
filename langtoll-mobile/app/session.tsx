@@ -30,7 +30,7 @@ import {
   updateProfile,
 } from '@/lib/store';
 import { playMessageChime } from '@/lib/sound';
-import { speakTarget, stopSpeaking } from '@/lib/tts';
+import { releaseAudioSession, speakTarget, stopSpeaking } from '@/lib/tts';
 import { canUseAudio, canUseFullCurriculum, effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
@@ -271,16 +271,21 @@ export default function Session() {
       // Fare paid — last run's "pass expired" banner is now a lie; sweep it.
       clearDeliveredNotifications();
       // The last exercise's speech must not bleed under the pass-issued
-      // screen (the chime plays there, not the lesson audio).
-      stopSpeaking();
+      // screen (the chime plays there, not the lesson audio). Handover: the
+      // chime follows at once and releases the session when it ends.
+      stopSpeaking({ handover: true });
       playMessageChime();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPhase('done');
       return;
     }
     // Cut whatever is still speaking the moment the user moves on — a long
-    // sentence must never bleed over the next exercise's own audio.
-    stopSpeaking();
+    // sentence must never bleed over the next exercise's own audio. Handover
+    // keeps the session for the next exercise's autoplay (a release here raced
+    // it); the deferred release gives other apps their volume back if the next
+    // exercise stays silent, and is skipped if the autoplay starts first.
+    stopSpeaking({ handover: true });
+    releaseAudioSession();
     setIdx(idx + 1);
     setPicked(null);
     setTyped('');

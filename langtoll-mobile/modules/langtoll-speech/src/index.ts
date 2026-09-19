@@ -53,7 +53,7 @@ interface NativeSpeech {
   releaseSession(): Promise<void>;
   setShaping(opts: Shaping): Promise<void>;
   speak(text: string, opts: SpeakOptions): Promise<boolean>;
-  stop(): Promise<void>;
+  stop(release?: boolean): Promise<void>;
 }
 
 // Optional: the module only exists in a dev/native build. On a stale binary or
@@ -82,6 +82,7 @@ export async function getDiagnostics(): Promise<SpeechDiagnostics | null> {
   return (await native?.getDiagnostics()) ?? null;
 }
 
-export async function stop(): Promise<void> {
-  await native?.stop();
+/** `release: false` keeps the audio session active — use when another play follows. */
+export async function stop(release = true): Promise<void> {
+  await native?.stop(release);
 }

@@ -83,6 +83,10 @@ function remoteFor(lang: string, text: string): string {
 // One player at a time — a new word interrupts the previous one, mirroring how
 // stopSpeaking() works for TTS.
 let player: AudioPlayer | null = null;
+// The file `player` was built for. A replay of the same clip rewinds this
+// player instead of building a new one: a fresh AVPlayer has to load the asset
+// before it makes a sound, which was most of the second-long wait on replay.
+let playerPath: string | null = null;
 
 /** Misses already fetched this session — a 404 must not be retried per play. */
 const misses = new Set<string>();
@@ -144,6 +148,17 @@ export async function playPrerendered(
   // must not play AND must not fall back to TTS.
   if (opts?.stillCurrent && !opts.stillCurrent()) return true;
   console.log(`[audio] HIT ${lang} "${text.slice(0, 30)}"`);
+  if (player && playerPath === path) {
+    try {
+      const again = player;
+      await again.seekTo(0);
+      if (opts?.stillCurrent && !opts.stillCurrent()) return true;
+      again.play();
+      return true;
+    } catch {
+      // a released or broken player — fall through and build a fresh one
+    }
+  }
   try {
     try {
       // pause() BEFORE remove(): remove only releases the registry reference,
@@ -156,6 +171,7 @@ export async function playPrerendered(
       // replacing a finished player throws harmlessly
     }
     player = createAudioPlayer({ uri: path });
+    playerPath = path;
     // Speech-speed setting carries over to file playback where supported. At
     // rate 1 the file plays untouched. Off 1, pitch correction keeps the voice
     // at its natural pitch — varispeed (the default) drops it with the tempo,
@@ -190,15 +206,23 @@ export async function playPrerendered(
   }
 }
 
-export function stopPrerendered(): void {
+/**
+ * `keepPlayer`: pause only, and keep the loaded clip for an instant replay —
+ * used when another play follows at once. Otherwise the player is released.
+ */
+export function stopPrerendered(opts?: { keepPlayer?: boolean }): void {
   try {
     // Same as above: remove() alone lets the AVPlayer play on until GC.
     player?.pause();
+    if (opts?.keepPlayer) return;
     player?.remove();
+    player = null;
+    playerPath = null;
   } catch {
     // already stopped
   }
   player = null;
+  playerPath = null;
 }
 
 /** exists-on-disk memo — getInfoAsync per play would thrash the bridge. */
@@ -297,4 +321,13 @@ export async function ensureAudio(texts: string[], timeoutMs = 6000): Promise<vo
     await Promise.all(Array.from({ length: Math.min(6, pending.length) }, worker));
   })();
   await Promise.race([work, new Promise((r) => setTimeout(r, timeoutMs))]);
+}
+
+/** Whether a pre-rendered clip is sounding right now (release guard in tts). */
+export function prerenderedPlaying(): boolean {
+  try {
+    return !!player?.playing;
+  } catch {
+    return false;
+  }
 }

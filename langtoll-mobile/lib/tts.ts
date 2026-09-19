@@ -18,7 +18,7 @@ import { setAudioModeAsync, setIsAudioActiveAsync } from 'expo-audio';
 import { getState, updateProfile } from '@/lib/store';
 import { activePack } from '@/lib/pack';
 import { canUseAudio } from '@/lib/plans';
-import { playPrerendered, stopPrerendered } from '@/lib/audio-pack';
+import { playPrerendered, prerenderedPlaying, stopPrerendered } from '@/lib/audio-pack';
 import {
   isNativeSpeechAvailable,
   speak as nativeSpeak,
@@ -93,12 +93,22 @@ export async function configureAudioSession(): Promise<void> {
  * chimes call this on completion; backgrounding calls it unconditionally).
  */
 export function releaseAudioSession(): void {
-  if (isNativeSpeechAvailable()) {
-    void nativeReleaseSession();
-    return;
-  }
-  void setIsAudioActiveAsync(false).catch(() => {});
+  // Deferred and guarded: a clip's "ended" status can arrive just after the
+  // learner tapped replay, and releasing then silenced the replay. Skip it if
+  // anything newer started (epoch moved) or a clip is sounding.
+  const epoch = speechEpoch;
+  if (releaseTimer) clearTimeout(releaseTimer);
+  releaseTimer = setTimeout(() => {
+    releaseTimer = null;
+    if (epoch !== speechEpoch || prerenderedPlaying()) return;
+    if (isNativeSpeechAvailable()) {
+      void nativeReleaseSession();
+      return;
+    }
+    void setIsAudioActiveAsync(false).catch(() => {});
+  }, 250);
 }
+let releaseTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function primeVoices(): Promise<void> {
   if (voices) return Promise.resolve();
@@ -192,7 +202,7 @@ export function speakWith(
     // the app will never actually produce — in particular it would bypass the
     // EQ/de-ess chain entirely and every band would appear to do nothing.
     if (isNativeSpeechAvailable()) {
-      void nativeStop();
+      void nativeStop(false);
       void nativeSpeak(text, {
         language: locale,
         voice: opts.voice,
@@ -245,7 +255,7 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
   // long pre-rendered sentence kept playing under the next exercise's TTS —
   // playPrerendered only ever stopped the previous FILE, and the TTS path
   // stopped only the TTS engines.
-  stopSpeaking();
+  stopSpeaking({ handover: true });
   // In-flight plays are invalidated by the epoch: playPrerendered's disk check
   // yields, so without it a fast Continue-tap let the OLD exercise's audio
   // start after the new one's ("keeps playing on the next exercise", second
@@ -287,7 +297,7 @@ function speakViaTts(text: string, opts?: { force?: boolean; rate?: number }): v
     // (modules/langtoll-speech). expo-speech is the fallback for a stale binary
     // that predates the module — same voice, just unprocessed.
     if (isNativeSpeechAvailable()) {
-      void nativeStop();
+      void nativeStop(false);
       void nativeSpeak(text, { language: locale, voice: identifier, rate, pitch });
       return;
     }
@@ -327,10 +337,17 @@ export function speechIsNative(): boolean {
 // Monotonic epoch: every stop or new speak invalidates all in-flight plays.
 let speechEpoch = 0;
 
-export function stopSpeaking(): void {
+/**
+ * `handover`: another play follows immediately (a new word, a replay, the next
+ * exercise's autoplay). The audio session stays active and the loaded clip is
+ * kept for an instant replay — releasing here raced the play that follows and
+ * silenced it at random. Every other stop (leaving the screen, backgrounding,
+ * sound switched off) releases the session so other apps come back up.
+ */
+export function stopSpeaking(opts?: { handover?: boolean }): void {
   speechEpoch++;
-  stopPrerendered();
-  if (isNativeSpeechAvailable()) void nativeStop();
+  stopPrerendered({ keepPlayer: opts?.handover });
+  if (isNativeSpeechAvailable()) void nativeStop(!opts?.handover);
   try {
     Speech.stop();
   } catch {
