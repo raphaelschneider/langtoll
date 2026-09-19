@@ -523,6 +523,15 @@ LOCALE_RAW = {
     "06_plus_alternate": None,  # paywall stays English-only; never in the sheet
 }
 LOCALE_RAW_IPAD = {**LOCALE_RAW, "04_pass": "home_active.png"}
+# Upload order of the localized listings (founder call 2026-09-19): hero, watch,
+# wallet, hook, practice, pass. Files are numbered to match, because App Store
+# Connect keeps whatever order the files arrive in.
+LOCALE_ORDER = {
+    "03_practice": "05_practice",
+    "04_pass": "06_pass",
+    "05_wallet": "03_wallet",
+    "06_hook": "04_hook",
+}
 # Course order for the 02 strips: the catalogue minus the reader's language.
 STRIP_COURSES = ["de", "fr", "es", "pt", "it", "en"]
 
@@ -583,7 +592,8 @@ def main() -> None:
         if only and spec["name"] not in only:
             continue
         img = build_shot(spec, args.raw)
-        path = os.path.join(args.out, f"{spec['name']}.png")
+        out_name = LOCALE_ORDER.get(spec["name"], spec["name"]) if args.locale != "en" else spec["name"]
+        path = os.path.join(args.out, f"{out_name}.png")
         img.save(path)
         rendered.append((spec["name"], img, spec.get("in_sheet", True)))
         print(f"ok {path}")
