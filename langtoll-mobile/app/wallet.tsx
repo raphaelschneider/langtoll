@@ -16,7 +16,7 @@ import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space } from '@/design/theme';
 import { useLayout, band, MAX_WIDE_CONTENT } from '@/design/layout';
 import { activePack } from '@/lib/pack';
-import { useT } from '@/lib/i18n';
+import { useT, type StringKey } from '@/lib/i18n';
 import { canUseAudio } from '@/lib/plans';
 import { MASTER, TicketRow, ticketsForActivePack } from '@/components/wallet/TicketRow';
 
@@ -46,6 +46,13 @@ export default function Wallet() {
   const cellStyle = cellW ? { width: cellW } : undefined;
   const t = useT();
   const pack = useMemo(() => activePack(), []);
+  // pack.name is English ("French · A1", plus " · <topic>" when a custom topic
+  // is merged in); rebuild the language part in the UI language, keep the rest.
+  const courseLabel = [
+    t(`lang.${pack.language}` as StringKey),
+    pack.level,
+    ...pack.name.split(' · ').slice(2),
+  ].join(' · ');
   const audioAllowed = canUseAudio();
 
   // Shared with the iPad home screen — see components/wallet/TicketRow.
@@ -87,7 +94,7 @@ export default function Wallet() {
               <Text variant="hero" style={{ color: theme.inkFaint }}> / {tickets.length}</Text>
             </Text>
             <Text variant="callout" color="inkSoft" style={{ marginTop: 2 }}>
-              {t('home.statMastered')} · {pack.name}
+              {t('home.statMastered')} · {courseLabel}
             </Text>
             {/* the collection filling up, as a bar */}
             <View style={[styles.bar, { backgroundColor: theme.fillStrong }]}>
