@@ -101,6 +101,7 @@ export function releaseAudioSession(): void {
   releaseTimer = setTimeout(() => {
     releaseTimer = null;
     if (epoch !== speechEpoch || prerenderedPlaying()) return;
+    console.log('[audio] RELEASE');
     if (isNativeSpeechAvailable()) {
       void nativeReleaseSession();
       return;
@@ -339,14 +340,13 @@ let speechEpoch = 0;
 
 /**
  * `handover`: another play follows immediately (a new word, a replay, the next
- * exercise's autoplay). The audio session stays active and the loaded clip is
- * kept for an instant replay — releasing here raced the play that follows and
- * silenced it at random. Every other stop (leaving the screen, backgrounding,
+ * exercise's autoplay). The audio session stays active — releasing here raced
+ * the play that follows and silenced it at random. Every other stop (leaving the screen, backgrounding,
  * sound switched off) releases the session so other apps come back up.
  */
 export function stopSpeaking(opts?: { handover?: boolean }): void {
   speechEpoch++;
-  stopPrerendered({ keepPlayer: opts?.handover });
+  stopPrerendered();
   if (isNativeSpeechAvailable()) void nativeStop(!opts?.handover);
   try {
     Speech.stop();
