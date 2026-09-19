@@ -189,6 +189,9 @@ export async function configurePurchases(): Promise<void> {
     }
     Purchases.configure({ apiKey: RC_API_KEY });
     configured = true;
+    // Apple Ads attribution: hands the AdServices token to RevenueCat so trials and
+    // renewals trace back to the campaign/keyword. No ATT prompt needed. Fire-and-forget.
+    Purchases.enableAdServicesAttributionTokenCollection?.().catch(() => {});
     Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info), entitlementMeta(info)));
     await syncEntitlement();
   } catch {
