@@ -413,6 +413,155 @@ SHOTS_IPAD = [
     },
 ]
 
+# ---------------------------------------------------------------- localized captions
+# Per-storefront captions over the SAME raw captures (the app UI underneath stays
+# as captured). Keyed by shot name; a shot missing here keeps its English caption.
+# Voice follows lib/i18n/<locale>.ts: du/tú, "Fahrpreis"/"tarifa", "Doomscroll",
+# "Handy"/"móvil". Austria has no listing of its own and is served by de.
+# "kicker_ipad" overrides only the iPad set (its 02 names the Lock Screen — see
+# the SHOTS_IPAD note on why the phone's wording would over-promise there).
+CAPTIONS = {
+    "de": {
+        "01_hero": ("deine apps, hinter einer sprach-maut",
+                    "Dein Doomscroll\nzahlt endlich Miete"),
+        "02_watch": ("wort · übersetzung · immer im blick",
+                     "Er behält die Uhr im Blick.\nDu die neuen Wörter.",
+                     "dein nächstes wort · auf dem sperrbildschirm"),
+        "03_practice": ("ganze sätze, vom ersten tag an",
+                        "Sprich in Sätzen,\nnicht in Einzelwörtern"),
+        "04_pass": ("fahrpreis bezahlt — 30 min handyzeit",
+                    "Scrollen ohne Reue.\nDu hast es dir verdient."),
+        "05_wallet": ("jedes entsperren hinterlässt wörter",
+                      "Verschwendete Minuten,\njetzt neuer Wortschatz"),
+        "06_hook": ("eine neue sprache, ohne willenskraft",
+                    "Fließend werden,\nohne Aufschieben"),
+        "06_plus_alternate": ("langtoll plus",
+                              "Jede App wird\nzur Sprachstunde"),
+    },
+    "es": {
+        "01_hero": ("tus apps, tras un peaje de idiomas",
+                    "Tu doomscroll\npor fin paga alquiler"),
+        "02_watch": ("palabra · traducción · siempre a la vista",
+                     "Él vigila el reloj.\nTú absorbes las palabras.",
+                     "tu próxima palabra · en la pantalla bloqueada"),
+        "03_practice": ("frases completas desde el primer día",
+                        "Habla con frases,\nno con palabras sueltas"),
+        "04_pass": ("tarifa pagada — 30 min de móvil",
+                    "Scrollea sin culpa.\nTe lo has ganado."),
+        "05_wallet": ("cada desbloqueo te deja palabras",
+                      "Tus minutos perdidos,\nahora vocabulario nuevo"),
+        "06_hook": ("un idioma nuevo, sin fuerza de voluntad",
+                    "La fluidez que\nno puedes posponer"),
+        "06_plus_alternate": ("langtoll plus",
+                              "Cada app se convierte\nen una clase de idiomas"),
+    },
+    "fr": {
+        "01_hero": ("tes apps, derrière un péage de langue",
+                    "Ton scroll compulsif\npaie enfin son loyer"),
+        "02_watch": ("mot · traduction · toujours sous tes yeux",
+                     "Il surveille l'horloge.\nToi, tu retiens les mots.",
+                     "ton prochain mot · sur l'écran verrouillé"),
+        "03_practice": ("des phrases entières dès le premier jour",
+                        "Parle en phrases,\npas en mots isolés"),
+        "04_pass": ("tarif payé — 30 min de temps d'écran",
+                    "Scrolle sans culpabilité.\nTu l'as mérité."),
+        "05_wallet": ("chaque déblocage te laisse des mots",
+                      "Tes minutes perdues,\ndevenues vocabulaire"),
+        "06_hook": ("une nouvelle langue, sans volonté",
+                    "Parler couramment,\nsans procrastiner"),
+        "06_plus_alternate": ("langtoll plus",
+                              "Chaque app devient\nun cours de langue"),
+    },
+    "it": {
+        "01_hero": ("le tue app, dietro un pedaggio di lingua",
+                    "Il tuo scroll infinito\nfinalmente paga l'affitto"),
+        "02_watch": ("parola · traduzione · sempre sotto gli occhi",
+                     "Lui guarda l'orologio.\nTu assorbi le parole.",
+                     "la prossima parola · sulla schermata di blocco"),
+        "03_practice": ("frasi intere dal primo giorno",
+                        "Parla per frasi,\nnon per parole singole"),
+        "04_pass": ("tariffa pagata — 30 min di telefono",
+                    "Scrolla senza sensi di colpa.\nTe lo sei meritato."),
+        "05_wallet": ("ogni sblocco ti lascia parole",
+                      "I tuoi minuti persi,\nora vocabolario nuovo"),
+        "06_hook": ("una nuova lingua, senza forza di volontà",
+                    "Fluenza che non puoi\nrimandare"),
+        "06_plus_alternate": ("langtoll plus",
+                              "Ogni app diventa\nuna lezione di lingua"),
+    },
+    "pt": {
+        "01_hero": ("seus apps, atrás de um pedágio de idioma",
+                    "Seu doomscroll\nfinalmente paga aluguel"),
+        "02_watch": ("palavra · tradução · sempre na sua tela",
+                     "Ele vigia o relógio.\nVocê absorve as palavras.",
+                     "sua próxima palavra · na tela bloqueada"),
+        "03_practice": ("frases inteiras desde o primeiro dia",
+                        "Fale em frases,\nnão em palavras soltas"),
+        "04_pass": ("tarifa paga — 30 min de celular",
+                    "Role sem culpa.\nVocê mereceu."),
+        "05_wallet": ("cada desbloqueio deixa palavras",
+                      "Seus minutos perdidos,\nagora vocabulário novo"),
+        "06_hook": ("um idioma novo, sem força de vontade",
+                    "Fluência que você\nnão consegue adiar"),
+        "06_plus_alternate": ("langtoll plus",
+                              "Cada app vira\numa aula de idiomas"),
+    },
+}
+
+
+# Localized sets are re-captured with the app UI in that language, into
+# <raw>/<locale>/ under these names (the English set keeps its original files).
+# The course on each screen follows the English set's one-language-per-shot plan,
+# except that no reader is shown a course in their own language — that one is
+# swapped for English.
+LOCALE_RAW = {
+    "01_hero": "home.png",
+    "03_practice": "practice.png",
+    "04_pass": "pass.png",
+    "05_wallet": "wallet.png",
+    "06_hook": "hook.png",
+    "06_plus_alternate": None,  # paywall stays English-only; never in the sheet
+}
+LOCALE_RAW_IPAD = {**LOCALE_RAW, "04_pass": "home_active.png"}
+# Course order for the 02 strips: the catalogue minus the reader's language.
+STRIP_COURSES = ["de", "fr", "es", "pt", "it", "en"]
+
+
+def localize(shots: list[dict], locale: str, canvas: str) -> list[dict]:
+    """Copies of `shots` in `locale`: its captions over its own captures."""
+    if locale == "en":
+        return shots
+    table = CAPTIONS[locale]
+    raws = LOCALE_RAW_IPAD if canvas == "ipad" else LOCALE_RAW
+    base = "raw-ipad" if canvas == "ipad" else "raw"
+    courses = [c for c in STRIP_COURSES if c != locale][:5]
+    out = []
+    for spec in shots:
+        if raws.get(spec["name"], "") is None:
+            continue
+        cap = table.get(spec["name"])
+        if cap:
+            kicker = cap[2] if canvas == "ipad" and len(cap) > 2 else cap[0]
+            spec = {**spec, "kicker": kicker, "headline": cap[1]}
+        if spec["name"] in raws:
+            spec = {**spec, "raw": os.path.join(locale, raws[spec["name"]])}
+        if spec.get("strips"):
+            # Same slots, same tilts; each lock-screen slot takes the next course,
+            # each island slot re-uses one (the island pill is iPhone-only).
+            locks = iter(courses)
+            islands = iter([courses[0], courses[3]])
+            strips = []
+            for s in spec["strips"]:
+                if "island" in s["path"]:
+                    path = f"{base}/{locale}/island_{next(islands)}.png"
+                else:
+                    path = f"{base}/{locale}/lock_{next(locks)}.png"
+                strips.append({**s, "path": path})
+            spec = {**spec, "strips": strips}
+        out.append(spec)
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--raw", required=True)
@@ -420,11 +569,13 @@ def main() -> None:
     ap.add_argument("--only", help="comma-separated shot names to render")
     ap.add_argument("--canvas", default="iphone", choices=sorted(CANVASES),
                     help="which App Store slot to render for (default iphone)")
+    ap.add_argument("--locale", default="en", choices=["en", *sorted(CAPTIONS)],
+                    help="caption language (default en)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
     set_canvas(args.canvas)
-    shots = SHOTS_IPAD if args.canvas == "ipad" else SHOTS
+    shots = localize(SHOTS_IPAD if args.canvas == "ipad" else SHOTS, args.locale, args.canvas)
 
     only = set(args.only.split(",")) if args.only else None
     rendered = []

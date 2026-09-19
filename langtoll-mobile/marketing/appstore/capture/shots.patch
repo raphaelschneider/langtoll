@@ -1,0 +1,88 @@
+diff --color -ru a/app/session.tsx b/app/session.tsx
+--- a/langtoll-mobile/app/session.tsx	2026-09-19 17:00:05
++++ b/langtoll-mobile/app/session.tsx	2026-09-19 17:00:06
+@@ -5,7 +5,8 @@
+ import React, { useEffect, useMemo, useRef, useState } from 'react';
+ import { View, ScrollView, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState as RNAppState } from 'react-native';
+ import { SafeAreaView } from 'react-native-safe-area-context';
+-import { router } from 'expo-router';
++import { router, useLocalSearchParams } from 'expo-router';
++const SHOTS = process.env.EXPO_PUBLIC_SHOTS === '1'; // CAPTURE-ONLY, never commit
+ import Ionicons from '@expo/vector-icons/Ionicons';
+ import * as Haptics from 'expo-haptics';
+ import { AuroraBackground } from '@/components/skia/AuroraBackground';
+@@ -59,17 +60,27 @@
+   const langName = t(`lang.${pack.language}` as StringKey);
+ 
+   const seed = useRef(Math.floor(Math.random() * 2 ** 31)).current;
+-  const plan = useMemo(
+-    () =>
+-      buildSession(pack, progressRows(), effectiveExercisesPerUnlock(), seed, {
++  const { shot } = useLocalSearchParams<{ shot?: string }>();
++  const plan = useMemo(() => {
++    const build = (sd: number) =>
++      buildSession(pack, progressRows(), effectiveExercisesPerUnlock(), sd, {
+         difficulty: getState().difficulty,
+-        // Gate generation, not just playback: a 'listen' exercise with no audio
+-        // has no question to answer, so a free user must never be dealt one.
+         audio: canUseAudio() && getState().soundEnabled,
+         fullCurriculum: canUseFullCurriculum(),
+-      }),
+-    [pack, seed]
+-  );
++      });
++    if (SHOTS && shot === 'order') {
++      for (let sd = 1; sd < 3000; sd++) {
++        const p = build(sd);
++        const k = p.exercises.findIndex((e) => e.type === 'order' && e.options!.length >= 5 && e.options!.length <= 7);
++        if (k >= 0) {
++          const [e] = p.exercises.splice(k, 1);
++          p.exercises.unshift(e);
++          return p;
++        }
++      }
++    }
++    return build(seed);
++  }, [pack, seed]);
+ 
+   // One per fare attempt; the completed/abandoned pair closes it out.
+   useEffect(() => {
+@@ -128,6 +139,14 @@
+   }, [plan]);
+ 
+   const ex: Exercise = plan.exercises[idx];
++  useEffect(() => {
++    if (SHOTS && shot === 'done') {
++      completeSession(effectiveUnlockMinutes());
++      setCorrectCount(total);
++      setPhase('done');
++    }
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, []);
+   useEffect(() => {
+     setAudioOffline(audioNetworkFailed());
+   }, [idx]);
+diff --color -ru a/lib/purchases.ts b/lib/purchases.ts
+--- a/langtoll-mobile/lib/purchases.ts	2026-09-19 17:00:05
++++ b/langtoll-mobile/lib/purchases.ts	2026-09-19 17:00:06
+@@ -42,7 +42,7 @@
+ // So the mock is allowed ONLY where dev tooling is: __DEV__, or a Release build
+ // explicitly flagged with EXPO_PUBLIC_DEV_TOOLS=1 (the on-device test builds).
+ // A real production build has neither, so it cannot mock — it fails loudly instead.
+-const MOCK_ALLOWED = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
++const MOCK_ALLOWED = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1' || process.env.EXPO_PUBLIC_SHOTS === '1';
+ 
+ /** True when a release build is missing its key — purchases are impossible. */
+ export function purchasesMisconfigured(): boolean {
+diff --color -ru a/lib/telemetry.ts b/lib/telemetry.ts
+--- a/langtoll-mobile/lib/telemetry.ts	2026-09-19 17:00:06
++++ b/langtoll-mobile/lib/telemetry.ts	2026-09-19 17:00:06
+@@ -22,7 +22,7 @@
+  *
+  * A genuine EAS build has neither, so production reporting is unaffected.
+  */
+-const REPORTING_ENABLED = !__DEV__ && process.env.EXPO_PUBLIC_DEV_TOOLS !== '1';
++const REPORTING_ENABLED = !__DEV__ && process.env.EXPO_PUBLIC_DEV_TOOLS !== '1' && process.env.EXPO_PUBLIC_SHOTS !== '1';
+ 
+ export type TelemetryEvent =
+   | 'app_open'
