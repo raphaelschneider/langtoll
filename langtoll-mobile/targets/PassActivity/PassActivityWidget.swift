@@ -38,6 +38,13 @@ struct PassActivityAttributes: ActivityAttributes {
   var passenger: String
   var packLabel: String
   var serial: String
+  // UI strings in the app's language (lib/pass-activity.ts). Optional, and each
+  // lookup falls back to English, so a pass started without them still renders.
+  var labels: [String: String]?
+}
+
+extension PassActivityAttributes {
+  func label(_ key: String, _ english: String) -> String { labels?[key] ?? english }
 }
 
 extension Color {
@@ -154,7 +161,7 @@ struct LockScreenView: View {
             .foregroundColor(.ticketCream.opacity(0.65))
         }
         Spacer()
-        Text(context.isStale ? "EXPIRED" : "ACTIVE")
+        Text(context.isStale ? context.attributes.label("expired", "EXPIRED") : context.attributes.label("active", "ACTIVE"))
           .font(.system(size: 10, weight: .bold, design: .monospaced))
           .kerning(1.5)
           .foregroundColor(context.isStale ? .stampVermilion : .validationMint)
@@ -177,7 +184,7 @@ struct LockScreenView: View {
         }
         HStack {
           CountdownText(expiresAt: context.state.expiresAt, size: 13, weight: .semibold)
-          Text("of phone time left")
+          Text(context.attributes.label("timeLeft", "of phone time left"))
             .font(.system(size: 11))
             .foregroundColor(.ticketCream.opacity(0.5))
           Spacer()
@@ -185,7 +192,9 @@ struct LockScreenView: View {
       } else {
         HStack(alignment: .lastTextBaseline) {
           CountdownText(expiresAt: context.state.expiresAt, size: 36, stale: context.isStale)
-          Text(context.isStale ? "pass expired — practise to unlock" : "of phone time left")
+          Text(context.isStale
+            ? context.attributes.label("expiredCta", "pass expired — practise to unlock")
+            : context.attributes.label("timeLeft", "of phone time left"))
             .font(.system(size: 12))
             .foregroundColor(.ticketCream.opacity(0.6))
           Spacer()
@@ -246,7 +255,7 @@ struct PassActivityWidget: Widget {
               WordLine(word: word, translation: translation, size: 28)
               HStack(spacing: 6) {
                 CountdownText(expiresAt: context.state.expiresAt, size: 12, weight: .semibold)
-                Text("left")
+                Text(context.attributes.label("left", "left"))
                   .font(.system(size: 11))
                   .foregroundColor(.ticketCream.opacity(0.5))
                 Spacer()
@@ -260,7 +269,9 @@ struct PassActivityWidget: Widget {
           } else {
             HStack(alignment: .lastTextBaseline, spacing: 8) {
               CountdownText(expiresAt: context.state.expiresAt, size: 34, stale: context.isStale)
-              Text(context.isStale ? "pass expired" : "of phone time left")
+              Text(context.isStale
+                ? context.attributes.label("expiredShort", "pass expired")
+                : context.attributes.label("timeLeft", "of phone time left"))
                 .font(.system(size: 12))
                 .foregroundColor(.ticketCream.opacity(0.6))
               Spacer()

@@ -19,6 +19,9 @@ struct PassActivityAttributes: ActivityAttributes {
   var passenger: String
   var packLabel: String
   var serial: String
+  // UI strings in the app's language (lib/pass-activity.ts). Optional, and each
+  // lookup falls back to English, so a pass started without them still renders.
+  var labels: [String: String]?
 }
 
 // App-group storage the extension reads the rotation from. Key names are
@@ -48,7 +51,7 @@ public class LangTollActivityModule: Module {
     Function("startPassActivity") {
       (
         expiresAtMs: Double, passenger: String, packLabel: String, serial: String,
-        word: String?, translation: String?
+        word: String?, translation: String?, labels: [String: String]?
       ) -> Bool in
       guard #available(iOS 16.2, *) else { return false }
       guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }
@@ -57,7 +60,7 @@ public class LangTollActivityModule: Module {
       guard expiresAt > Date() else { return false }
 
       let attributes = PassActivityAttributes(
-        passenger: passenger, packLabel: packLabel, serial: serial)
+        passenger: passenger, packLabel: packLabel, serial: serial, labels: labels)
       let content = ActivityContent(
         state: PassActivityAttributes.ContentState(
           expiresAt: expiresAt, word: word, translation: translation),

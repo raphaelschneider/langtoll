@@ -11,7 +11,8 @@ let native: {
     packLabel: string,
     serial: string,
     word: string | null,
-    translation: string | null
+    translation: string | null,
+    labels: Record<string, string> | null
   ): boolean;
   endPassActivity(): void;
   setWordRotation(pairsJson: string): void;
@@ -53,11 +54,12 @@ export function startPassActivity(
   packLabel: string,
   serial: string,
   word: string | null = null,
-  translation: string | null = null
+  translation: string | null = null,
+  labels: Record<string, string> | null = null
 ): boolean {
   try {
     return (
-      native?.startPassActivity(expiresAtMs, passenger, packLabel, serial, word, translation) ??
+      native?.startPassActivity(expiresAtMs, passenger, packLabel, serial, word, translation, labels) ??
       false
     );
   } catch {

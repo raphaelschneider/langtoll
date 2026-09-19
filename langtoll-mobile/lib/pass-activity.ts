@@ -7,6 +7,7 @@ import { getState, isUnlocked } from '@/lib/store';
 import { activePack } from '@/lib/pack';
 import { startPassActivity, setWordRotation } from '@/modules/langtoll-activity/src';
 import { pickRotationDeck } from '@/lib/word-rotation';
+import { t } from '@/lib/i18n';
 
 /** Returns whether the Live Activity actually started — callers that only
  *  fire-and-forget can ignore it; the dev rig surfaces it for diagnosis. */
@@ -29,6 +30,17 @@ export function syncPassActivity(): boolean {
     `${pack.language.toUpperCase()} · ${pack.level}`,
     `№ ${String(s.sessionsCompleted).padStart(4, '0')}`,
     first ? first[0] : null,
-    first?.[1] ?? null
+    first?.[1] ?? null,
+    // The widget can't read the JS catalogs, so it gets its words in the app's
+    // language here. Fixed per start; launch re-syncs, so a locale switch
+    // reaches the card on the next app launch.
+    {
+      active: t('pass.active'),
+      expired: t('pass.expired'),
+      timeLeft: t('pass.timeLeft'),
+      left: t('activity.left'),
+      expiredShort: t('activity.expiredShort'),
+      expiredCta: t('activity.expiredCta'),
+    }
   );
 }
