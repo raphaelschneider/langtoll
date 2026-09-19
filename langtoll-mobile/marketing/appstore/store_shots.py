@@ -498,7 +498,7 @@ CAPTIONS = {
         "03_practice": ("frases inteiras desde o primeiro dia",
                         "Fale em frases,\nnão em palavras soltas"),
         "04_pass": ("tarifa paga — 30 min de celular",
-                    "Role sem culpa.\nVocê mereceu."),
+                    "Scroll sem culpa.\nVocê mereceu."),
         "05_wallet": ("cada desbloqueio deixa palavras",
                       "Seus minutos perdidos,\nagora vocabulário novo"),
         "06_hook": ("um idioma novo, sem força de vontade",
