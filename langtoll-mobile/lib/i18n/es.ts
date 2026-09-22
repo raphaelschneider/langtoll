@@ -80,8 +80,8 @@ export const es: Partial<Record<StringKey, string>> = {
   'session.correctCount': '{correct} de {total} correctas',
   'session.back': 'Volver a mi móvil',
 
-  'ob.hookTitle': 'Tu doomscroll está a punto de enseñarte {lang}.',
-  'ob.hookSub': 'LangToll bloquea tus apps hasta que hagas tus repeticiones. Vas a aprender — porque no te queda otra.',
+  'ob.hookTitle': 'Convierte tu doomscroll en {lang}.',
+  'ob.hookSub': 'Las rachas no funcionaron. Ahora el scroll infinito paga tarifa: unos ejercicios rápidos y tus apps se abren otra vez.',
   'ob.hookCta': 'Me apunto',
   'ob.howTitle': 'El trato es simple.',
   'ob.how1': 'Tus feeds se quedan bajo llave',

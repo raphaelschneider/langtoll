@@ -87,8 +87,8 @@ export const en = {
   'session.back': 'Back to my phone',
 
   // onboarding
-  'ob.hookTitle': 'Your doomscroll is about to teach you {lang}.',
-  'ob.hookSub': "LangToll locks your apps until you've done your reps. You'll learn — because you can't not.",
+  'ob.hookTitle': 'Turn your doomscroll into {lang}.',
+  'ob.hookSub': "Streaks didn't stick. Now endless scrolls pay a fare: a few quick exercises, and your apps open again.",
   'ob.hookCta': "I'm in",
   'ob.howTitle': 'The deal is simple.',
   'ob.how1': 'Your feeds get a lock',
