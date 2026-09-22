@@ -34,7 +34,9 @@ async function getStats() {
 
   const subs = await query(`
     SELECT period, COUNT(*) AS n FROM subscriptions
-    WHERE status = 'active' AND sandbox = 0 GROUP BY period`);
+    WHERE status = 'active' AND COALESCE(sandbox, 0) = 0 GROUP BY period`);
+  // COALESCE: builds before 37 report no flag (NULL). Launch-day trials came from build 36 and
+  // showed "0 active subs" when this excluded NULL. Pre-launch sandbox rows are marked 1 by hand.
 
   const signups: DayCount[] = (
     await query(`
