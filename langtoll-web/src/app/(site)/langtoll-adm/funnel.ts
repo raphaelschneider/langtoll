@@ -41,6 +41,8 @@ export interface SubRow {
   plan: string;
   status: string;
   period: string | null;
+  /** 1 = StoreKit sandbox, 0 = production, null = unknown (reported before the app sent it) */
+  sandbox: number | null;
   started_at: Date | string;
   ended_at: Date | string | null;
 }
@@ -48,7 +50,7 @@ export interface SubRow {
 export interface FunnelOptions {
   /** cohort = installs created in the last N days; null = all time */
   days: number | null;
-  /** drop devices that ever fired a mock purchase or ran in the simulator */
+  /** drop devices that ever fired a mock or sandbox purchase, or ran in the simulator */
   excludeTest: boolean;
 }
 
@@ -132,7 +134,10 @@ interface Device {
   subscribed: boolean;
   subscribedFrom: string | null;
   subscribedPeriod: string | null;
+  /** a StoreKit sandbox purchase (TestFlight / dev): Plus on the device, no money — a test device */
+  sandboxSub: boolean;
   restored: boolean;
+  lapsed: boolean;
   sessionsStarted: number;
   sessionsCompleted: number;
   sessionsAbandoned: number;
@@ -178,7 +183,9 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
       subscribed: false,
       subscribedFrom: null,
       subscribedPeriod: null,
+      sandboxSub: false,
       restored: false,
+      lapsed: false,
       sessionsStarted: 0,
       sessionsCompleted: 0,
       sessionsAbandoned: 0,
@@ -233,14 +240,23 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
         break;
       case 'subscribed':
         if (data.mock === true) d.isTest = true;
-        else {
+        else if (data.sandbox === true) {
+          // Sandbox purchases are free and renew every few minutes: a tester, not a customer.
+          d.isTest = true;
+          d.sandboxSub = true;
+          d.subscribedPeriod = typeof data.period === 'string' ? data.period : null;
+        } else {
           d.subscribed = true;
           d.subscribedFrom = String(data.source ?? data.from ?? 'direct');
           d.subscribedPeriod = typeof data.period === 'string' ? data.period : null;
         }
         break;
       case 'restored':
+        if (data.sandbox === true) d.isTest = true;
         d.restored = true;
+        break;
+      case 'unsubscribed':
+        d.lapsed = true;
         break;
       case 'session_started':
         d.sessionsStarted++;
@@ -447,13 +463,14 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
     const rows = new Map<string, number>();
     for (const s of subs) {
       if (!cohort.has(s.device_id)) continue;
-      const k = `${s.plan} · ${s.period ?? '?'} · ${s.status}`;
+      const env = s.sandbox === 1 ? 'sandbox ' : s.sandbox === 0 ? '' : 'unknown-env ';
+      const k = `${env}${s.plan} · ${s.period ?? '?'} · ${s.status}`;
       rows.set(k, (rows.get(k) ?? 0) + 1);
     }
     sections.push({
       key: 'subs',
       title: 'Subscriptions (server mirror)',
-      note: 'The subscriptions table as written by the app / RevenueCat sync, for this cohort. Independent of the events above.',
+      note: 'The subscriptions table as written by the app / RevenueCat sync, for this cohort. Independent of the events above. "sandbox" = TestFlight/dev purchase, no money; "unknown-env" = reported by a build older than 2026-09-22, which did not send the flag (every one of those was sandbox: the app was not on the store yet).',
       headers: ['plan · period · status', 'devices'],
       rows: [...rows.entries()].sort((a, b) => b[1] - a[1]).map(([k, c]) => [k, String(c)]),
     });
@@ -476,7 +493,7 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
   sections.push({
     key: 'installs',
     title: 'Every install',
-    note: 'Newest first. onboarding = last screen seen. paywall = entry points seen. sub = real subscription.',
+    note: 'Newest first. onboarding = last screen seen. paywall = entry points seen. sub = real subscription (sandbox = TestFlight/dev purchase, no money).',
     headers: ['device', 'joined', 'version', 'plan', 'course', 'opens', 'onboarding', 'paywall', 'tapped', 'sub', 'sessions', 'fares paid', 'abandoned', 'active days', 'last seen', 'stage'],
     rows: [...devices]
       .sort((a, b) => b.created.getTime() - a.created.getTime())
@@ -490,7 +507,13 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
         d.stepMax >= 0 ? `${d.stepMax + 1}/${ONBOARDING_STEPS.length} ${ONBOARDING_STEPS[d.stepMax]}${d.onboarded ? ' ✓' : ''}` : d.onboarded ? '✓' : '—',
         [...new Set(d.paywallFroms)].join('+') || '—',
         d.tapped ? String(d.tapped) : '—',
-        d.subscribed ? `yes${d.subscribedPeriod ? ` (${d.subscribedPeriod})` : ''}` : d.restored ? 'restored' : '—',
+        d.subscribed
+          ? `yes${d.subscribedPeriod ? ` (${d.subscribedPeriod})` : ''}${d.lapsed ? ', lapsed' : ''}`
+          : d.sandboxSub
+            ? `sandbox${d.subscribedPeriod ? ` (${d.subscribedPeriod})` : ''}`
+            : d.restored
+              ? 'restored'
+              : '—',
         String(d.sessionsStarted),
         String(d.sessionsCompleted),
         String(d.sessionsAbandoned),
@@ -581,7 +604,7 @@ export async function loadFunnel(opts: FunnelOptions): Promise<FunnelReport> {
        LIMIT 500000`,
       params,
     ) as Promise<EventRow[]>,
-    query(`SELECT device_id, plan, status, period, started_at, ended_at FROM subscriptions`) as Promise<SubRow[]>,
+    query(`SELECT device_id, plan, status, period, sandbox, started_at, ended_at FROM subscriptions`) as Promise<SubRow[]>,
   ]);
   return buildReport(users, events, subs, opts);
 }

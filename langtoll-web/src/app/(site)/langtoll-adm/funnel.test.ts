@@ -49,6 +49,38 @@ describe('buildReport', () => {
     expect(wall.rows[0][7]).toBe('1');
   });
 
+  it('treats a sandbox purchase as a test device, never as revenue', () => {
+    const users = [u('real'), u('tf')];
+    const events = [
+      e('real', 'paywall_viewed', { source: 'onboarding' }),
+      e('real', 'subscribed', { period: 'weekly', source: 'onboarding', sandbox: false }),
+      e('tf', 'paywall_viewed', { source: 'onboarding' }),
+      e('tf', 'subscribed', { period: 'weekly', source: 'onboarding', sandbox: true }),
+    ];
+    const hidden = buildReport(users, events, [], { days: null, excludeTest: true });
+    expect(hidden.excludedTest).toBe(1);
+    expect(hidden.kpis.find((k) => k.label === 'Subscribed')!.value).toBe('1');
+    const shown = buildReport(users, events, [], { days: null, excludeTest: false });
+    expect(shown.kpis.find((k) => k.label === 'Subscribed')!.value).toBe('1'); // still not a sale
+    const row = shown.sections.find((s) => s.key === 'installs')!.rows.find((r) => r[0] === 'tf')!;
+    expect(row[9]).toBe('sandbox (weekly)');
+  });
+
+  it('marks a lapse and labels the subscription mirror by environment', () => {
+    const users = [u('x')];
+    const events = [e('x', 'subscribed', { period: 'weekly', sandbox: false }), e('x', 'unsubscribed', { sandbox: false })];
+    const subs = [
+      { device_id: 'x', plan: 'plus', status: 'ended', period: 'weekly', sandbox: 0, started_at: '2026-09-01T10:00:00Z', ended_at: '2026-09-08T10:00:00Z' },
+      { device_id: 'x', plan: 'plus', status: 'active', period: 'weekly', sandbox: null, started_at: '2026-08-01T10:00:00Z', ended_at: null },
+    ];
+    const r = buildReport(users, events, subs, { days: null, excludeTest: true });
+    const row = r.sections.find((s) => s.key === 'installs')!.rows[0];
+    expect(row[9]).toBe('yes (weekly), lapsed');
+    const mirror = r.sections.find((s) => s.key === 'subs')!.rows.map((x) => x[0]);
+    expect(mirror).toContain('plus · weekly · ended');
+    expect(mirror).toContain('unknown-env plus · weekly · active');
+  });
+
   it('names the deepest stage', () => {
     const users = [u('x')];
     const events = [e('x', 'app_open'), e('x', 'onboarding_step', { step: 'fare' })];

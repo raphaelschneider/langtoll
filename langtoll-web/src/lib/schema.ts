@@ -32,6 +32,7 @@ export const SERVER_SCHEMA: string[] = [
      status      VARCHAR(20) NOT NULL DEFAULT 'active',
      period      VARCHAR(20),
      rc_user     VARCHAR(80) NULL,
+     sandbox     TINYINT NULL,
      started_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
      ended_at    TIMESTAMP NULL,
      INDEX idx_sub_device (device_id),
@@ -122,4 +123,7 @@ export const COLUMN_MIGRATIONS: { table: string; column: string; ddl: string }[]
   // Support lookups: the RevenueCat anonymous id reported by the app on purchase/restore, so a
   // user's support code (device id) can resolve to a LIVE RevenueCat subscription check.
   { table: 'subscriptions', column: 'rc_user', ddl: 'ALTER TABLE subscriptions ADD COLUMN rc_user VARCHAR(80) NULL' },
+  // 1 = StoreKit sandbox (TestFlight / dev), 0 = production, NULL = reported before the app sent
+  // the flag (2026-09-22; every row before that date was sandbox — the app was not on the store).
+  { table: 'subscriptions', column: 'sandbox', ddl: 'ALTER TABLE subscriptions ADD COLUMN sandbox TINYINT NULL' },
 ];

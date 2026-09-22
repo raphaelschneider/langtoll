@@ -33,7 +33,8 @@ async function getStats() {
     FROM app_users`);
 
   const subs = await query(`
-    SELECT period, COUNT(*) AS n FROM subscriptions WHERE status = 'active' GROUP BY period`);
+    SELECT period, COUNT(*) AS n FROM subscriptions
+    WHERE status = 'active' AND sandbox = 0 GROUP BY period`);
 
   const signups: DayCount[] = (
     await query(`

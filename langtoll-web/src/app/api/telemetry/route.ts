@@ -76,9 +76,13 @@ export async function POST(req: NextRequest) {
       const period = typeof data?.period === 'string' ? data.period : null;
       // The app's RevenueCat anonymous id — lets a support lookup do a live RC check.
       const rcUser = typeof data?.rcUser === 'string' ? data.rcUser.slice(0, 80) : null;
+      // StoreKit sandbox = TestFlight / dev purchase: no money moved. The mirror keeps the row (it
+      // is still a device with Plus) but the user's plan reads 'sandbox' so the dashboard never
+      // counts it as revenue again. NULL = the app did not say (builds before 2026-09-22).
+      const sandbox = typeof data?.sandbox === 'boolean' ? (data.sandbox ? 1 : 0) : null;
       await query("UPDATE subscriptions SET status = 'ended', ended_at = NOW() WHERE device_id = ? AND status = 'active'", [deviceId]);
-      await query('INSERT INTO subscriptions (device_id, plan, period, rc_user) VALUES (?, ?, ?, ?)', [deviceId, plan, period, rcUser]);
-      await query('UPDATE app_users SET plan = ? WHERE device_id = ?', [plan, deviceId]);
+      await query('INSERT INTO subscriptions (device_id, plan, period, rc_user, sandbox) VALUES (?, ?, ?, ?, ?)', [deviceId, plan, period, rcUser, sandbox]);
+      await query('UPDATE app_users SET plan = ? WHERE device_id = ?', [sandbox === 1 ? 'sandbox' : plan, deviceId]);
     } else if (event === 'unsubscribed') {
       await query("UPDATE subscriptions SET status = 'ended', ended_at = NOW() WHERE device_id = ? AND status = 'active'", [deviceId]);
       await query("UPDATE app_users SET plan = 'free' WHERE device_id = ?", [deviceId]);
