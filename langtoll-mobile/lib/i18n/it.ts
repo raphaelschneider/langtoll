@@ -80,8 +80,8 @@ export const it: Partial<Record<StringKey, string>> = {
   'session.correctCount': '{correct} su {total} corrette',
   'session.back': 'Torno al telefono',
 
-  'ob.hookTitle': 'Trasforma il tuo scroll infinito in {lang}.',
-  'ob.hookSub': 'Le serie non hanno funzionato. Ora lo scroll infinito paga la tariffa: qualche esercizio veloce e le tue app si riaprono.',
+  'ob.hookTitle': 'Il tuo scroll infinito, adesso in {lang}.',
+  'ob.hookSub': 'Le serie non le hai mai tenute? Qui lo scroll si paga: qualche esercizio veloce e le tue app si riaprono.',
   'ob.hookCta': 'Ci sto',
   'ob.howTitle': 'Il patto è semplice.',
   'ob.how1': 'I tuoi feed finiscono sotto chiave',

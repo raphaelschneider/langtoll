@@ -220,7 +220,14 @@ function RotatingHook() {
   }, [langs.length, reduceMotion, advance, opacity]);
 
   const fade = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  const word = t(`lang.${langs[i] ?? 'de'}` as StringKey);
+  // Language names are UI labels ("Español"), capitalized; mid-sentence Spanish,
+  // French, Italian and Portuguese write them lowercase ("en español"). German keeps
+  // the capital, English its proper noun.
+  const midSentence = (name: string) => {
+    const loc = resolvedLocale();
+    return ['es', 'fr', 'it', 'pt'].includes(loc) ? name.toLocaleLowerCase(loc) : name;
+  };
+  const word = midSentence(t(`lang.${langs[i] ?? 'de'}` as StringKey));
   // Split the translated sentence around the slot the language sits in. A locale
   // that drops the placeholder still renders: suffix falls back to empty and the
   // word simply trails the line rather than throwing.
@@ -230,7 +237,7 @@ function RotatingHook() {
   // rotates and shove the CTA down mid-fade. An invisible copy built from the
   // longest name holds the box at its worst case; the live line sits on top.
   const longest = langs
-    .map((l) => t(`lang.${l}` as StringKey))
+    .map((l) => midSentence(t(`lang.${l}` as StringKey)))
     .reduce((a, b) => (b.length > a.length ? b : a), '');
 
   return (

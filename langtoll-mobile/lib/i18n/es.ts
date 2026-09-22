@@ -80,8 +80,8 @@ export const es: Partial<Record<StringKey, string>> = {
   'session.correctCount': '{correct} de {total} correctas',
   'session.back': 'Volver a mi móvil',
 
-  'ob.hookTitle': 'Convierte tu doomscroll en {lang}.',
-  'ob.hookSub': 'Las rachas no funcionaron. Ahora el scroll infinito paga tarifa: unos ejercicios rápidos y tus apps se abren otra vez.',
+  'ob.hookTitle': 'Que tu scroll infinito te enseñe {lang}.',
+  'ob.hookSub': '¿Nunca te duró la racha? Aquí, scrollear tiene tarifa: unos ejercicios rápidos y tus apps vuelven a abrirse.',
   'ob.hookCta': 'Me apunto',
   'ob.howTitle': 'El trato es simple.',
   'ob.how1': 'Tus feeds se quedan bajo llave',
