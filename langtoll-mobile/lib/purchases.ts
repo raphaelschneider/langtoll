@@ -190,8 +190,16 @@ export function savingsVsMonthly(p: PlusPackage, all: PlusPackage[]): number | n
   return pct > 0 ? pct : null;
 }
 
+// Simulator escape hatch: the dev .env carries the real key, so the simulator
+// runs live StoreKit, which cannot complete a purchase there, and the HARD
+// paywall then blocks every screen behind it. EXPO_PUBLIC_MOCK_PURCHASES=1
+// forces the mock (tap a plan, get Plus) — but only where the mock is already
+// allowed, and check-release-config refuses it in a production build.
+const FORCE_MOCK = MOCK_ALLOWED && process.env.EXPO_PUBLIC_MOCK_PURCHASES === '1';
+
 /** Live only when a real key is set on a native platform — otherwise mock. */
 export function purchasesEnabled(): boolean {
+  if (FORCE_MOCK) return false;
   return !!RC_API_KEY && Platform.OS !== 'web' && !!nativeModule();
 }
 

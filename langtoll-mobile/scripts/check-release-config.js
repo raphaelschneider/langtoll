@@ -42,6 +42,13 @@ if (process.env.EXPO_PUBLIC_DEV_TOOLS === '1') {
   );
 }
 
+if (process.env.EXPO_PUBLIC_MOCK_PURCHASES === '1') {
+  problems.push(
+    'EXPO_PUBLIC_MOCK_PURCHASES=1 in a production build. That forces the free mock\n' +
+      '    purchase path (simulator only). Remove it from the environment.'
+  );
+}
+
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 if (!apiUrl) {
   problems.push('EXPO_PUBLIC_API_URL is not set — AI topic generation would have no backend.');
