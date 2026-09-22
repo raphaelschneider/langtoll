@@ -330,6 +330,69 @@ SHOTS = [
 
 
 
+# ---------------------------------------------------------------- custom product page: language-app intent
+# Apple Ads "duolingo" keyword (every launch-day install, 2026-09-22): people who
+# searched for a language app and met a screen-time pitch. Two of five bounced off
+# the first screens; the tap→install rate on the product page was 23%. This set
+# answers THEIR question first — is this a language course, and why this one —
+# and only then shows the lock. Same captures, same system, different order and
+# copy. Rendered with `--set language`; goes on a Custom Product Page assigned
+# to the language-app ad group (store/apple-ads.md). Never names a competitor:
+# App Review 2.3 forbids other apps' names in metadata, screenshots included.
+_BY_NAME = {s["name"]: s for s in SHOTS}
+
+SHOTS_LANGUAGE = [
+    {
+        # The searcher's own history, without the name: streaks are the thing
+        # they quit. The screen proves the mechanism ("Apps locked · Practice to unlock").
+        **_BY_NAME["01_hero"],
+        "name": "L1_locks",
+        "kicker": "the language app you can\u2019t skip",
+        "headline": "Streaks didn\u2019t work.\nLocks do.",
+    },
+    {
+        # Second, because it is what they came for: a real course. The capture
+        # is a sentence-building drill; "A1 to B2" is the curriculum in plans.ts.
+        **_BY_NAME["03_practice"],
+        "name": "L2_course",
+        "kicker": "real sentences \u00b7 A1 to B2 \u00b7 six languages",
+        "headline": "A course you finish,\nnot a game you drop",
+    },
+    {
+        # The deal, in one line, over the paid pass. "5 exercises \u2192 30 min" is the
+        # default fare (FREE_EXERCISES_PER_UNLOCK / FREE_UNLOCK_MINUTES).
+        **_BY_NAME["04_pass"],
+        "name": "L3_deal",
+        "kicker": "5 exercises buy 30 minutes of phone",
+        "headline": "Practice first.\nThen TikTok.",
+    },
+    {
+        **_BY_NAME["02_watch"],
+        "name": "L4_watch",
+        "kicker": "word \u00b7 translation \u00b7 always on your screen",
+        "headline": "Vocabulary that\nfollows you all day",
+    },
+    {
+        **_BY_NAME["05_wallet"],
+        "name": "L5_wallet",
+        "kicker": "every unlock leaves words behind",
+        "headline": "Your wasted minutes,\nnow a new vocabulary",
+    },
+    {
+        # The closer for a paid-intent searcher: the trial, honestly. Yearly and
+        # monthly carry the 7-day intro offer in App Store Connect; weekly does not,
+        # so the kicker names the plan the offer is on.
+        **_BY_NAME["06_plus_alternate"],
+        "name": "L6_trial",
+        "kicker": "7 days free on yearly \u00b7 cancel anytime",
+        "headline": "Try it for a week.\nKeep it if it works.",
+        "in_sheet": True,
+    },
+]
+
+SHOT_SETS = {"default": SHOTS, "language": SHOTS_LANGUAGE}
+
+
 # ---------------------------------------------------------------- iPad set
 # The 13" iPad slot (2064x2752) is 0.75 aspect against the phone's 0.46, so this
 # is a REDRAW, not a rescale: every device_w / y below is tuned to the squarer
@@ -580,11 +643,16 @@ def main() -> None:
                     help="which App Store slot to render for (default iphone)")
     ap.add_argument("--locale", default="en", choices=["en", *sorted(CAPTIONS)],
                     help="caption language (default en)")
+    ap.add_argument("--set", default="default", choices=sorted(SHOT_SETS),
+                    help="shot set: default gallery, or a custom product page (iPhone, en only)")
     args = ap.parse_args()
+    if args.set != "default" and (args.canvas != "iphone" or args.locale != "en"):
+        ap.error("custom product page sets render for the iPhone canvas in English only")
     os.makedirs(args.out, exist_ok=True)
 
     set_canvas(args.canvas)
-    shots = localize(SHOTS_IPAD if args.canvas == "ipad" else SHOTS, args.locale, args.canvas)
+    base_shots = SHOTS_IPAD if args.canvas == "ipad" else SHOT_SETS[args.set]
+    shots = localize(base_shots, args.locale, args.canvas)
 
     only = set(args.only.split(",")) if args.only else None
     rendered = []
