@@ -120,6 +120,12 @@ interface Device {
   opens: number;
   language: string | null;
   level: string | null;
+  /** The fare they chose — exercises per unlock and minutes of phone time it buys. Latest seen
+   *  wins (onboarded, then every session_started). Builds before 38 send neither; for those,
+   *  minutes fall back to the last `unlocked` grant, which includes the mastered-word bonus. */
+  fareEx: number | null;
+  fareMin: number | null;
+  fareMinApprox: boolean;
   /** highest onboarding step index seen (-1 = no step events, i.e. a pre-build-17 install) */
   stepMax: number;
   stepSeen: Set<number>;
@@ -144,6 +150,22 @@ interface Device {
   unlocks: number;
   listenFallbacks: number;
   activeDays: Set<string>;
+}
+
+function readFare(d: Device, data: Record<string, unknown>) {
+  if (typeof data.exercises === 'number') d.fareEx = data.exercises;
+  if (typeof data.minutes === 'number') {
+    d.fareMin = data.minutes;
+    d.fareMinApprox = false;
+  }
+}
+
+/** "5 ex · 30 min" — the fare column. */
+export function fareLabel(d: Pick<Device, 'fareEx' | 'fareMin' | 'fareMinApprox'>): string {
+  if (d.fareEx === null && d.fareMin === null) return '—';
+  const ex = d.fareEx === null ? '? ex' : `${d.fareEx} ex`;
+  const min = d.fareMin === null ? '? min' : `${d.fareMinApprox ? '~' : ''}${d.fareMin} min`;
+  return `${ex} · ${min}`;
 }
 
 function wall(d: Device, data: Record<string, unknown>) {
@@ -171,6 +193,9 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
       opens: 0,
       language: null,
       level: null,
+      fareEx: null,
+      fareMin: null,
+      fareMinApprox: false,
       stepMax: -1,
       stepSeen: new Set(),
       onboarded: !!u.onboarded_at,
@@ -218,6 +243,7 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
         d.onboarded = true;
         if (typeof data.language === 'string') d.language = data.language;
         if (typeof data.level === 'string') d.level = data.level;
+        readFare(d, data);
         break;
       case 'paywall_viewed':
         d.paywallFroms.push(String(data.source ?? data.from ?? 'direct'));
@@ -262,6 +288,7 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
         d.sessionsStarted++;
         if (!d.language && typeof data.language === 'string') d.language = data.language;
         if (typeof data.level === 'string') d.level = data.level;
+        readFare(d, data);
         break;
       case 'session_completed':
         d.sessionsCompleted++;
@@ -271,6 +298,13 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
         break;
       case 'unlocked':
         d.unlocks++;
+        // Old builds: the grant is the only trace of the fare. Bonus minutes are inside it.
+        if (d.fareMin === null || d.fareMinApprox) {
+          if (typeof data.minutes === 'number') {
+            d.fareMin = data.minutes;
+            d.fareMinApprox = true;
+          }
+        }
         break;
       case 'listen_fallback_used':
         d.listenFallbacks++;
@@ -476,6 +510,23 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
     });
   }
 
+  // 7b) The fare people chose — is anyone touching the dials, and which way?
+  {
+    const fares = new Map<string, number>();
+    for (const d of devices) {
+      if (d.fareEx === null && d.fareMin === null) continue;
+      const k = fareLabel(d);
+      fares.set(k, (fares.get(k) ?? 0) + 1);
+    }
+    sections.push({
+      key: 'fares',
+      title: 'Fare chosen',
+      note: 'Exercises per unlock · minutes of phone time it buys, latest known per install. The default is 5 ex · 30 min. "~" = minutes read off the last unlock grant (bonus included) because the build did not report the setting.',
+      headers: ['fare', 'installs', '%'],
+      rows: [...fares.entries()].sort((a, b) => b[1] - a[1]).map(([k, c]) => [k, String(c), pct(c, n)]),
+    });
+  }
+
   // 8) Where each install stopped — the one-word summary, counted.
   {
     const stages = new Map<string, number>();
@@ -493,8 +544,8 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
   sections.push({
     key: 'installs',
     title: 'Every install',
-    note: 'Newest first. onboarding = last screen seen. paywall = entry points seen. sub = real subscription (sandbox = TestFlight/dev purchase, no money).',
-    headers: ['device', 'joined', 'version', 'plan', 'course', 'opens', 'onboarding', 'paywall', 'tapped', 'sub', 'sessions', 'fares paid', 'abandoned', 'active days', 'last seen', 'stage'],
+    note: 'Newest first. onboarding = last screen seen. fare = exercises per unlock · minutes it buys (~ = read off the last unlock, bonus included; builds before 38 report nothing else). paywall = entry points seen. sub = real subscription (sandbox = TestFlight/dev purchase, no money).',
+    headers: ['device', 'joined', 'version', 'plan', 'course', 'fare', 'opens', 'onboarding', 'paywall', 'tapped', 'sub', 'sessions', 'fares paid', 'abandoned', 'active days', 'last seen', 'stage'],
     rows: [...devices]
       .sort((a, b) => b.created.getTime() - a.created.getTime())
       .map((d) => [
@@ -503,6 +554,7 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
         d.version,
         d.plan,
         d.language ? `${d.language}${d.level ? ` ${d.level}` : ''}` : '—',
+        fareLabel(d),
         String(d.opens),
         d.stepMax >= 0 ? `${d.stepMax + 1}/${ONBOARDING_STEPS.length} ${ONBOARDING_STEPS[d.stepMax]}${d.onboarded ? ' ✓' : ''}` : d.onboarded ? '✓' : '—',
         [...new Set(d.paywallFroms)].join('+') || '—',

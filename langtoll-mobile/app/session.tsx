@@ -73,7 +73,13 @@ export default function Session() {
 
   // One per fare attempt; the completed/abandoned pair closes it out.
   useEffect(() => {
-    track('session_started', { language: pack.language, level: pack.level });
+    // The fare in force for this attempt — the admin's "what did they pick" column.
+    track('session_started', {
+      language: pack.language,
+      level: pack.level,
+      exercises: effectiveExercisesPerUnlock(),
+      minutes: effectiveUnlockMinutes(),
+    });
   }, [pack]);
   const total = plan.exercises.length;
 

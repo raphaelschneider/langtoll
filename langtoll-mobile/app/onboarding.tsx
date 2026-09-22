@@ -485,7 +485,7 @@ export default function Onboarding() {
     // Launch-time scheduling ran before notification permission existed; now it might.
     scheduleTrialEndNotice();
     lockNow(); // shield the chosen apps immediately so home lands in the "locked" state
-    track('onboarded', { language, level: derivedLevel, difficulty });
+    track('onboarded', { language, level: derivedLevel, difficulty, exercises: fareEx, minutes: fareMin });
     router.replace('/');
   }
 

@@ -63,7 +63,7 @@ describe('buildReport', () => {
     const shown = buildReport(users, events, [], { days: null, excludeTest: false });
     expect(shown.kpis.find((k) => k.label === 'Subscribed')!.value).toBe('1'); // still not a sale
     const row = shown.sections.find((s) => s.key === 'installs')!.rows.find((r) => r[0] === 'tf')!;
-    expect(row[9]).toBe('sandbox (weekly)');
+    expect(row[10]).toBe('sandbox (weekly)');
   });
 
   it('marks a lapse and labels the subscription mirror by environment', () => {
@@ -75,10 +75,26 @@ describe('buildReport', () => {
     ];
     const r = buildReport(users, events, subs, { days: null, excludeTest: true });
     const row = r.sections.find((s) => s.key === 'installs')!.rows[0];
-    expect(row[9]).toBe('yes (weekly), lapsed');
+    expect(row[10]).toBe('yes (weekly), lapsed');
     const mirror = r.sections.find((s) => s.key === 'subs')!.rows.map((x) => x[0]);
     expect(mirror).toContain('plus · weekly · ended');
     expect(mirror).toContain('unknown-env plus · weekly · active');
+  });
+
+  it('shows the fare each install chose, falling back to the last unlock for old builds', () => {
+    const users = [u('new'), u('old')];
+    const events = [
+      e('new', 'onboarded', { language: 'es', level: 'A1', exercises: 5, minutes: 30 }),
+      e('new', 'session_started', { language: 'es', level: 'A1', exercises: 8, minutes: 15 }),
+      e('old', 'session_started', { language: 'de', level: 'A1' }),
+      e('old', 'unlocked', { minutes: 35 }),
+    ];
+    const r = buildReport(users, events, [], { days: null, excludeTest: true });
+    const rows = r.sections.find((s) => s.key === 'installs')!.rows;
+    expect(rows.find((x) => x[0] === 'new')![5]).toBe('8 ex · 15 min');
+    expect(rows.find((x) => x[0] === 'old')![5]).toBe('? ex · ~35 min');
+    const fares = r.sections.find((s) => s.key === 'fares')!.rows.map((x) => x[0]);
+    expect(fares).toContain('8 ex · 15 min');
   });
 
   it('names the deepest stage', () => {
