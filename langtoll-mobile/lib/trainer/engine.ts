@@ -349,10 +349,11 @@ function pickVocabType(
 }
 
 /** Fraction of the session that comes from sentences, by difficulty. */
+// A1 went from 0.2 to 0.4 on launch day: a five-exercise A1 session was four
+// single words and one sentence, which did not read as "real sentences".
 function sentenceShare(difficulty: number): number {
-  if (difficulty <= 3) return 0.2;
-  if (difficulty <= 6) return 0.3;
-  return 0.4;
+  if (difficulty <= 6) return 0.4;
+  return 0.5;
 }
 
 /**

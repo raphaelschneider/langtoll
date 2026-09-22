@@ -8,6 +8,19 @@ import { poolItems } from '@/lib/ai/pool';
 import { FALLBACK_LOCALE, type LocaleCode } from '@/lib/locales';
 import { canUseAiTopics, effectiveLevel } from '@/lib/plans';
 
+/**
+ * The exercise mix follows the level. There used to be a separate 1–10
+ * difficulty in settings, but the trainer only has three mix bands (1–3, 4–6,
+ * 7–10) and the level already decides the material, so the second dial mostly
+ * did nothing and allowed nonsense like B2 at difficulty 1 (founder call,
+ * 2026-09-22). A1 trains the gentlest mix, A2 the middle, B1 and B2 the hardest.
+ */
+export function mixDifficultyForLevel(level: Level): number {
+  if (level === 'A1') return 2;
+  if (level === 'A2') return 5;
+  return 8;
+}
+
 /** Onboarding difficulty (1–10) → CEFR level. Four bands since B2 landed. */
 export function levelForDifficulty(d: number): Level {
   if (d <= 3) return 'A1';

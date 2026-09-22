@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font, shadow } from '@/design/theme';
 import { useLayout, band, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
-import { activePack } from '@/lib/pack';
+import { activePack, mixDifficultyForLevel } from '@/lib/pack';
 import { buildSession, gradeTyped, gradeOrder, type Exercise, type Grade } from '@/lib/trainer';
 import {
   getState,
@@ -62,7 +62,8 @@ export default function Session() {
   const plan = useMemo(
     () =>
       buildSession(pack, progressRows(), effectiveExercisesPerUnlock(), seed, {
-        difficulty: getState().difficulty,
+        // The level sets the mix; see mixDifficultyForLevel.
+        difficulty: mixDifficultyForLevel(pack.level),
         // Gate generation, not just playback: a 'listen' exercise with no audio
         // has no question to answer, so a free user must never be dealt one.
         audio: canUseAudio() && getState().soundEnabled,

@@ -56,7 +56,6 @@ import {
   freeMinutes,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
-import { DifficultyScale } from '@/components/ui/DifficultyScale';
 import {
   primeVoices,
   voicesForActivePack,
@@ -562,17 +561,6 @@ export default function Settings() {
                 {t('settings.levelRevertNote', { level: FREE_LEVELS[0] })}
               </Text>
             )}
-            <Text variant="caption" color="inkFaint" style={{ marginTop: space.lg }}>
-              {t('settings.difficulty')}
-            </Text>
-            <DifficultyScale
-              value={state.difficulty}
-              onChange={(d) => updateProfile({ difficulty: d })}
-              easierLabel={t('settings.easier')}
-              harderLabel={t('settings.harder')}
-              accessibilityLabel={t('settings.difficulty')}
-              size={24}
-            />
           </Section>
 
           {/* fare — free can make it harder, only Plus can make it easier
