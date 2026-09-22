@@ -10,6 +10,11 @@ import { adminFontClassName } from '@/lib/fonts';
 import { CopyButton } from './CopyButton';
 import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS } from './funnel';
 
+// Weekly is not in the pricing settings (the landing card never shows it): the App Store
+// price, as the app's FALLBACK_PRICES has it. Apple's cut under the Small Business Program.
+const WEEKLY_PRICE = 3.99;
+const APPLE_CUT = 0.15;
+
 export const dynamic = 'force-dynamic';
 
 // internal dashboard at the deliberately non-obvious /langtoll-adm — Basic-auth gated in middleware,
@@ -32,9 +37,15 @@ async function getStats() {
       SUM(last_seen_at >= NOW() - INTERVAL 7 DAY) AS wau
     FROM app_users`);
 
+  // trial = 1 while a monthly/yearly subscription is inside its 7-day free trial (the app's
+  // TRIAL_DAYS; weekly has none). No money has moved for those, so they are not MRR.
   const subs = await query(`
-    SELECT period, COUNT(*) AS n FROM subscriptions
-    WHERE status = 'active' AND COALESCE(sandbox, 0) = 0 GROUP BY period`);
+    SELECT period,
+           (period IN ('monthly', 'yearly') AND started_at >= NOW() - INTERVAL 7 DAY) AS trial,
+           COUNT(*) AS n
+    FROM subscriptions
+    WHERE status = 'active' AND COALESCE(sandbox, 0) = 0
+    GROUP BY period, trial`);
   // COALESCE: builds before 37 report no flag (NULL). Launch-day trials came from build 36 and
   // showed "0 active subs" when this excluded NULL. Pre-launch sandbox rows are marked 1 by hand.
 
@@ -171,13 +182,28 @@ async function DashboardTab() {
   const topicsDays: DayCount[] = usage.map((u) => ({ day: u.day, n: u.topics }));
   const ttsDays: DayCount[] = usage.map((u) => ({ day: u.day, n: u.tts }));
 
-  const monthly = Number(subs.find((s: any) => s.period === 'monthly')?.n ?? 0);
-  const yearly = Number(subs.find((s: any) => s.period === 'yearly')?.n ?? 0);
-  const otherSubs = subs
-    .filter((s: any) => s.period !== 'monthly' && s.period !== 'yearly')
-    .reduce((a: number, s: any) => a + Number(s.n), 0);
-  const activeSubs = monthly + yearly + otherSubs;
-  const mrr = monthly * pricing.monthly + (yearly * pricing.yearly) / 12;
+  // Paying vs in-trial, per period. MRR counts paying subscriptions only: a trial has
+  // charged nothing, and the old card priced every trial as if it had converted.
+  const count = (period: string | null, trial: boolean) =>
+    subs
+      .filter((s: any) => (period === null ? !['monthly', 'yearly', 'weekly'].includes(s.period) : s.period === period) && Number(s.trial) === (trial ? 1 : 0))
+      .reduce((a: number, s: any) => a + Number(s.n), 0);
+  const monthly = count('monthly', false);
+  const yearly = count('yearly', false);
+  const weekly = count('weekly', false);
+  const otherSubs = count(null, false);
+  const trialMonthly = count('monthly', true);
+  const trialYearly = count('yearly', true);
+  const trials = trialMonthly + trialYearly;
+  const paying = monthly + yearly + weekly + otherSubs;
+  const activeSubs = paying + trials;
+  // Projected MRR: every active subscription at list price, trials assumed to convert
+  // (real revenue is RevenueCat's job). Weekly counts too — the old card dropped it.
+  const allMonthly = monthly + trialMonthly;
+  const allYearly = yearly + trialYearly;
+  const weeklyMonthly = (WEEKLY_PRICE * 52) / 12;
+  const mrr = allMonthly * pricing.monthly + (allYearly * pricing.yearly) / 12 + weekly * weeklyMonthly;
+  const mrrNet = mrr * (1 - APPLE_CUT);
 
   const users = Number(totals.users ?? 0);
   const onboarded = Number(totals.onboarded ?? 0);
@@ -205,16 +231,16 @@ async function DashboardTab() {
           <Stat
             label="Active subs"
             value={String(activeSubs)}
-            sub={`${monthly} monthly · ${yearly} yearly`}
+            sub={`${allMonthly} monthly · ${allYearly} yearly · ${weekly} weekly · ${trials} in trial`}
             tint={BRAND.accent}
-            hint={`${monthly} monthly + ${yearly} yearly${otherSubs ? ` + ${otherSubs} other` : ''} = ${activeSubs} active`}
+            hint={`${allMonthly} monthly + ${allYearly} yearly + ${weekly} weekly${otherSubs ? ` + ${otherSubs} other` : ''} = ${activeSubs} active. ${trials} of them inside the 7-day free trial (monthly/yearly started under 7 days ago).`}
           />
           <Stat
-            label="MRR"
+            label="Projected MRR"
             value={`$${mrr.toFixed(2)}`}
-            sub="estimated"
+            sub={`if all trials convert · $${mrrNet.toFixed(2)} after Apple`}
             tint={BRAND.accent}
-            hint={`${monthly} × ${fmtPrice(pricing.monthly, pricing.currency)} + ${yearly} × ${fmtPrice(pricing.yearly, pricing.currency)} ÷ 12 = $${mrr.toFixed(2)}/mo`}
+            hint={`${allMonthly} × ${fmtPrice(pricing.monthly, pricing.currency)} + ${allYearly} × ${fmtPrice(pricing.yearly, pricing.currency)} ÷ 12 + ${weekly} × ${fmtPrice(WEEKLY_PRICE, pricing.currency)} × 52 ÷ 12 = $${mrr.toFixed(2)}/mo at list price, every trial assumed to convert. After Apple's ${Math.round(APPLE_CUT * 100)}% (Small Business Program): $${mrrNet.toFixed(2)}. Cancelled trials still count until Plus actually ends. Real revenue: RevenueCat.`}
           />
           <Stat label="Active today" value={String(Number(totals.dau ?? 0))} hint={`${Number(totals.dau ?? 0)} devices seen in the last 24h`} />
         </div>
