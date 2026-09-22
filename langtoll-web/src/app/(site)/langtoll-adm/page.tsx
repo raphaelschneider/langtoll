@@ -204,6 +204,10 @@ async function DashboardTab() {
   const weeklyMonthly = (WEEKLY_PRICE * 52) / 12;
   const mrr = allMonthly * pricing.monthly + (allYearly * pricing.yearly) / 12 + weekly * weeklyMonthly;
   const mrrNet = mrr * (1 - APPLE_CUT);
+  // What actually gets charged when every active subscription bills once: a yearly is
+  // $39.99 on day 8, not $3.33 (that is MRR's smoothing). Weekly bills its first week.
+  const charges = allMonthly * pricing.monthly + allYearly * pricing.yearly + weekly * WEEKLY_PRICE;
+  const chargesNet = charges * (1 - APPLE_CUT);
 
   const users = Number(totals.users ?? 0);
   const onboarded = Number(totals.onboarded ?? 0);
@@ -236,11 +240,11 @@ async function DashboardTab() {
             hint={`${allMonthly} monthly + ${allYearly} yearly + ${weekly} weekly${otherSubs ? ` + ${otherSubs} other` : ''} = ${activeSubs} active. ${trials} of them inside the 7-day free trial (monthly/yearly started under 7 days ago).`}
           />
           <Stat
-            label="Projected MRR"
-            value={`$${mrr.toFixed(2)}`}
-            sub={`if all trials convert · $${mrrNet.toFixed(2)} after Apple`}
+            label="If all trials convert"
+            value={`$${charges.toFixed(2)}`}
+            sub={`charged · $${chargesNet.toFixed(2)} after Apple · MRR $${mrr.toFixed(2)}`}
             tint={BRAND.accent}
-            hint={`${allMonthly} × ${fmtPrice(pricing.monthly, pricing.currency)} + ${allYearly} × ${fmtPrice(pricing.yearly, pricing.currency)} ÷ 12 + ${weekly} × ${fmtPrice(WEEKLY_PRICE, pricing.currency)} × 52 ÷ 12 = $${mrr.toFixed(2)}/mo at list price, every trial assumed to convert. After Apple's ${Math.round(APPLE_CUT * 100)}% (Small Business Program): $${mrrNet.toFixed(2)}. Cancelled trials still count until Plus actually ends. Real revenue: RevenueCat.`}
+            hint={`Charged once every active subscription bills: ${allMonthly} × ${fmtPrice(pricing.monthly, pricing.currency)} + ${allYearly} × ${fmtPrice(pricing.yearly, pricing.currency)} + ${weekly} × ${fmtPrice(WEEKLY_PRICE, pricing.currency)} = $${charges.toFixed(2)} (after Apple's ${Math.round(APPLE_CUT * 100)}%: $${chargesNet.toFixed(2)}). MRR spreads a yearly over 12 months: ${allMonthly} × ${fmtPrice(pricing.monthly, pricing.currency)} + ${allYearly} × ${fmtPrice(pricing.yearly, pricing.currency)} ÷ 12 + ${weekly} × ${fmtPrice(WEEKLY_PRICE, pricing.currency)} × 52 ÷ 12 = $${mrr.toFixed(2)}/mo at list price, every trial assumed to convert. After Apple's ${Math.round(APPLE_CUT * 100)}% (Small Business Program): $${mrrNet.toFixed(2)}. Cancelled trials still count until Plus actually ends. Real revenue: RevenueCat.`}
           />
           <Stat label="Active today" value={String(Number(totals.dau ?? 0))} hint={`${Number(totals.dau ?? 0)} devices seen in the last 24h`} />
         </div>
