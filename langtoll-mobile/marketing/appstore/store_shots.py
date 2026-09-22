@@ -279,7 +279,9 @@ SHOTS = [
     {
         # The fare: a rep is BUILDING a real sentence from word tiles — not matching\n        # a word to its translation. The caption must never promise more than the\n        # screen proves (an early cut said "order dinner" over a "the coffee" drill).
         "name": "03_practice",
-        "raw": "raw_practice_es.png",
+        # The sentence FINISHED and checked: green banner, Tolly happy (founder
+        # call 2026-09-22). Capture kind order_done in capture/cap.py.
+        "raw": "raw_practice_done.png",
         "kicker": "whole sentences, from day one",
         "headline": "Speak in sentences,\nnot in single words",
         "aurora": [(TEAL, 0.2, 0.18, 0.55), (AMBER, 0.9, 0.7, 0.5), (TEAL_DEEP, 0.5, 1.0, 0.45)],
@@ -579,13 +581,14 @@ CAPTIONS = {
 # swapped for English.
 LOCALE_RAW = {
     "01_hero": "home.png",
-    "03_practice": "practice.png",
+    "03_practice": "practice_done.png",
     "04_pass": "pass.png",
     "05_wallet": "wallet.png",
     "06_hook": "hook.png",
     "06_plus_alternate": None,  # paywall stays English-only; never in the sheet
 }
-LOCALE_RAW_IPAD = {**LOCALE_RAW, "04_pass": "home_active.png"}
+# iPad keeps the mid-build capture: the finished-sentence raws are iPhone only.
+LOCALE_RAW_IPAD = {**LOCALE_RAW, "03_practice": "practice.png", "04_pass": "home_active.png"}
 # Upload order of the localized listings (founder call 2026-09-19): hero, watch,
 # wallet, hook, practice, pass. Files are numbered to match, because App Store
 # Connect keeps whatever order the files arrive in.
