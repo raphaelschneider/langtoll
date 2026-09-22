@@ -63,7 +63,12 @@ export function useChipDrag({
         setDragging(false);
         live.current.onHold?.(false);
         if (live.current.moved) live.current.onDrop(live.current.index, g.moveX, g.moveY);
-        else live.current.onTap(live.current.index);
+        else {
+          // A tap moves the word too (bank -> line, line -> bank): it should
+          // feel like one, the same light tick a drop gives.
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          live.current.onTap(live.current.index);
+        }
       },
       onPanResponderTerminate: () => {
         pan.setValue({ x: 0, y: 0 });

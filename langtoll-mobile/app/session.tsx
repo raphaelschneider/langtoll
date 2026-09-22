@@ -345,6 +345,10 @@ export default function Session() {
   const isTyped = ex.type === 'type_de';
   const isOrder = ex.type === 'order';
   const isListen = ex.type === 'listen';
+  // The big Tolly under the sentence line (phone only) — when he is on screen
+  // the feedback banner drops its own small one, one operator at a time.
+  const orderTollyShown = isOrder && !L.regular;
+  const orderMood = phase === 'feedback' ? (grade === 'wrong' ? 'sad' : 'happy') : 'stern';
   // A 'listen' exercise the user cannot hear is unanswerable — and because our
   // own shield holds the phone until the session ends, being stuck here is a
   // trap with no way out. buildSession already excludes these when sound is
@@ -775,6 +779,20 @@ export default function Session() {
               </View>
             )}
 
+            {/* order, phone: Tolly fills the space between the line and the
+                bank. He watches you build (stern, a little worried) and the
+                verdict lands on his face: happy on a pass, sad on a miss. The
+                key re-runs the entrance so the change of mood reads as a
+                reaction, not a swap. iPad keeps the answers inline under the
+                prompt, so there is no gap to fill there. */}
+            {isOrder && !L.regular && (
+              <View style={styles.orderTolly} pointerEvents="none">
+                <Entrance key={`${ex.key}:${orderMood}`} from={phase === 'feedback' ? 8 : 14}>
+                  <Tolly mood={orderMood} size={132} />
+                </Entrance>
+              </View>
+            )}
+
             {/* feedback banner */}
             {phase === 'feedback' && (
               <Entrance from={6} style={{ marginTop: space.lg }}>
@@ -793,7 +811,7 @@ export default function Session() {
                 >
                   {/* The operator reacts, not a generic tick: Tolly is the
                       one grading you, and he is pleased or not. */}
-                  <Tolly mood={grade === 'wrong' ? 'sad' : 'happy'} size={36} />
+                  {orderTollyShown ? null : <Tolly mood={grade === 'wrong' ? 'sad' : 'happy'} size={36} />}
                   <Text
                     variant="bodyMedium"
                     style={{ color: grade === 'wrong' ? '#FFFFFF' : theme.onAccent, flex: 1 }}
@@ -874,6 +892,15 @@ const styles = StyleSheet.create({
     paddingVertical: space.md,
   },
   optionGlyph: { position: 'absolute', right: space.lg, top: 0, bottom: 0, justifyContent: 'center' },
+  // Takes whatever height the prompt leaves: the prompt stays up top and
+  // Tolly sits centred in the gap above the bank instead of a void.
+  orderTolly: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 150,
+    marginTop: space.lg,
+  },
   orderLine: {
     minHeight: 56,
     borderBottomWidth: 1,
