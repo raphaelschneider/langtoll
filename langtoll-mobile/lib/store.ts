@@ -23,6 +23,25 @@ export interface CustomTopic {
   level?: string;
 }
 
+/**
+ * Onboarding answers so far, and the screen the person was on. Saved as they
+ * go so a relaunch resumes instead of restarting: on launch day an ad install
+ * left the paywall, came back three minutes later and was sent to screen one.
+ * Cleared when onboarding finishes.
+ */
+export interface OnboardingDraft {
+  step: string;
+  name: string;
+  language: Language;
+  difficulty: number;
+  apps: string[];
+  goal: string | null;
+  forms: 'm' | 'f' | null;
+  daypart: string | null;
+  fareEx: number;
+  fareMin: number;
+}
+
 export interface AppState {
   /** ms epoch when the current unlock grant expires; null = locked. */
   unlockExpiresAt: number | null;
@@ -121,6 +140,8 @@ export interface AppState {
    * (the free preview week was removed 2026-09-05 — Plus is the trial, only).
    */
   firstLaunchAt: string | null;
+  /** Unfinished onboarding, see OnboardingDraft. Null once onboarded. */
+  onboardingDraft: OnboardingDraft | null;
 }
 
 const initialState: AppState = {
@@ -156,6 +177,7 @@ const initialState: AppState = {
   plusWillRenew: null,
   plusIsTrial: null,
   firstLaunchAt: null,
+  onboardingDraft: null,
   voiceOverride: null,
   voiceRate: null,
   voicePitch: null,
@@ -334,6 +356,11 @@ export function updateProfile(
   >
 ): void {
   setState(patch);
+}
+
+/** Save (or with null, clear) the unfinished onboarding. */
+export function saveOnboardingDraft(draft: OnboardingDraft | null): void {
+  setState({ onboardingDraft: draft });
 }
 
 export function isPlus(s: AppState = state): boolean {

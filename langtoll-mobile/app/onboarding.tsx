@@ -44,7 +44,7 @@ import { withAlpha } from '@/lib/color';
 import { levelForDifficulty } from '@/lib/pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
-import { updateProfile } from '@/lib/store';
+import { updateProfile, getState, isPlus, saveOnboardingDraft } from '@/lib/store';
 import { refreshGoalPack } from '@/lib/ai/topics';
 import {
   SPEAKER_FORM_EXAMPLES,
@@ -83,6 +83,24 @@ const STEPS = [
   'lock',
 ] as const;
 type Step = (typeof STEPS)[number];
+
+// The step list adapts to the chosen language: the speaker-forms question
+// only exists where the language HAS speaker-gendered forms — a German
+// learner once got a Portuguese grammar lesson here.
+function stepsFor(language: Language): readonly Step[] {
+  return SPEAKER_FORM_EXAMPLES[language ?? 'de'] ? STEPS : STEPS.filter((x) => x !== 'forms');
+}
+
+// Where a relaunch picks up. Mid-loader goes to the summary it was loading, and
+// the lock step is only for someone who has paid: a draft that says 'lock'
+// without Plus (a lapse, a refund) goes back to the wall.
+function resumeIndex(saved: string, steps: readonly Step[]): number {
+  let s = saved as Step;
+  if (s === 'printing') s = 'summary';
+  if (s === 'lock' && !isPlus()) s = 'paywall';
+  const i = steps.indexOf(s);
+  return i >= 0 ? i : 0;
+}
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 
@@ -334,44 +352,58 @@ export default function Onboarding() {
   // DEV ?step= jumps straight to any step (QA / store shoots — relift's rig):
   // langtoll:///onboarding?step=paywall. Ignored entirely in production builds.
   const jump = useLocalSearchParams<{ step?: string }>().step;
+  // Unfinished onboarding from a previous launch: answers and screen come back,
+  // so leaving the paywall to think no longer costs the whole questionnaire.
+  const draft = useRef(getState().onboardingDraft).current;
   const [stepIdx, setStepIdx] = useState(() => {
     if (process.env.EXPO_PUBLIC_DEV_TOOLS === '1' && jump) {
       const i = STEPS.indexOf(jump as Step);
       if (i >= 0) return i;
     }
-    return 0;
+    return draft ? resumeIndex(draft.step, stepsFor(draft.language)) : 0;
   });
 
   // answers
-  const [name, setName] = useState('');
+  const [name, setName] = useState(draft?.name ?? '');
   // Default to the first language we'd actually offer this user. Hardcoding
   // 'de' would leave a German-UI user pre-selected on a language the picker
   // (correctly) refuses to show them.
   const [language, setLanguage] = useState<Language>(
-    () => learnableLanguages(resolvedLocale())[0] ?? 'de'
+    () => draft?.language ?? learnableLanguages(resolvedLocale())[0] ?? 'de'
   );
-  // The step list adapts to the chosen language: the speaker-forms question
-  // only exists where the language HAS speaker-gendered forms — a German
-  // learner once got a Portuguese grammar lesson here.
-  const steps = (SPEAKER_FORM_EXAMPLES[language ?? 'de']
-    ? STEPS
-    : STEPS.filter((x) => x !== 'forms')) as readonly Step[];
+  const steps = stepsFor(language);
   const step: Step = steps[stepIdx];
 
   // Funnel visibility (relift's capture_step pattern): one event per screen
   // actually SEEN, including the initial hook — this is how we learn where
   // people stop instead of guessing. Early on, every lost step matters.
+  // The first step seen after a relaunch carries resumed: true, so the funnel
+  // can tell a comeback from a fresh walk.
+  const resumedRef = useRef(!!draft && stepIdx > 0);
   useEffect(() => {
-    track('onboarding_step', { step });
+    track('onboarding_step', resumedRef.current ? { step, resumed: true } : { step });
+    resumedRef.current = false;
   }, [step]);
-  const [difficulty, setDifficulty] = useState(3);
-  const [apps, setApps] = useState<string[]>(['TikTok', 'Instagram']);
-  const [goal, setGoal] = useState<string | null>(null);
-  const [forms, setForms] = useState<'m' | 'f' | null>(null);
+  const [difficulty, setDifficulty] = useState(draft?.difficulty ?? 3);
+  const [apps, setApps] = useState<string[]>(draft?.apps ?? ['TikTok', 'Instagram']);
+  const [goal, setGoal] = useState<string | null>(draft?.goal ?? null);
+  const [forms, setForms] = useState<'m' | 'f' | null>(draft?.forms ?? null);
   const goalScrollRef = useRef<ScrollView>(null);
-  const [daypart, setDaypart] = useState<Daypart | null>(null);
-  const [fareEx, setFareEx] = useState(5);
-  const [fareMin, setFareMin] = useState(30);
+  const [daypart, setDaypart] = useState<Daypart | null>((draft?.daypart as Daypart | null) ?? null);
+  const [fareEx, setFareEx] = useState(draft?.fareEx ?? 5);
+  const [fareMin, setFareMin] = useState(draft?.fareMin ?? 30);
+
+  // Save as they go. Debounced so a slider drag is one write, not fifty; the
+  // finished flag stops a late write from resurrecting the draft after finish().
+  const finishedRef = useRef(false);
+  useEffect(() => {
+    if (finishedRef.current) return;
+    const id = setTimeout(() => {
+      if (finishedRef.current) return;
+      saveOnboardingDraft({ step, name, language, difficulty, apps, goal, forms, daypart, fareEx, fareMin });
+    }, 250);
+    return () => clearTimeout(id);
+  }, [step, name, language, difficulty, apps, goal, forms, daypart, fareEx, fareMin]);
   const [lockReady, setLockReady] = useState(false);
 
   // Which steps centre their body vertically.
@@ -462,6 +494,8 @@ export default function Onboarding() {
   const lang = t(`lang.${language}` as StringKey);
 
   function finish() {
+    finishedRef.current = true;
+    saveOnboardingDraft(null);
     const nudgeHour = DAYPARTS.find((d) => d.key === daypart)?.hour ?? null;
     updateProfile({
       onboarded: true,
