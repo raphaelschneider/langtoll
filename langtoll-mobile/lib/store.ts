@@ -203,6 +203,11 @@ export async function hydrate(): Promise<void> {
   emit();
 }
 
+/** True once the persisted state has been loaded — before that, `plan` is the default, not the user's. */
+export function isHydrated(): boolean {
+  return hydrated;
+}
+
 export function getState(): AppState {
   return state;
 }

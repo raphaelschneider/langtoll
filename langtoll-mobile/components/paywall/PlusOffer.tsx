@@ -26,6 +26,7 @@ import {
 import { track } from '@/lib/telemetry';
 import { useT } from '@/lib/i18n';
 import type { PaywallSource } from '@/lib/paywall';
+import { isPlus, useAppState } from '@/lib/store';
 
 function HowRow({ icon, title, detail }: { icon: any; title: string; detail: string }) {
   const theme = useTheme();
@@ -91,6 +92,17 @@ export function PlusOffer({
 
   const current = packages.find((p) => p.period === selected);
   const trial = current?.hasTrial;
+
+  // Plus can arrive while the wall is up without a tap landing here: a purchase
+  // that completed after the app was killed on the Apple sheet, a receipt picked
+  // up on reinstall, a family member's purchase. The entitlement listener flips
+  // the store; the wall must open on its own — a paid user who is told to pay
+  // again is the worst outcome a hard paywall can produce.
+  const plus = isPlus(useAppState());
+  useEffect(() => {
+    if (plus) onDone();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plus]);
 
   async function buy() {
     if (!current || busy) return;

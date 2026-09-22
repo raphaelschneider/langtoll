@@ -430,8 +430,9 @@ export default function Onboarding() {
   // 'paywall' does NOT skip. The way past it is starting the trial (or
   // restoring a purchase): founder call, 2026-09-16 — "they should at least
   // select a trial". The free tier still exists, as what a lapsed trial falls
-  // back to, not as a door you can walk through on day one. PlusOffer keeps
-  // one safety valve for a store that cannot sell (offline, products missing).
+  // back to, not as a door you can walk through on day one. HARD wall (founder,
+  // 2026-09-22): no safety valve either — a store that cannot sell shows its
+  // reason, and the user retries or restores. See canGoBack below for the arrow.
   const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms'];
   const showSkip = skippable.includes(step);
   const progress = stepIdx / (STEPS.length - 1);
@@ -440,9 +441,21 @@ export default function Onboarding() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   }
+  // No way back once the wall is up: the paywall is the only door (founder call,
+  // 2026-09-16), and the lock step is only reached by someone who just paid, so
+  // backing into the offer again is nonsense. The arrow hid itself on 'printing'
+  // only, so on launch day (2026-09-22) an ad install tapped back on the paywall,
+  // landed on summary, tapped back again, and was bounced by the loader five times.
+  const canGoBack = stepIdx > 0 && step !== 'printing' && step !== 'paywall' && step !== 'lock';
   function back() {
-    if (stepIdx === 0) return;
-    setStepIdx((i) => i - 1);
+    if (!canGoBack) return;
+    setStepIdx((i) => {
+      let j = i - 1;
+      // 'printing' is a 2.7s loader that auto-advances to summary, so landing on
+      // it from summary is a trap: back → printing → summary → back → … Skip it.
+      while (j > 0 && steps[j] === 'printing') j -= 1;
+      return j;
+    });
   }
   const derivedLevel = levelForDifficulty(difficulty);
   const pack = packFor(language, derivedLevel);
@@ -875,9 +888,11 @@ export default function Onboarding() {
                 {/* Title and the learner's own goal line ride INSIDE the offer's
                     scroll, so a long goal can never push the plans or the legal
                     links off the bottom. */}
+                {/* HARD paywall (founder, 2026-09-22): no onStoreUnavailable here.
+                    A failed purchase shows its reason and the user tries again
+                    or restores — nobody enters the app without Plus. */}
                 <PlusOffer
                   onDone={next}
-                  onStoreUnavailable={next}
                   source="onboarding"
                   header={
                     <>
@@ -934,7 +949,7 @@ export default function Onboarding() {
           {/* header: back + progress + skip */}
           <View style={[styles.header, band(L)]}>
             <PressableScale onPress={back} style={styles.headerBtn} haptic={null}>
-              {stepIdx > 0 && step !== 'printing' ? (
+              {canGoBack ? (
                 <Ionicons name="arrow-back" size={20} color={theme.inkSoft} />
               ) : null}
             </PressableScale>

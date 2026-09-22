@@ -11,13 +11,57 @@
 import { Platform } from 'react-native';
 import { applyEntitlement, type EntitlementMeta } from './store';
 import { scheduleTrialEndNotice } from './notify';
+import { track } from './telemetry';
+import { isHydrated, getState } from './store';
 
 // Every entitlement write goes through here so the store and the trial-end
 // warning always agree: a fresh Plus, a cancelled trial (willRenew flips) and
 // a lapse each re-evaluate the notice from the live entitlement shape.
-function applyPlan(plus: boolean, meta?: EntitlementMeta): void {
+/**
+ * What the admin needs to know about a plan change, read off CustomerInfo.
+ * `sandbox` is the flag that separates a TestFlight purchase from money: seven
+ * sandbox weeklies read as seven paying customers on launch day (2026-09-22).
+ */
+interface PlanReport {
+  period: Period | null;
+  sandbox: boolean | null;
+  rcUser: string | null;
+}
+
+/**
+ * Where a plan change came from, for attribution. purchase() sets this while a
+ * StoreKit sheet is up so that a listener firing before purchasePackage resolves
+ * still credits the wall that sold it, not 'listener'.
+ */
+let pending: { source: string; period: Period } | null = null;
+
+/**
+ * Every plan change is reported HERE, from the transition, not from the call
+ * site — so Plus that arrives through the listener (a purchase completed after
+ * the app was killed on the sheet, a receipt picked up on reinstall) and a lapse
+ * reach the admin too. Before this, only purchase() reported, so a lapsed device
+ * stayed "plus · active" on the server forever and a listener grant stayed free.
+ *
+ * `source` is the gate for a subscribe ('listener' when nobody asked); restore()
+ * reports itself and passes null so a restore is not counted as a sale.
+ */
+function applyPlan(plus: boolean, meta?: EntitlementMeta, report?: PlanReport, source: string | null = 'listener'): void {
+  // Before hydration the store holds the default plan, not the user's — a
+  // comparison would invent a "subscribed" on every launch of a Plus device.
+  const was = isHydrated() ? getState().plan : null;
   applyEntitlement(plus, meta);
   scheduleTrialEndNotice();
+  if (was === null) return;
+  if (plus && was !== 'plus' && source !== null) {
+    track('subscribed', {
+      period: pending?.period ?? report?.period ?? null,
+      source: pending?.source ?? source,
+      sandbox: report?.sandbox ?? null,
+      rcUser: report?.rcUser ?? null,
+    });
+  } else if (!plus && was === 'plus') {
+    track('unsubscribed', { sandbox: report?.sandbox ?? null, rcUser: report?.rcUser ?? null });
+  }
 }
 
 /** The 'plus' entitlement's shape, straight from RevenueCat's CustomerInfo. */
@@ -29,7 +73,18 @@ function entitlementMeta(info: any): EntitlementMeta {
     isTrial: e?.periodType ? e.periodType === 'TRIAL' : null,
   };
 }
-import { track } from './telemetry';
+
+/** The reporting shape of the same CustomerInfo — see PlanReport. */
+function planReport(info: any): PlanReport {
+  // On a lapse the entitlement is no longer under `active`; `all` still has it,
+  // with the product that was bought and whether it was sandbox.
+  const e = info?.entitlements?.active?.[PLUS_ENTITLEMENT] ?? info?.entitlements?.all?.[PLUS_ENTITLEMENT];
+  return {
+    period: PERIOD_BY_PRODUCT[e?.productIdentifier ?? ''] ?? null,
+    sandbox: typeof e?.isSandbox === 'boolean' ? e.isSandbox : null,
+    rcUser: typeof info?.originalAppUserId === 'string' ? info.originalAppUserId : null,
+  };
+}
 import { PLUS_ENTITLEMENT, PRODUCT_IDS, FALLBACK_PRICES, TRIAL_DAYS, type Period } from './plans';
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
@@ -192,7 +247,7 @@ export async function configurePurchases(): Promise<void> {
     // Apple Ads attribution: hands the AdServices token to RevenueCat so trials and
     // renewals trace back to the campaign/keyword. No ATT prompt needed. Fire-and-forget.
     Purchases.enableAdServicesAttributionTokenCollection?.().catch(() => {});
-    Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info), entitlementMeta(info)));
+    Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info), entitlementMeta(info), planReport(info)));
     await syncEntitlement();
   } catch {
     // bad key / pod not linked — stay on mock; rebuild to enable
@@ -204,7 +259,7 @@ export async function syncEntitlement(): Promise<void> {
   if (!purchasesEnabled()) return;
   try {
     const info = await rc().getCustomerInfo();
-    applyPlan(isPlusActive(info), entitlementMeta(info));
+    applyPlan(isPlusActive(info), entitlementMeta(info), planReport(info));
   } catch {
     // offline / not configured — keep last known plan
   }
@@ -342,14 +397,16 @@ export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<Pu
       track('purchase_unavailable');
       return 'error';
     }
-    applyPlan(true); // mock: grant Plus locally
+    applyPlan(true, undefined, undefined, source); // mock: grant Plus locally (telemetry is off in mock builds)
     return 'purchased';
   }
+  pending = { source, period: pkg.period };
   try {
     const { customerInfo } = await rc().purchasePackage(pkg.raw);
-    applyPlan(isPlusActive(customerInfo), entitlementMeta(customerInfo));
+    // 'subscribed' is reported by applyPlan on the free → plus transition, with
+    // this wall as its source (via `pending`, even if the listener got there first).
+    applyPlan(isPlusActive(customerInfo), entitlementMeta(customerInfo), planReport(customerInfo), source);
     if (isPlusActive(customerInfo)) {
-      track('subscribed', { period: pkg.period, source });
       return 'purchased';
     }
     // Apple ACCEPTED the purchase (no throw) but the entitlement is not active.
@@ -374,6 +431,8 @@ export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<Pu
       'unknown store error';
     track('purchase_failed', { period: pkg.period, reason: String(lastError).slice(0, 60) });
     return 'error';
+  } finally {
+    pending = null;
   }
 }
 
@@ -383,8 +442,11 @@ export async function restore(): Promise<boolean> {
   try {
     const info = await rc().restorePurchases();
     const active = isPlusActive(info);
-    applyPlan(active, entitlementMeta(info));
-    if (active) track('restored');
+    const report = planReport(info);
+    // source null: a restore is not a sale. It reports itself below, with the
+    // same shape, so the server mirror still learns the plan + sandbox flag.
+    applyPlan(active, entitlementMeta(info), report, null);
+    if (active) track('restored', { period: report.period, sandbox: report.sandbox, rcUser: report.rcUser });
     return active;
   } catch {
     return false;
