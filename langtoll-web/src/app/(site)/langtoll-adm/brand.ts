@@ -47,4 +47,27 @@ export const BRAND_CSS = `
 }
 .adm input, .adm select, .adm textarea { color: var(--adm-ink); background: var(--adm-surface); border-color: var(--adm-line); }
 .adm code { color: var(--adm-ink); }
+
+/* Phones. The page is inline-styled for desktop; these override the sizes that
+   force sideways scrolling: 32px gutters, 300-380px minimum panel widths, the
+   40px title, one KPI card per row. Wide tables still scroll inside their card,
+   with the first column (the device) pinned so a row stays readable. */
+@media (max-width: 640px) {
+  .adm { padding: 20px 14px 40px !important; }
+  .adm .adm-h1 { font-size: 30px !important; margin: 2px 0 14px !important; }
+  .adm .adm-h2 { font-size: 20px !important; }
+  .adm .adm-tabs { overflow-x: auto; scrollbar-width: none; margin-bottom: 18px !important; }
+  .adm .adm-tabs a { padding: 10px 12px !important; white-space: nowrap; }
+  .adm .adm-grid { gap: 10px !important; }
+  .adm .adm-stat { flex: 1 1 calc(50% - 5px) !important; min-width: 0 !important; padding: 14px 16px !important; border-radius: 16px !important; }
+  .adm .adm-stat-label { font-size: 11px !important; letter-spacing: 0.8px !important; }
+  .adm .adm-stat-value { font-size: 26px !important; }
+  .adm .adm-panel { min-width: 0 !important; flex-basis: 100% !important; max-width: 100% !important; padding: 16px !important; border-radius: 16px !important; }
+  .adm .fn-table th:first-child, .adm .fn-table td:first-child { position: sticky; left: 0; z-index: 1; background: var(--adm-surface); }
+  .adm .adm-lookup input { width: 100% !important; box-sizing: border-box; }
+  .adm .adm-lookup button { margin: 8px 0 0 !important; width: 100%; }
+  .adm .adm-support table { display: block; overflow-x: auto; max-width: 100%; }
+  .adm .adm-support code { word-break: break-all; }
+  .adm .adm-support td:first-child:not(:only-child) { white-space: nowrap; }
+}
 `;

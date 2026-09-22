@@ -99,6 +99,7 @@ function Stat({ label, value, sub, tint, hint }: { label: string; value: string;
   return (
     <div
       title={hint}
+      className="adm-stat"
       style={{
         background: BRAND.surface,
         border: `1px solid ${BRAND.line}`,
@@ -109,10 +110,10 @@ function Stat({ label, value, sub, tint, hint }: { label: string; value: string;
         cursor: hint ? 'help' : undefined,
       }}
     >
-      <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600 }}>
+      <div className="adm-stat-label" style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600 }}>
         {label}
       </div>
-      <div style={{ fontSize: 34, fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, color: tint ?? BRAND.ink, marginTop: 6 }}>{value}</div>
+      <div className="adm-stat-value" style={{ fontSize: 34, fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, color: tint ?? BRAND.ink, marginTop: 6 }}>{value}</div>
       {sub && <div style={{ fontSize: 13, color: BRAND.inkSoft, marginTop: 2 }}>{sub}</div>}
     </div>
   );
@@ -127,7 +128,7 @@ function Tabs({ active }: { active: TabKey }) {
     { key: 'support' as const, label: 'Support', href: '/langtoll-adm?tab=support' },
   ];
   return (
-    <div style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${BRAND.line}`, margin: '0 0 28px' }}>
+    <div className="adm-tabs" style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${BRAND.line}`, margin: '0 0 28px' }}>
       {tabs.map((t) => (
         <a
           key={t.key}
@@ -187,7 +188,7 @@ async function DashboardTab() {
   return (
     <>
         {/* KPIs */}
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        <div className="adm-grid" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <Stat
             label="Users"
             value={String(users)}
@@ -219,21 +220,21 @@ async function DashboardTab() {
         </div>
 
         {/* Charts */}
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16 }}>
+        <div className="adm-grid" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16 }}>
           <BarChart data={signups} color={BRAND.accent} title="New users · last 30 days" />
           <BarChart data={activity} color={BRAND.pine} title="Daily active devices · last 30 days" />
         </div>
 
         {/* AI usage & cost */}
-        <h2 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 24, margin: '36px 0 12px' }}>AI usage &amp; cost</h2>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        <h2 className="adm-h2" style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 24, margin: '36px 0 12px' }}>AI usage &amp; cost</h2>
+        <div className="adm-grid" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <Stat label="AI packs today" value={String(todayUsage.topics)} sub={`${sum7.topics} in 7 days`} tint={BRAND.amber} hint={`${todayUsage.topics} pack generations today · ${sum7.topics} over the last 7 days`} />
           <Stat label="Audio renders today" value={String(todayUsage.tts)} sub={`${sum7.tts} in 7 days`} tint={BRAND.pine} hint={`${todayUsage.tts} JIT tts files today · ${sum7.tts} over the last 7 days`} />
           <Stat label="Est. cost today" value={`$${costToday.toFixed(2)}`} sub="pack tokens + tts characters" tint={BRAND.accent} hint={`${(todayUsage.tokensIn + todayUsage.tokensOut).toLocaleString()} tokens + ${todayUsage.ttsChars.toLocaleString()} tts chars ≈ $${costToday.toFixed(4)}`} />
           <Stat label="Est. $/day" value={`$${costPerDay7.toFixed(2)}`} sub="7-day average" hint={`$${estimateCostUSD(sum7).toFixed(2)} over 7 days ≈ $${costPerDay7.toFixed(4)}/day`} />
           <Stat label="Chat tokens (7d)" value={`${Math.round((sum7.tokensIn + sum7.tokensOut) / 1000)}k`} sub={`${Math.round(sum7.tokensIn / 1000)}k in · ${Math.round(sum7.tokensOut / 1000)}k out`} hint={`${(sum7.tokensIn + sum7.tokensOut).toLocaleString()} tokens · ${sum7.tokensIn.toLocaleString()} in / ${sum7.tokensOut.toLocaleString()} out`} />
         </div>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16 }}>
+        <div className="adm-grid" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16 }}>
           <BarChart data={topicsDays} color={BRAND.amber} title="AI packs generated · last 30 days" />
           <BarChart data={ttsDays} color={BRAND.pine} title="Audio files rendered · last 30 days" />
         </div>
@@ -241,9 +242,9 @@ async function DashboardTab() {
           Rough estimate from public model prices (gpt-4o ≈ $2.50/$10 per 1M in/out tokens, tts ≈ $15 per 1M characters). Cached packs and already-rendered audio aren’t billed — this counts actual OpenAI calls only.
         </div>
 
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16, alignItems: 'flex-start' }}>
+        <div className="adm-grid" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 16, alignItems: 'flex-start' }}>
           {/* Events 7d */}
-          <div style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, flex: 1, minWidth: 300 }}>
+          <div className="adm-panel" style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, flex: 1, minWidth: 300 }}>
             <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600, marginBottom: 16 }}>
               Events · last 7 days
             </div>
@@ -264,11 +265,12 @@ async function DashboardTab() {
           </div>
 
           {/* Recent users */}
-          <div style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, flex: 1.4, minWidth: 380 }}>
+          <div className="adm-panel" style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, flex: 1.4, minWidth: 380 }}>
             <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600, marginBottom: 16 }}>
               Recent users
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <div style={{ overflowX: 'auto' }}>
+            <table className="fn-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ color: BRAND.inkSoft, textAlign: 'left' }}>
                   <th style={{ padding: '6px 4px', fontWeight: 600 }}>Device</th>
@@ -315,11 +317,12 @@ async function DashboardTab() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
         {/* Pricing editor — MySQL is the source of truth for the landing card + MRR */}
-        <div style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, marginTop: 16, maxWidth: 520 }}>
+        <div className="adm-panel" style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, marginTop: 16, maxWidth: 520 }}>
           <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: BRAND.inkSoft, fontWeight: 600, marginBottom: 4 }}>
             Pricing
           </div>
@@ -381,7 +384,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       <style>{BRAND_CSS}</style>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: BRAND.accent, fontWeight: 700, fontFamily: FONT.mono }}>LangToll</div>
-        <h1 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
+        <h1 className="adm-h1" style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 40, margin: '4px 0 20px' }}>Admin</h1>
         <Tabs active={active} />
         {active === 'support' ? await SupportTab(code) : active === 'funnel' ? await FunnelTab(days, test) : await DashboardTab()}
       </div>
@@ -443,16 +446,16 @@ async function FunnelTab(daysRaw?: string, testRaw?: string) {
         {report.window} · generated {report.generatedAt.replace('T', ' ').slice(0, 16)} UTC · {report.excludedTest} test device{report.excludedTest === 1 ? '' : 's'} {excludeTest ? 'hidden' : 'included'}
       </div>
 
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+      <div className="adm-grid" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         {report.kpis.map((k) => (
           <Stat key={k.label} label={k.label} value={k.value} sub={k.sub} />
         ))}
       </div>
 
       {report.sections.map((s) => (
-        <div key={s.key} style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, marginTop: 20 }}>
+        <div key={s.key} className="adm-panel" style={{ background: BRAND.surface, border: `1px solid ${BRAND.line}`, borderRadius: 20, padding: 24, marginTop: 20 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: s.note ? 4 : 14 }}>
-            <h2 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 22, margin: 0, flex: 1 }}>{s.title}</h2>
+            <h2 className="adm-h2" style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 22, margin: 0, flex: 1 }}>{s.title}</h2>
             <CopyButton text={sectionToText(s)} />
           </div>
           {s.note && <div style={{ fontSize: 13, color: BRAND.inkSoft, marginBottom: 14 }}>{s.note}</div>}
@@ -599,9 +602,9 @@ async function SupportTab(rawCode?: string) {
   }
 
   return (
-    <div>
-      <h2 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 24, margin: '0 0 12px' }}>Support lookup</h2>
-      <form method="get" action="/langtoll-adm">
+    <div className="adm-support">
+      <h2 className="adm-h2" style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, fontSize: 24, margin: '0 0 12px' }}>Support lookup</h2>
+      <form method="get" action="/langtoll-adm" className="adm-lookup">
         <input type="hidden" name="tab" value="support" />
         <input
           name="code"
