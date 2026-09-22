@@ -2,7 +2,7 @@
 """Localized store-shot capture driver. Seeds AsyncStorage, launches, screenshots.
 
 usage: cap.py <udid> <kind> <ui_locale> <course> <out.png>
-kinds: home_locked | home_active | wallet | order | done | hook | lock | island
+kinds: home_locked | home_active | wallet | order | order_done | done | hook | lock | island
 """
 import json, os, random, re, subprocess, sys, time, datetime
 
@@ -124,8 +124,8 @@ def main():
     time.sleep(4)
     if kind == 'wallet':
         openurl(udid, 'langtoll://wallet'); time.sleep(2.5)
-    elif kind in ('order', 'done'):
-        openurl(udid, f'langtoll://session?shot={kind}'); time.sleep(4 if kind == 'done' else 3)
+    elif kind in ('order', 'done', 'order_done'):
+        openurl(udid, f'langtoll://session?shot={kind}'); time.sleep(4 if kind in ('done', 'order_done') else 3)
     elif kind == 'hook':
         want = sys.argv[6].lower()[:5]  # localized language name that must be on screen
         for _ in range(60):

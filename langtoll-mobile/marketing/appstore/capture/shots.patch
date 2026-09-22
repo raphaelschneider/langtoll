@@ -1,6 +1,7 @@
-diff --color -ru a/app/session.tsx b/app/session.tsx
---- a/langtoll-mobile/app/session.tsx	2026-09-19 17:00:05
-+++ b/langtoll-mobile/app/session.tsx	2026-09-19 17:00:06
+diff --git a/langtoll-mobile/app/session.tsx b/langtoll-mobile/app/session.tsx
+index 9bdb806..91092e1 100644
+--- a/langtoll-mobile/app/session.tsx
++++ b/langtoll-mobile/app/session.tsx
 @@ -5,7 +5,8 @@
  import React, { useEffect, useMemo, useRef, useState } from 'react';
  import { View, ScrollView, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState as RNAppState } from 'react-native';
@@ -11,18 +12,19 @@ diff --color -ru a/app/session.tsx b/app/session.tsx
  import Ionicons from '@expo/vector-icons/Ionicons';
  import * as Haptics from 'expo-haptics';
  import { AuroraBackground } from '@/components/skia/AuroraBackground';
-@@ -59,17 +60,27 @@
+@@ -59,18 +60,27 @@ export default function Session() {
    const langName = t(`lang.${pack.language}` as StringKey);
  
    const seed = useRef(Math.floor(Math.random() * 2 ** 31)).current;
 -  const plan = useMemo(
 -    () =>
 -      buildSession(pack, progressRows(), effectiveExercisesPerUnlock(), seed, {
+-        // The level sets the mix; see mixDifficultyForLevel.
 +  const { shot } = useLocalSearchParams<{ shot?: string }>();
 +  const plan = useMemo(() => {
 +    const build = (sd: number) =>
 +      buildSession(pack, progressRows(), effectiveExercisesPerUnlock(), sd, {
-         difficulty: getState().difficulty,
+         difficulty: mixDifficultyForLevel(pack.level),
 -        // Gate generation, not just playback: a 'listen' exercise with no audio
 -        // has no question to answer, so a free user must never be dealt one.
          audio: canUseAudio() && getState().soundEnabled,
@@ -31,7 +33,7 @@ diff --color -ru a/app/session.tsx b/app/session.tsx
 -    [pack, seed]
 -  );
 +      });
-+    if (SHOTS && shot === 'order') {
++    if (SHOTS && (shot === 'order' || shot === 'order_done')) {
 +      for (let sd = 1; sd < 3000; sd++) {
 +        const p = build(sd);
 +        const k = p.exercises.findIndex((e) => e.type === 'order' && e.options!.length >= 5 && e.options!.length <= 7);
@@ -47,7 +49,7 @@ diff --color -ru a/app/session.tsx b/app/session.tsx
  
    // One per fare attempt; the completed/abandoned pair closes it out.
    useEffect(() => {
-@@ -128,6 +139,14 @@
+@@ -135,6 +145,28 @@ export default function Session() {
    }, [plan]);
  
    const ex: Exercise = plan.exercises[idx];
@@ -57,15 +59,30 @@ diff --color -ru a/app/session.tsx b/app/session.tsx
 +      setCorrectCount(total);
 +      setPhase('done');
 +    }
++    if (SHOTS && shot === 'order_done') {
++      // The sentence built correctly and checked: line full, banner green, Tolly happy.
++      const e = plan.exercises[0];
++      const used = new Set<number>();
++      const picked = e.answer.split(' ').map((w) => {
++        const i = e.options!.findIndex((o, j) => o === w && !used.has(j));
++        used.add(i);
++        return i;
++      });
++      setOrderPicked(picked);
++      setPicked(e.answer);
++      setGrade('correct');
++      setPhase('feedback');
++    }
 +    // eslint-disable-next-line react-hooks/exhaustive-deps
 +  }, []);
    useEffect(() => {
      setAudioOffline(audioNetworkFailed());
    }, [idx]);
-diff --color -ru a/lib/purchases.ts b/lib/purchases.ts
---- a/langtoll-mobile/lib/purchases.ts	2026-09-19 17:00:05
-+++ b/langtoll-mobile/lib/purchases.ts	2026-09-19 17:00:06
-@@ -42,7 +42,7 @@
+diff --git a/langtoll-mobile/lib/purchases.ts b/langtoll-mobile/lib/purchases.ts
+index 67f2837..714970d 100644
+--- a/langtoll-mobile/lib/purchases.ts
++++ b/langtoll-mobile/lib/purchases.ts
+@@ -97,7 +97,7 @@ const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
  // So the mock is allowed ONLY where dev tooling is: __DEV__, or a Release build
  // explicitly flagged with EXPO_PUBLIC_DEV_TOOLS=1 (the on-device test builds).
  // A real production build has neither, so it cannot mock — it fails loudly instead.
@@ -74,10 +91,11 @@ diff --color -ru a/lib/purchases.ts b/lib/purchases.ts
  
  /** True when a release build is missing its key — purchases are impossible. */
  export function purchasesMisconfigured(): boolean {
-diff --color -ru a/lib/telemetry.ts b/lib/telemetry.ts
---- a/langtoll-mobile/lib/telemetry.ts	2026-09-19 17:00:06
-+++ b/langtoll-mobile/lib/telemetry.ts	2026-09-19 17:00:06
-@@ -22,7 +22,7 @@
+diff --git a/langtoll-mobile/lib/telemetry.ts b/langtoll-mobile/lib/telemetry.ts
+index 23dc622..d565147 100644
+--- a/langtoll-mobile/lib/telemetry.ts
++++ b/langtoll-mobile/lib/telemetry.ts
+@@ -22,7 +22,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? null;
   *
   * A genuine EAS build has neither, so production reporting is unaffected.
   */

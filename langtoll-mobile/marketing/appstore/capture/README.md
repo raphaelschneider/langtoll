@@ -17,7 +17,8 @@ made (2026-09-19). `../store_shots.py --locale <x>` composes them; finals live i
 ## Recipe
 
 1. `git apply capture/shots.patch` (from the repo root) — capture-only hooks:
-   `session?shot=order|done` deep links, Plus mock allowed, telemetry off.
+   `session?shot=order|order_done|done` deep links (order_done: the sentence built
+   correctly and checked, green banner, Tolly happy; raws as `practice_done.png`), Plus mock allowed, telemetry off.
    **Never commit it; `git checkout` those three files afterwards.**
 2. Release sim build with the flags, telemetry pointed at a dead address:
    `EXPO_NO_DOTENV=1 EXPO_PUBLIC_SHOTS=1 EXPO_PUBLIC_API_URL=http://127.0.0.1:9 EXPO_PUBLIC_DEV_TOOLS=0 EXPO_PUBLIC_REVENUECAT_IOS_KEY= RCT_USE_PREBUILT_RNCORE=0 xcodebuild -workspace ios/LangToll.xcworkspace -scheme LangToll -configuration Release -sdk iphonesimulator -destination 'id=<udid>' build`
