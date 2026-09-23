@@ -989,23 +989,31 @@ export default function Onboarding() {
         >
           {/* header: back + progress + skip */}
           <View style={[styles.header, band(L)]}>
-            <PressableScale onPress={back} style={styles.headerBtn} haptic={null}>
-              {canGoBack ? (
+            {/* Only a VISIBLE control may be tappable. Both slots used to be
+                pressables on every step with the label hidden, so the empty top
+                right advanced past the hard paywall (seen in telemetry
+                2026-09-23). An empty slot is a plain View that holds the layout. */}
+            {canGoBack ? (
+              <PressableScale onPress={back} style={styles.headerBtn} haptic={null}>
                 <Ionicons name="arrow-back" size={20} color={theme.inkSoft} />
-              ) : null}
-            </PressableScale>
+              </PressableScale>
+            ) : (
+              <View style={styles.headerBtn} />
+            )}
             <View style={[styles.track, { backgroundColor: theme.fillStrong }]}>
               <View
                 style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: theme.accent }]}
               />
             </View>
-            <PressableScale onPress={next} style={styles.headerBtn} haptic={null}>
-              {showSkip ? (
+            {showSkip ? (
+              <PressableScale onPress={next} style={styles.headerBtn} haptic={null}>
                 <Text variant="label" color="inkFaint">
                   {t('common.skip')}
                 </Text>
-              ) : null}
-            </PressableScale>
+              </PressableScale>
+            ) : (
+              <View style={styles.headerBtn} />
+            )}
           </View>
 
           {/* The paywall keeps a plain flex:1 View: PlusOffer fills it and pins
