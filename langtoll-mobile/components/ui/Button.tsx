@@ -74,9 +74,12 @@ export function Button({
   );
 }
 
+/** The button's fixed height — exported so a layout can hold a slot for one. */
+export const BUTTON_HEIGHT = 54;
+
 const styles = StyleSheet.create({
   base: {
-    height: 54,
+    height: BUTTON_HEIGHT,
     borderRadius: radius.pill,
     paddingHorizontal: space.xl,
     justifyContent: 'center',

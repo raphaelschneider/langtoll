@@ -14,7 +14,7 @@ import { CollectBadge } from '@/components/pass/CollectBadge';
 import { Entrance } from '@/components/ui/Entrance';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
-import { Button } from '@/components/ui/Button';
+import { Button, BUTTON_HEIGHT } from '@/components/ui/Button';
 import { useTheme, space, radius, font, shadow } from '@/design/theme';
 import { useLayout, band, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
@@ -51,6 +51,10 @@ const COLLECT_BONUS_MIN = 5; // extra phone-time minutes earned per word mastere
 import { useT, type StringKey } from '@/lib/i18n';
 
 type Phase = 'answer' | 'feedback' | 'done';
+const noop = () => {};
+/** The big Tolly under the sentence line: full size, and the floor he shrinks to. */
+const ORDER_TOLLY_MAX = 132;
+const ORDER_TOLLY_MIN = 88;
 
 export default function Session() {
   const theme = useTheme();
@@ -189,6 +193,10 @@ export default function Session() {
   // foreground re-runs the entrances cleanly.
   const [resumeTick, setResumeTick] = useState(0);
   const bodyScrollRef = useRef<ScrollView>(null);
+  // The body's viewport height and how much the sentence-builder Tolly has
+  // given up for this exercise — see tollySize below the early returns.
+  const bodyH = useRef(0);
+  const [tollyShrink, setTollyShrink] = useState<{ key: string; px: number }>({ key: '', px: 0 });
   // A word chip is under the finger: the body must not scroll (see useChipDrag).
   const [chipHeld, setChipHeld] = useState(false);
   // A chip unmounted mid-hold never reports its release; never carry the lock
@@ -357,7 +365,47 @@ export default function Session() {
   // The big Tolly under the sentence line (phone only) — when he is on screen
   // the feedback banner drops its own small one, one operator at a time.
   const orderTollyShown = isOrder && !L.regular;
+  // Tolly gives up height before anything has to scroll. The body's overflow
+  // (content taller than its viewport, measured) is taken off his size, down
+  // to a floor, so a long sentence with a two-line verdict still fits on one
+  // screen and the scroll-to-verdict has nothing to do. Keyed by exercise so
+  // each one starts at full size; he only ever shrinks within an exercise.
+  // The verdict box is in the layout from the first frame, so the overflow is
+  // the same in both phases and he settles before the first chip is placed.
+  const tollySize = Math.max(
+    ORDER_TOLLY_MIN,
+    ORDER_TOLLY_MAX - (tollyShrink.key === ex.key ? tollyShrink.px : 0),
+  );
+  const onBodyContentSize = (_w: number, h: number) => {
+    const over = h - bodyH.current;
+    if (!orderTollyShown || !bodyH.current || over <= 0) return;
+    const cur = tollyShrink.key === ex.key ? tollyShrink.px : 0;
+    const px = Math.min(ORDER_TOLLY_MAX - ORDER_TOLLY_MIN, cur + Math.ceil(over));
+    if (px !== cur) setTollyShrink({ key: ex.key, px });
+  };
   const orderMood = phase === 'feedback' ? (grade === 'wrong' ? 'sad' : 'happy') : 'stern';
+  // The banner, for a given grade. Rendered twice: once invisible as the sizer
+  // (with the longest prefix this exercise could get, so the box is never too
+  // small) and once for real when the verdict lands.
+  const almostPrefix = t('session.almost');
+  const correctPrefix = `${pack.flavor.correct} `;
+  const sizingGrade: Grade = almostPrefix.length >= correctPrefix.length ? 'almost' : 'correct';
+  const verdict = (g: Grade) => (
+    <View
+      style={[
+        styles.feedback,
+        { backgroundColor: g === 'correct' ? theme.accent : g === 'almost' ? theme.amber : theme.danger },
+      ]}
+    >
+      {/* The operator reacts, not a generic tick: Tolly is the one grading
+          you, and he is pleased or not. */}
+      {orderTollyShown ? null : <Tolly mood={g === 'wrong' ? 'sad' : 'happy'} size={36} />}
+      <Text variant="bodyMedium" style={{ color: g === 'wrong' ? '#FFFFFF' : theme.onAccent, flex: 1 }}>
+        {g === 'correct' ? correctPrefix : g === 'almost' ? almostPrefix : ''}
+        {ex.reveal}
+      </Text>
+    </View>
+  );
   // A 'listen' exercise the user cannot hear is unanswerable — and because our
   // own shield holds the phone until the session ends, being stuck here is a
   // trap with no way out. buildSession already excludes these when sound is
@@ -519,7 +567,11 @@ export default function Session() {
         </View>
       )}
 
-      {phase === 'feedback' && (
+      {/* Continue takes the Check button's slot for typed and built answers.
+          The tap exercises have no Check, so the slot is held open during the
+          answer (empty, untappable): the panel keeps one height across the
+          phases and the prompt above never re-centres when the verdict lands. */}
+      {phase === 'feedback' ? (
         <Button
           label={idx + 1 >= total ? t('session.finish') : t('common.continue')}
           glow
@@ -527,7 +579,9 @@ export default function Session() {
           full
           style={{ marginTop: space.md }}
         />
-      )}
+      ) : !isTyped && !isOrder ? (
+        <View style={{ height: BUTTON_HEIGHT, marginTop: space.md }} pointerEvents="none" />
+      ) : null}
     </View>
   );
 
@@ -621,6 +675,10 @@ export default function Session() {
             ref={bodyScrollRef}
             scrollEnabled={!chipHeld}
             style={{ flex: 1 }}
+            onLayout={(e) => {
+              bodyH.current = e.nativeEvent.layout.height;
+            }}
+            onContentSizeChange={onBodyContentSize}
             contentContainerStyle={[styles.body, band(L), opticalCenter(L)]}
             showsVerticalScrollIndicator={false}
           >
@@ -749,8 +807,14 @@ export default function Session() {
                   {ex.hint}
                 </Text>
               )}
-              {isOrder && phase === 'answer' && (
-                <Text variant="caption" color="inkFaint" style={{ marginTop: space.sm }}>
+              {/* The hint keeps its line after the answer (hidden, not gone):
+                  nothing above Tolly may change height between phases. */}
+              {isOrder && (
+                <Text
+                  variant="caption"
+                  color="inkFaint"
+                  style={{ marginTop: space.sm, opacity: phase === 'answer' ? 1 : 0 }}
+                >
                   {t('session.orderHint')}
                 </Text>
               )}
@@ -759,6 +823,19 @@ export default function Session() {
             {/* order: the sentence being built */}
             {isOrder && (
               <View style={[styles.orderLine, { borderColor: theme.line }]}>
+                {/* Sizer: the whole sentence, invisible, so the line owns its
+                    finished height before the first chip lands. Every row the
+                    sentence will need is reserved up front; placing words
+                    never pushes Tolly down. */}
+                <View
+                  style={styles.orderSizer}
+                  pointerEvents="none"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  <OrderBuilder words={ex.options!} interactive={false} onRemoveAt={noop} onReorder={noop} onHold={noop} />
+                </View>
+                <View style={styles.orderLive}>
                 {orderPicked.length === 0 ? (
                   <Text variant="body" color="inkFaint">
                     …
@@ -785,6 +862,7 @@ export default function Session() {
                     }
                   />
                 )}
+                </View>
               </View>
             )}
 
@@ -795,42 +873,32 @@ export default function Session() {
                 reaction, not a swap. iPad keeps the answers inline under the
                 prompt, so there is no gap to fill there. */}
             {isOrder && !L.regular && (
-              <View style={styles.orderTolly} pointerEvents="none">
+              <View style={[styles.orderTolly, { minHeight: tollySize }]} pointerEvents="none">
                 <Entrance key={`${ex.key}:${orderMood}`} from={phase === 'feedback' ? 8 : 14}>
-                  <Tolly mood={orderMood} size={132} />
+                  <Tolly mood={orderMood} size={tollySize} />
                 </Entrance>
               </View>
             )}
 
-            {/* feedback banner */}
-            {phase === 'feedback' && (
-              <Entrance from={6} style={{ marginTop: space.lg }}>
-                <View
-                  style={[
-                    styles.feedback,
-                    {
-                      backgroundColor:
-                        grade === 'correct'
-                          ? theme.accent
-                          : grade === 'almost'
-                            ? theme.amber
-                            : theme.danger,
-                    },
-                  ]}
-                >
-                  {/* The operator reacts, not a generic tick: Tolly is the
-                      one grading you, and he is pleased or not. */}
-                  {orderTollyShown ? null : <Tolly mood={grade === 'wrong' ? 'sad' : 'happy'} size={36} />}
-                  <Text
-                    variant="bodyMedium"
-                    style={{ color: grade === 'wrong' ? '#FFFFFF' : theme.onAccent, flex: 1 }}
-                  >
-                    {grade === 'correct' ? `${pack.flavor.correct} ` : grade === 'almost' ? t('session.almost') : ''}
-                    {ex.reveal}
-                  </Text>
-                </View>
-              </Entrance>
-            )}
+            {/* Verdict. Its box is part of the layout from the first frame —
+                an invisible copy sized for this exercise's reveal — so the
+                banner landing never moves anything above it. Tolly reacts in
+                place; he does not get shoved up to make room. */}
+            <View style={{ marginTop: space.lg }}>
+              <View
+                style={{ opacity: 0 }}
+                pointerEvents="none"
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
+                {verdict(sizingGrade)}
+              </View>
+              {phase === 'feedback' && (
+                <Entrance from={6} style={StyleSheet.absoluteFill}>
+                  {verdict(grade)}
+                </Entrance>
+              )}
+            </View>
             {audioOffline && audioAllowed ? (
               <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
                 {t('session.offlineVoice')}
@@ -903,20 +971,24 @@ const styles = StyleSheet.create({
   optionGlyph: { position: 'absolute', right: space.lg, top: 0, bottom: 0, justifyContent: 'center' },
   // Takes whatever height the prompt leaves: the prompt stays up top and
   // Tolly sits centred in the gap above the bank instead of a void.
+  // minHeight is Tolly's current size (set inline): with room he centres in
+  // the gap, without it he is exactly as tall as the gap allows.
   orderTolly: {
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 150,
     marginTop: space.lg,
   },
   orderLine: {
     minHeight: 56,
     borderBottomWidth: 1,
     marginTop: space.xl,
-    justifyContent: 'center',
     paddingBottom: space.sm,
   },
+  // The sizer sits in the flow (invisible) and sets the height; the live
+  // sentence is painted over it from the top-left, where the first chip goes.
+  orderSizer: { opacity: 0 },
+  orderLive: { position: 'absolute', top: 0, left: 0, right: 0, justifyContent: 'center', minHeight: 56 - space.sm },
   input: {
     height: 56,
     borderRadius: radius.md,
