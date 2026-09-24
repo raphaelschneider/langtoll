@@ -23,6 +23,7 @@ import { useTheme, space, radius } from '@/design/theme';
 import { useLayout, opticalCenter, MAX_WIDE_CONTENT } from '@/design/layout';
 import { TicketRow, ticketsForActivePack } from '@/components/wallet/TicketRow';
 import { withAlpha } from '@/lib/color';
+import { formatClock } from '@/lib/format';
 import { activePack } from '@/lib/pack';
 import { packFor } from '@/content';
 import {
@@ -69,6 +70,10 @@ export default function Home() {
   const langName = t(`lang.${pack.language}` as StringKey);
 
   const unlocked = isUnlocked(state, now);
+
+  // A night off: the shield is down without a pass (lib/store pauseLock).
+
+  const paused = isLockPaused(state, now);
   // How far through THIS level's words: drives the journey line's creep toward
   // the next station. Pack-scoped on purpose — words from a previous level or
   // an AI pack don't move you along the A1→B2 route.
@@ -172,13 +177,16 @@ export default function Home() {
           {/* Tolly at the booth, always — the original brief: happy when the toll is
               paid, sad when it isn't. Paws on the card's top edge, in the clear right
               third above it (the headline never reaches there). */}
+          {/* On a night off Tolly is asleep on the edge — the same seat, the
+              full-body sprite cropped like the peeks so only the head shows. */}
           <Tolly
-            mood={unlocked ? 'peek' : 'peekSad'}
+            mood={paused ? 'asleep' : unlocked ? 'peek' : 'peekSad'}
             size={64}
             style={{ position: 'absolute', top: -41, right: space.lg, zIndex: 1, height: 44 }}
           />
           <PassCard
-            state={unlocked ? 'active' : 'void'}
+            state={paused ? 'paused' : unlocked ? 'active' : 'void'}
+            pausedUntil={state.lockPausedUntil ?? undefined}
             remainingMs={unlockRemainingMs(state, now)}
             unlockMinutes={effectiveUnlockMinutes()}
             exercisesPerUnlock={effectiveExercisesPerUnlock()}
@@ -208,7 +216,7 @@ export default function Home() {
             <Tolly mood="asleep" size={36} />
             <Text variant="caption" color="inkSoft" style={{ flex: 1 }}>
               {t('pause.home', {
-                time: new Date(state.lockPausedUntil!).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+                time: formatClock(state.lockPausedUntil!),
               })}
             </Text>
             <PressableScale onPress={resumeLock} haptic={null} accessibilityRole="button">
@@ -266,9 +274,15 @@ export default function Home() {
     <>
       <Entrance delay={220}>
         <Button
-          label={unlocked ? t('home.topUp', { min: effectiveUnlockMinutes() }) : t('home.practice')}
+          label={
+            unlocked
+              ? t('home.topUp', { min: effectiveUnlockMinutes() })
+              : paused
+                ? t('home.practiceAnyway')
+                : t('home.practice')
+          }
           variant={unlocked ? 'pine' : 'primary'}
-          icon={unlocked ? 'flash' : 'lock-open'}
+          icon={unlocked ? 'flash' : paused ? 'book' : 'lock-open'}
           glow={!unlocked}
           onPress={() => router.push('/session')}
           full

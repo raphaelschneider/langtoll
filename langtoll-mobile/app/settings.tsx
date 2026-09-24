@@ -31,12 +31,14 @@ import {
   pauseLock,
   resumeLock,
 } from '@/lib/store';
+import { nextMorning } from '@/lib/pause';
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
 import { isNativeAvailable, relockStatus, grantUnlock, gateDiagnostics, clearSelection } from '@/lib/blocking';
 import { supportCode, SUPPORT_EMAIL } from '@/lib/device';
 import { scheduleTrialEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
+import { formatClock } from '@/lib/format';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
 import {
   canUseAudio,
@@ -83,17 +85,6 @@ import type { Level } from '@/content/german';
 const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 
 /** 8:00 next morning (today's if it is still ahead), as epoch ms. */
-function nextMorning(): number {
-  const d = new Date();
-  d.setHours(8, 0, 0, 0);
-  if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
-  return d.getTime();
-}
-
-function formatClock(ms: number): string {
-  return new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-}
-
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2'];
 // 'system' first, then every locale we ship, labelled with its own endonym so

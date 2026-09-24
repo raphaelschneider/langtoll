@@ -12,8 +12,8 @@ import { Text } from '@/components/ui/Text';
 import { Tolly } from '@/components/ui/Tolly';
 import { useTheme, space, radius } from '@/design/theme';
 import { useT } from '@/lib/i18n';
-import { useAppState, rollRecap, dismissRecap, weekStartISO } from '@/lib/store';
-import { todayISO, addDays } from '@/lib/date';
+import { useAppState, rollRecap, dismissRecap } from '@/lib/store';
+import { recapSpan, recapCardVisible } from '@/lib/recap';
 import { track } from '@/lib/telemetry';
 
 export function WeeklyRecap() {
@@ -28,14 +28,7 @@ export function WeeklyRecap() {
   }, []);
 
   const last = state.recapLast;
-  const thisWeek = weekStartISO();
-  const today = todayISO();
-  const visible =
-    !!last &&
-    last.fares > 0 &&
-    last.weekStart === addDays(thisWeek, -7) && // the week just gone, not an older one
-    today <= addDays(thisWeek, 1) && // Monday or Tuesday
-    state.recapDismissedWeek !== last.weekStart;
+  const visible = recapCardVisible(last, state.recapDismissedWeek);
 
   useEffect(() => {
     if (visible && last) track('recap_shown', { fares: last.fares, words: last.words, minutes: last.minutes });
@@ -43,7 +36,7 @@ export function WeeklyRecap() {
   }, [visible]);
 
   if (!visible || !last) return null;
-  const hours = Math.round(last.minutes / 60);
+  const span = recapSpan(last.minutes);
 
   return (
     <Entrance delay={320}>
@@ -54,7 +47,9 @@ export function WeeklyRecap() {
             {t('recap.cardOver')}
           </Text>
           <Text variant="bodyMedium" style={{ marginTop: 2 }}>
-            {t('recap.cardBody', { fares: last.fares, words: last.words, hours })}
+            {span.unit === 'minutes'
+              ? t('recap.cardBodyMinutes', { fares: last.fares, words: last.words, mins: span.value })
+              : t('recap.cardBody', { fares: last.fares, words: last.words, hours: span.value })}
           </Text>
           <Text variant="caption" color="inkSoft" style={{ marginTop: 2 }}>
             {t('recap.cardNote')}

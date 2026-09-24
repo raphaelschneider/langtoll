@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { Linking } from 'react-native';
 import { t } from '@/lib/i18n';
 import { getState, isPlus } from '@/lib/store';
+import { recapSpan } from '@/lib/recap';
 import { describePlusLoss } from '@/lib/plans';
 
 /**
@@ -205,13 +206,18 @@ export function scheduleWeeklyRecap(): void {
       fireAt.setHours(19, 0, 0, 0);
       fireAt.setDate(fireAt.getDate() + ((7 - fireAt.getDay()) % 7)); // this Sunday
       if (fireAt <= new Date()) fireAt.setDate(fireAt.getDate() + 7); // past 19:00 → next
-      const hours = Math.round(s.recapMinutes / 60);
+      const span = recapSpan(s.recapMinutes);
       const attachments = await tollyAttachment(require('../assets/tolly/tolly-happy.png'));
       await Notifications.scheduleNotificationAsync({
         identifier: RECAP_ID,
         content: {
           title: t('recap.notifTitle', { lang: t(`lang.${s.learningLanguage}` as Parameters<typeof t>[0]) }),
-          body: t('recap.notifBody', { fares: s.recapFares, words: s.recapWords, hours }),
+          body:
+            span.unit === 'minutes'
+              ? t('recap.notifBodyMinutes', { fares: s.recapFares, words: s.recapWords, mins: span.value })
+              : span.unit === 'hour'
+                ? t('recap.notifBodyHour', { fares: s.recapFares, words: s.recapWords })
+                : t('recap.notifBody', { fares: s.recapFares, words: s.recapWords, hours: span.value }),
           data: { url: 'langtoll://' },
           attachments,
         },

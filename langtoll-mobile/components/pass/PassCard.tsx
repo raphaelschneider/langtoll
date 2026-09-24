@@ -18,6 +18,7 @@ import { Text } from '@/components/ui/Text';
 import { useTheme, radius, space, shadow, font } from '@/design/theme';
 import { t } from '@/lib/i18n';
 import { withAlpha } from '@/lib/color';
+import { formatClock } from '@/lib/format';
 
 // Deterministic pseudo-barcode: widths cycle through a fixed pattern.
 const BARCODE = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 1, 2, 2, 1, 4, 1, 3, 1, 2, 1, 1, 3];
@@ -46,8 +47,13 @@ function Shimmer() {
 }
 
 interface Props {
-  /** 'active' = an unlock grant is running; 'void' = apps are locked. */
-  state: 'active' | 'void';
+  /**
+   * 'active' = an unlock grant is running; 'void' = apps are locked;
+   * 'paused' = a night off — the shield is down without a pass and comes
+   * back on its own at `pausedUntil`.
+   */
+  state: 'active' | 'void' | 'paused';
+  pausedUntil?: number;
   remainingMs?: number;
   unlockMinutes: number;
   exercisesPerUnlock: number;
@@ -66,6 +72,7 @@ function formatMs(ms: number): string {
 
 export function PassCard({
   state,
+  pausedUntil,
   remainingMs = 0,
   unlockMinutes,
   exercisesPerUnlock,
@@ -75,11 +82,18 @@ export function PassCard({
 }: Props) {
   const theme = useTheme();
   const active = state === 'active';
+  const paused = state === 'paused';
+  // The night-off chip and stamp: calm brand teal, never the danger red of
+  // EXPIRED — nothing is wrong, the gate is open on purpose.
+  const pausedColor = theme.accent;
+  const untilText = paused && pausedUntil ? formatClock(pausedUntil) : '';
   // "Through the fare gate" = green. Teal stays the brand/neutral colour (logo, locked state);
   // the live pass and its top-up CTA share the validation green so they read as one state, not
   // two competing accents.
   const activeColor = theme.pine;
   const progress = active ? Math.min(1, remainingMs / (unlockMinutes * 60_000)) : 0;
+
+  const chipColor = active ? activeColor : paused ? pausedColor : theme.danger;
 
   const barcode = useMemo(() => BARCODE, []);
 
@@ -92,7 +106,9 @@ export function PassCard({
       accessibilityLabel={
         active
           ? `${t('pass.active')}. ${formatMs(remainingMs)} ${t('pass.timeLeft')}`
-          : `${t('pass.locked')}. ${t('pass.fare', { ex: exercisesPerUnlock, min: unlockMinutes })}`
+          : paused
+            ? `${t('pass.open')}. ${t('pass.returnsAt', { time: untilText })}`
+            : `${t('pass.locked')}. ${t('pass.fare', { ex: exercisesPerUnlock, min: unlockMinutes })}`
       }
       style={[
         styles.wrap,
@@ -152,12 +168,15 @@ export function PassCard({
         </View>
         {active && <Shimmer />}
         {!active && (
-          <View pointerEvents="none" style={[styles.stamp, { borderColor: withAlpha(theme.danger, 0.4) }]}>
+          <View
+            pointerEvents="none"
+            style={[styles.stamp, { borderColor: withAlpha(paused ? pausedColor : theme.danger, 0.4) }]}
+          >
             <Text
               variant="overline"
-              style={{ color: withAlpha(theme.danger, 0.55), fontSize: 15, letterSpacing: 3 }}
+              style={{ color: withAlpha(paused ? pausedColor : theme.danger, 0.55), fontSize: 15, letterSpacing: 3 }}
             >
-              {t('pass.expired')}
+              {paused ? t('pass.nightOff') : t('pass.expired')}
             </Text>
           </View>
         )}
@@ -172,22 +191,14 @@ export function PassCard({
               style={[
                 styles.chip,
                 {
-                  backgroundColor: active ? withAlpha(activeColor, 0.14) : withAlpha(theme.danger, 0.1),
-                  borderColor: active ? withAlpha(activeColor, 0.4) : withAlpha(theme.danger, 0.35),
+                  backgroundColor: withAlpha(chipColor, active ? 0.14 : 0.1),
+                  borderColor: withAlpha(chipColor, active ? 0.4 : 0.35),
                 },
               ]}
             >
-              <View
-                style={[
-                  styles.dot,
-                  { backgroundColor: active ? activeColor : theme.danger },
-                ]}
-              />
-              <Text
-                variant="caption"
-                style={{ color: active ? activeColor : theme.danger, letterSpacing: 1 }}
-              >
-                {active ? t('pass.active') : t('pass.expired')}
+              <View style={[styles.dot, { backgroundColor: chipColor }]} />
+              <Text variant="caption" style={{ color: chipColor, letterSpacing: 1 }}>
+                {active ? t('pass.active') : paused ? t('pass.nightOff') : t('pass.expired')}
               </Text>
             </View>
           </View>
@@ -214,10 +225,12 @@ export function PassCard({
           ) : (
             <View style={{ marginTop: space.lg }}>
               <Text variant="metric" style={{ fontFamily: font.display, fontSize: 34, lineHeight: 38, letterSpacing: -0.6 }}>
-                {t('pass.locked')}
+                {paused ? t('pass.open') : t('pass.locked')}
               </Text>
               <Text variant="callout" color="inkSoft" style={{ marginTop: space.xs }}>
-                {t('pass.fare', { ex: exercisesPerUnlock, min: unlockMinutes })}
+                {paused
+                  ? t('pass.returnsAt', { time: untilText })
+                  : t('pass.fare', { ex: exercisesPerUnlock, min: unlockMinutes })}
               </Text>
             </View>
           )}

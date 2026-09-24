@@ -43,6 +43,7 @@ import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band, opticalBias, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
 import { levelForDifficulty, localizePack } from '@/lib/pack';
+import { estimateDailyMinutes, damage, projection, HORIZON_YEARS } from '@/lib/projection';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile, getState, isPlus, saveOnboardingDraft } from '@/lib/store';
@@ -110,46 +111,8 @@ function resumeIndex(saved: string, steps: readonly Step[]): number {
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 
-// Minutes/day for a HEAVY user of each app — the person who picks it on a
-// screen that asks which apps steal their nights. The mirror step used to
-// quote per-app daily-active averages with an overlap discount, and "average
-// user" read as "not me" (founder call, 2026-09-24: make the damage insane).
-// These are the upper end of the published usage distributions, and they are
-// summed: someone who names three apps is not sharing one habit across them.
-// Netflix stays under its TV-inclusive figure: this is phone time.
-const APP_MINUTES: Record<string, number> = {
-  TikTok: 120,
-  YouTube: 100,
-  Games: 90,
-  Instagram: 90,
-  Netflix: 90,
-  X: 45,
-  Reddit: 45,
-};
-// Naming everything still has to leave a night's sleep: eight hours is where
-// the arithmetic stops being a mirror and becomes a joke.
-const MAX_DAILY_MINUTES = 8 * 60;
-// Shown when the user skips app selection: a heavy scroller's day.
-const SOCIAL_AVERAGE_MINUTES = 210;
-// The horizon the yearly loss is projected over — a working life of feeds.
-const HORIZON_YEARS = 40;
-// Guided hours to B2 in the language — FSI category I (es/fr/it/pt) sits at
-// 600–750, German at 750. Rounded down: the point is that a year of scrolling
-// dwarfs it, and a smaller bar makes that truer, not weaker.
-const FLUENT_HOURS: Record<string, number> = { de: 750, es: 600, fr: 600, it: 600, pt: 600, en: 600 };
-
-function estimateDailyMinutes(selected: string[]): number {
-  if (selected.length === 0) return roundToQuarterHour(SOCIAL_AVERAGE_MINUTES);
-  const total = selected.reduce((sum, a) => sum + (APP_MINUTES[a] ?? 45), 0);
-  return roundToQuarterHour(Math.min(total, MAX_DAILY_MINUTES));
-}
-
-// A precise-looking 2h 59m reads as arithmetic; 3h reads as a fact. Snapping to
-// the quarter hour keeps the headline blunt, and the estimate is nowhere near
-// precise enough for the spare minutes to have meant anything anyway.
-function roundToQuarterHour(minutes: number): number {
-  return Math.round(minutes / 15) * 15;
-}
+// The damage and the other side are computed in lib/projection.ts (pure,
+// tested); this screen only shows the numbers.
 const GOAL_KEYS = ['ob.goalTravel', 'ob.goalLove', 'ob.goalWork', 'ob.goalBrain'] as const;
 
 // Daypart → the hour the daily nudge fires (relift's v22 mapping: remind at the
@@ -467,33 +430,9 @@ export default function Onboarding() {
   const dailyMinutes = estimateDailyMinutes(apps);
   const dailyH = Math.floor(dailyMinutes / 60);
   const dailyM = dailyMinutes % 60;
-  const daysPerYear = Math.round((dailyMinutes * 365) / 1440);
-  // Whole years of life over the horizon, and hours a year to the nearest
-  // fifty — blunt numbers read as facts, precise ones as arithmetic.
-  const yearsLost = Math.max(1, Math.round((daysPerYear * HORIZON_YEARS) / 365));
-  const hoursPerYear = Math.round((dailyMinutes * 365) / 60 / 50) * 50;
-  const fluentHours = FLUENT_HOURS[language] ?? 600;
-  // The other side of the mirror, from the fare they just set: every unlock
-  // of that daily time costs fareEx exercises. ~20s per exercise (the "60–90
-  // seconds" fare of ob.how3 is five of them), and about six new words in
-  // every ten exercises — the rest is review. Levels from cumulative words:
-  // A1 ≈ 500, A2 ≈ 1,000, B1 ≈ 2,000, B2 ≈ 4,000, capped where the courses end.
-  const faresPerDay = Math.max(1, Math.floor(dailyMinutes / fareMin));
-  const practiceMinutes = Math.max(1, Math.round((faresPerDay * fareEx * 20) / 60));
-  const wordsPerDay = faresPerDay * fareEx * 0.6;
-  const words30 = Math.max(10, Math.round((wordsPerDay * 30) / 10) * 10);
-  const LEVELS = ['A1', 'A2', 'B1', 'B2'] as const;
-  const levelIdxAfter = (days: number) => {
-    const w = wordsPerDay * days;
-    return w >= 4000 ? 3 : w >= 2000 ? 2 : w >= 1000 ? 1 : 0;
-  };
-  // The timeline must climb: a heavy scroller's arithmetic lands on B2 by
-  // month six, and "B2, then B2" reads as a broken screen. Month six shows
-  // A2 at least and B1 at most; month twelve is one level above it or the
-  // projection, whichever is higher, capped where the courses end.
-  const level6Idx = Math.min(2, Math.max(1, levelIdxAfter(182)));
-  const level6 = LEVELS[level6Idx];
-  const level12 = LEVELS[Math.min(3, Math.max(level6Idx + 1, levelIdxAfter(365)))];
+  const { daysPerYear, yearsLost, hoursPerYear, fluentHours } = damage(dailyMinutes, language);
+  // The other side of the mirror, from the fare they just set (lib/projection.ts).
+  const { faresPerDay, practiceMinutes, words30, level6, level12 } = projection(dailyMinutes, fareEx, fareMin);
   // The year-12 line follows the goal, which is asked just before these screens.
   const future12Key: StringKey =
     goal === 'ob.goalTravel'

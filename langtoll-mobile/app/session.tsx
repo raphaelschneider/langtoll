@@ -43,6 +43,7 @@ import { OrderBank } from '@/components/session/OrderBank';
 import { audioNetworkFailed, ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
 import { clearDeliveredNotifications, scheduleWeeklyRecap } from '@/lib/notify';
+import { distinctWords } from '@/lib/recap';
 
 // Same signal as the rest of the dev tooling; a production build cannot set it.
 const DEV_TOOLS = process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
@@ -276,7 +277,7 @@ export default function Session() {
       // The week's story, one fare at a time: distinct words this session and
       // the minutes it bought. The Sunday notification is re-planned with the
       // fresh numbers, since a local notification can't compute at fire time.
-      bumpRecap(new Set(plan.exercises.map((e) => e.itemId)).size, effectiveUnlockMinutes() + bonus);
+      bumpRecap(distinctWords(plan.exercises), effectiveUnlockMinutes() + bonus);
       scheduleWeeklyRecap();
       grantUnlock(effectiveUnlockMinutes() + bonus); // lift the real shield + schedule re-lock (native only)
       // The pass, live: countdown in the Dynamic Island / lock screen until the
