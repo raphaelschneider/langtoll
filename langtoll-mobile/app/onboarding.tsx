@@ -59,6 +59,8 @@ import {
   TRIAL_DAYS,
   freeExercises,
   freeMinutes,
+  expressWillApply,
+  expressEndsWeekday,
 } from '@/lib/plans';
 import { FareSlider } from '@/components/ui/FareSlider';
 import { DifficultyScale } from '@/components/ui/DifficultyScale';
@@ -1033,6 +1035,14 @@ export default function Onboarding() {
                   <Text variant="callout" color="inkSoft">
                     • {t('ob.sumFare', { ex: fareEx, min: fareMin })}
                   </Text>
+                  {/* The first three days cost three exercises a fare (lib/plans
+                      expressFareActive) — said here, so day four's jump to their
+                      own number is a promise kept, not a surprise. */}
+                  {expressWillApply(fareEx) && (
+                    <Text variant="callout" color="inkSoft">
+                      • {t('express.summary', { day: expressEndsWeekday(), n: fareEx })}
+                    </Text>
+                  )}
                   <Text variant="callout" color="inkSoft">
                     • {difficulty <= 3 ? t('ob.sumFromZero', { lang }) : t('ob.sumFromBasics', { lang })}
                   </Text>

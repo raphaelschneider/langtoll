@@ -1,6 +1,7 @@
 // Settings — every lever in one place, in the ticket language: passenger,
 // course (level + difficulty), fare, voice, app language, blocked apps, and
 // the AI topic pack generator (lib/ai/topics behind a demo-mode fallback).
+import { track } from '@/lib/telemetry';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TextInput, ScrollView, Switch, Alert, AppState, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Chip } from '@/components/ui/Chip';
 import { openPaywall } from '@/lib/paywall';
 import { Text } from '@/components/ui/Text';
+import { Tolly } from '@/components/ui/Tolly';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band } from '@/design/layout';
@@ -25,9 +27,12 @@ import {
   isPlus,
   isUnlocked,
   applyEntitlement,
+  isLockPaused,
+  pauseLock,
+  resumeLock,
 } from '@/lib/store';
 import { generateTopicPack, aiAvailable, refreshGoalPack } from '@/lib/ai/topics';
-import { isNativeAvailable, relockStatus, grantUnlock, gateDiagnostics } from '@/lib/blocking';
+import { isNativeAvailable, relockStatus, grantUnlock, gateDiagnostics, clearSelection } from '@/lib/blocking';
 import { supportCode, SUPPORT_EMAIL } from '@/lib/device';
 import { scheduleTrialEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
@@ -76,6 +81,18 @@ import type { Level } from '@/content/german';
 // in: .env is gitignored and EAS only uploads git-tracked files, so a cloud
 // production build can't inherit the flag.
 const DEV_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
+
+/** 8:00 next morning (today's if it is still ahead), as epoch ms. */
+function nextMorning(): number {
+  const d = new Date();
+  d.setHours(8, 0, 0, 0);
+  if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+  return d.getTime();
+}
+
+function formatClock(ms: number): string {
+  return new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 const LEVELS: Level[] = ['A1', 'A2', 'B1', 'B2'];
@@ -364,9 +381,27 @@ export default function Settings() {
   const L = useLayout();
   const t = useT();
   const [gateLogOpen, setGateLogOpen] = useState(false);
+  // "Turn the lock off" first offers a night off: the choice card is inline,
+  // in the row's place, so nothing modal stands between the user and either.
+  const [askingOff, setAskingOff] = useState(false);
+  function nightOff() {
+    const until = nextMorning();
+    track('lock_paused', { hours: Math.round((until - Date.now()) / 3_600_000) });
+    pauseLock(until);
+    setAskingOff(false);
+  }
+  function lockOff() {
+    // The destructive path, kept: no apps, no selection, no countdown.
+    if (isNativeAvailable()) clearSelection();
+    updateProfile({ blockedApps: [] });
+    lockNow();
+    setAskingOff(false);
+  }
   const [gateLogRevealed, setGateLogRevealed] = useState(DEV_TOOLS);
   const gateTaps = useRef(0);
   const state = useAppState();
+  const paused = isLockPaused(state);
+  const pauseTime = state.lockPausedUntil ? formatClock(state.lockPausedUntil) : '';
 
   const [nameDraft, setNameDraft] = useState(state.name ?? '');
   const [topicDraft, setTopicDraft] = useState('');
@@ -750,6 +785,67 @@ export default function Settings() {
                   />
                 ))}
               </View>
+            )}
+            {/* The way out that keeps them. Turning the lock off (or deleting
+                the app) is the only churn this product has; a night off is the
+                alternative offered at exactly that moment. */}
+            {paused ? (
+              <View style={[styles.topicRow, { borderColor: theme.line, marginTop: space.md }]}>
+                <Tolly mood="asleep" size={40} />
+                <View style={{ flex: 1 }}>
+                  <Text variant="bodyMedium">{t('pause.until', { time: pauseTime })}</Text>
+                  <Text variant="caption" color="inkFaint">
+                    {t('pause.untilHint')}
+                  </Text>
+                </View>
+                <PressableScale onPress={resumeLock} haptic={null} accessibilityRole="button">
+                  <Text variant="label" color="accent">
+                    {t('pause.resume')}
+                  </Text>
+                </PressableScale>
+              </View>
+            ) : askingOff ? (
+              <View style={[styles.topicRow, { borderColor: theme.line, marginTop: space.md, flexDirection: 'column', alignItems: 'stretch' }]}>
+                <Text variant="bodyMedium">{t('pause.askTitle')}</Text>
+                <Text variant="caption" color="inkSoft" style={{ marginTop: space.xs }}>
+                  {t('pause.askBody')}
+                </Text>
+                <Button label={t('pause.askYes')} icon="moon" glow full onPress={nightOff} style={{ marginTop: space.md }} />
+                <PressableScale onPress={lockOff} haptic={null} accessibilityRole="button" style={{ alignSelf: 'center', paddingVertical: space.sm }}>
+                  <Text variant="label" color="inkFaint">
+                    {t('pause.askOff')}
+                  </Text>
+                </PressableScale>
+              </View>
+            ) : (
+              <>
+                <PressableScale
+                  onPress={nightOff}
+                  haptic={null}
+                  accessibilityRole="button"
+                  style={[styles.topicRow, { borderColor: theme.line, marginTop: space.md }]}
+                >
+                  <Ionicons name="moon-outline" size={18} color={theme.inkSoft} />
+                  <View style={{ flex: 1 }}>
+                    <Text variant="bodyMedium">{t('pause.row')}</Text>
+                    <Text variant="caption" color="inkFaint">
+                      {t('pause.rowHint')}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={14} color={theme.inkFaint} />
+                </PressableScale>
+                <PressableScale
+                  onPress={() => setAskingOff(true)}
+                  haptic={null}
+                  accessibilityRole="button"
+                  style={[styles.topicRow, { borderColor: theme.line }]}
+                >
+                  <Ionicons name="lock-open-outline" size={18} color={theme.inkFaint} />
+                  <Text variant="bodyMedium" color="inkFaint" style={{ flex: 1 }}>
+                    {t('pause.off')}
+                  </Text>
+                </PressableScale>
+              </>
             )}
           </Section>
 

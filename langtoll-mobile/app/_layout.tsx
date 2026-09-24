@@ -16,7 +16,7 @@ import {
 import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono';
 import { ThemeProvider, useTheme } from '@/design/theme';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { hydrate, getState, isUnlocked } from '@/lib/store';
+import { hydrate, getState, isUnlocked, isLockPaused, expireLockPause } from '@/lib/store';
 import { initDeviceId } from '@/lib/device';
 import { syncPassActivity } from '@/lib/pass-activity';
 import { track } from '@/lib/telemetry';
@@ -26,7 +26,7 @@ import { configurePurchases } from '@/lib/purchases';
 import { initPool } from '@/lib/ai/pool';
 import { refreshGoalPack } from '@/lib/ai/topics';
 import { effectiveLevel } from '@/lib/plans';
-import { handleNotificationTaps, scheduleTrialEndNotice } from '@/lib/notify';
+import { handleNotificationTaps, scheduleTrialEndNotice, scheduleWeeklyRecap } from '@/lib/notify';
 import { primeVoices, configureAudioSession, applyStoredShaping, stopSpeaking } from '@/lib/tts';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -36,6 +36,16 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 setTimeout(() => {
   SplashScreen.hideAsync().catch(() => {});
 }, 2500);
+
+// A night off (store.lockPausedUntil) reads as "unlocked" to the re-lock
+// check: the shield must stay down until the pause ends, and the self-heal
+// re-arms the native re-lock for the pause's end, not for a pass.
+function relockUnlessPaused(): void {
+  expireLockPause();
+  const s = getState();
+  const paused = isLockPaused(s);
+  maybeRelock(isUnlocked(s) || paused, paused ? s.lockPausedUntil : s.unlockExpiresAt);
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -82,6 +92,7 @@ export default function RootLayout() {
       // Trial-end downgrade warning: re-evaluated every launch from the
       // hydrated entitlement shape; cancels itself when nothing will change.
       scheduleTrialEndNotice();
+      scheduleWeeklyRecap(); // the Sunday story, re-planned from the hydrated counters
     });
     configurePurchases(); // no-op in mock; mirrors the live entitlement when keyed
     primeVoices(); // load the device voice list so the first speak() isn't a race
@@ -94,7 +105,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!ready) return;
     void configureShieldAppearance(); // async now: stages Tolly into the app group first
-    maybeRelock(isUnlocked(getState()), getState().unlockExpiresAt);
+    relockUnlessPaused();
     // The shield's button posts a notification instead of opening the app —
     // iOS gives an extension no way to do the latter. This routes the tap.
     const stopTaps = handleNotificationTaps();
@@ -104,7 +115,7 @@ export default function RootLayout() {
       // stays ducked.
       if (next.match(/inactive|background/)) stopSpeaking();
       if (appState.current.match(/inactive|background/) && next === 'active') {
-        maybeRelock(isUnlocked(getState()), getState().unlockExpiresAt);
+        relockUnlessPaused();
         // Fresh card on the island every time LangToll comes forward mid-pass.
         // This is the DOCUMENTED activity-update path, so the rotation works
         // even if the extension's background updates turn out to be blocked.

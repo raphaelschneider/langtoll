@@ -243,8 +243,44 @@ export function freeMinutes(n: number): number {
  * displays or builds sessions reads these, never the raw store fields.
  */
 export function effectiveExercisesPerUnlock(): number {
+  return expressFareActive() ? EXPRESS_EXERCISES : chosenExercisesPerUnlock();
+}
+
+/** The fare the user chose, after the free-tier rule — what express ramps up to. */
+export function chosenExercisesPerUnlock(): number {
   const n = getState().exercisesPerUnlock;
   return canCustomizeLock() ? n : freeExercises(n);
+}
+
+// FIRST-WEEK EXPRESS. Days one to three are where resentment peaks: the lock
+// bites for the first time, in the evening, on someone who has not yet felt
+// a fare pay off. So the first three days after install cost three
+// exercises a fare, whatever was chosen, and the unlock minutes stay the
+// chosen ones — cheaper, never shorter. Day four onward it is their fare.
+// Anchored on firstLaunchAt (stamped at first hydration — onboarding follows
+// within minutes for everyone this is meant for). A chosen fare of three or
+// fewer is untouched, and the UI must stay silent about express then.
+export const EXPRESS_DAYS = 3;
+export const EXPRESS_EXERCISES = 3;
+
+export function expressEndsAt(): number {
+  const since = getState().firstLaunchAt;
+  const ms = since ? Date.parse(since) : NaN;
+  return Number.isFinite(ms) ? ms + EXPRESS_DAYS * 24 * 60 * 60 * 1000 : 0;
+}
+
+/** Whether express would change a fare of `chosen` exercises at all. */
+export function expressWillApply(chosen: number): boolean {
+  return chosen > EXPRESS_EXERCISES;
+}
+
+export function expressFareActive(): boolean {
+  return expressWillApply(chosenExercisesPerUnlock()) && Date.now() < expressEndsAt();
+}
+
+/** The weekday express ends on, in the device's language — "Friday". */
+export function expressEndsWeekday(): string {
+  return new Date(expressEndsAt()).toLocaleDateString(undefined, { weekday: 'long' });
 }
 
 export function effectiveUnlockMinutes(): number {

@@ -84,6 +84,7 @@ export function openSystemSettings(): void {
 const NUDGE_ID = 'daily-nudge';
 const EXPIRY_ID = 'pass-expiry';
 const TRIAL_ID = 'trial-end';
+const RECAP_ID = 'weekly-recap';
 
 /** Resolve a bundled Tolly PNG into a notification attachment (best-effort). */
 async function tollyAttachment(
@@ -181,6 +182,43 @@ export function scheduleTrialEndNotice(): void {
       });
     } catch {
       // best-effort — conversion nudges must never break a launch
+    }
+  })();
+}
+
+/**
+ * The week, said back to them: Sunday 19:00 local, "{fares} fares. {words}
+ * words. {hours} hours of scrolling paid for." People stay for a story in
+ * which they are the hero, and these are numbers they produced themselves.
+ * A local notification cannot compute at fire time, so it is re-planned with
+ * the current counters after every fare and on launch; fixed id, so each
+ * plan replaces the last. Nothing is scheduled for a week with no fares — an
+ * empty recap is a reproach, not a story.
+ */
+export function scheduleWeeklyRecap(): void {
+  void (async () => {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(RECAP_ID);
+      const s = getState();
+      if (!s.onboarded || s.recapFares === 0 || !(await notificationsGranted())) return;
+      const fireAt = new Date();
+      fireAt.setHours(19, 0, 0, 0);
+      fireAt.setDate(fireAt.getDate() + ((7 - fireAt.getDay()) % 7)); // this Sunday
+      if (fireAt <= new Date()) fireAt.setDate(fireAt.getDate() + 7); // past 19:00 → next
+      const hours = Math.round(s.recapMinutes / 60);
+      const attachments = await tollyAttachment(require('../assets/tolly/tolly-happy.png'));
+      await Notifications.scheduleNotificationAsync({
+        identifier: RECAP_ID,
+        content: {
+          title: t('recap.notifTitle', { lang: t(`lang.${s.learningLanguage}` as Parameters<typeof t>[0]) }),
+          body: t('recap.notifBody', { fares: s.recapFares, words: s.recapWords, hours }),
+          data: { url: 'langtoll://' },
+          attachments,
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fireAt },
+      });
+    } catch {
+      // best-effort — a recap must never break a fare
     }
   })();
 }

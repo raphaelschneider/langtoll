@@ -33,11 +33,15 @@ export type TelemetryEvent =
   | 'session_abandoned'
   | 'locked'
   | 'unlocked'
+  // A night off taken instead of turning the lock off (hours until it returns).
+  | 'lock_paused'
   | 'badge_earned'
   // Fired when a user tells us mid-session that they cannot hear the audio.
   // Worth counting: if it is common, listening exercises are being planned for
   // people who cannot use them, and the default belongs somewhere else.
   | 'listen_fallback_used'
+  // The Monday recap card was shown (fares / words / minutes of the week told).
+  | 'recap_shown'
   // Funnel step views: one per onboarding screen seen (step: 'hook'…'lock').
   | 'onboarding_step'
   | 'paywall_viewed'

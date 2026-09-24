@@ -28,10 +28,11 @@ import {
   completeSession,
   unlockRemainingMs,
   updateProfile,
+  bumpRecap,
 } from '@/lib/store';
 import { playMessageChime } from '@/lib/sound';
 import { releaseAudioSession, speakTarget, stopSpeaking } from '@/lib/tts';
-import { canUseAudio, canUseFullCurriculum, effectiveExercisesPerUnlock, effectiveUnlockMinutes } from '@/lib/plans';
+import { canUseAudio, canUseFullCurriculum, effectiveExercisesPerUnlock, effectiveUnlockMinutes, expressFareActive } from '@/lib/plans';
 import { grantUnlock } from '@/lib/blocking';
 import { track } from '@/lib/telemetry';
 import { openPaywall } from '@/lib/paywall';
@@ -41,7 +42,7 @@ import { OrderBuilder, type OrderBuilderHandle } from '@/components/session/Orde
 import { OrderBank } from '@/components/session/OrderBank';
 import { audioNetworkFailed, ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
-import { clearDeliveredNotifications } from '@/lib/notify';
+import { clearDeliveredNotifications, scheduleWeeklyRecap } from '@/lib/notify';
 
 // Same signal as the rest of the dev tooling; a production build cannot set it.
 const DEV_TOOLS = process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
@@ -80,6 +81,7 @@ export default function Session() {
       level: pack.level,
       exercises: effectiveExercisesPerUnlock(),
       minutes: effectiveUnlockMinutes(),
+      express: expressFareActive(),
     });
   }, [pack]);
   const total = plan.exercises.length;
@@ -271,6 +273,11 @@ export default function Session() {
       const st = getState();
       track('session_completed', { language: st.learningLanguage, level: pack.level });
       track('unlocked', { minutes: effectiveUnlockMinutes() + bonus });
+      // The week's story, one fare at a time: distinct words this session and
+      // the minutes it bought. The Sunday notification is re-planned with the
+      // fresh numbers, since a local notification can't compute at fire time.
+      bumpRecap(new Set(plan.exercises.map((e) => e.itemId)).size, effectiveUnlockMinutes() + bonus);
+      scheduleWeeklyRecap();
       grantUnlock(effectiveUnlockMinutes() + bonus); // lift the real shield + schedule re-lock (native only)
       // The pass, live: countdown in the Dynamic Island / lock screen until the
       // grant expires. Store timestamp is the source of truth (works sans native).

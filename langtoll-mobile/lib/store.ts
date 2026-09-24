@@ -49,6 +49,20 @@ export interface AppState {
   progress: Record<string, ItemProgressRow>;
   sessionsCompleted: number;
   totalAnswered: number;
+  /**
+   * The weekly recap's counters — the story of the week, said back to the
+   * user on Sunday evening (notification) and on the Monday home screen
+   * (card). ISO date of the Monday the counters belong to; the first fare of
+   * a new week rolls them into `recapLast` (see bumpRecap / rollRecap).
+   */
+  recapWeekStart: string | null;
+  recapFares: number;
+  recapWords: number;
+  /** Unlock minutes earned — "hours of scrolling paid for". */
+  recapMinutes: number;
+  recapLast: { weekStart: string; fares: number; words: number; minutes: number } | null;
+  /** weekStart of the last recap card the user dismissed. */
+  recapDismissedWeek: string | null;
   totalCorrect: number;
   exercisesPerUnlock: number;
   unlockMinutes: number;
@@ -140,6 +154,14 @@ export interface AppState {
    * (the free preview week was removed 2026-09-05 — Plus is the trial, only).
    */
   firstLaunchAt: string | null;
+  /**
+   * Epoch ms until which the lock is deliberately OFF — a "night off" taken
+   * instead of turning the lock off or deleting the app (the one churn path
+   * this product has). Null when the lock runs normally. The shield comes
+   * back on its own at this time (the native re-lock is armed for it) and
+   * the field is cleared on the next launch/foreground after it has passed.
+   */
+  lockPausedUntil: number | null;
   /** Unfinished onboarding, see OnboardingDraft. Null once onboarded. */
   onboardingDraft: OnboardingDraft | null;
 }
@@ -149,6 +171,12 @@ const initialState: AppState = {
   progress: {},
   sessionsCompleted: 0,
   totalAnswered: 0,
+  recapWeekStart: null,
+  recapFares: 0,
+  recapWords: 0,
+  recapMinutes: 0,
+  recapLast: null,
+  recapDismissedWeek: null,
   totalCorrect: 0,
   exercisesPerUnlock: 5,
   unlockMinutes: 30,
@@ -177,6 +205,7 @@ const initialState: AppState = {
   plusWillRenew: null,
   plusIsTrial: null,
   firstLaunchAt: null,
+  lockPausedUntil: null,
   onboardingDraft: null,
   voiceOverride: null,
   voiceRate: null,
@@ -310,6 +339,86 @@ export function completeSession(totalMinutes: number): void {
     streak,
     lastPassDate: today,
   });
+}
+
+/** Whether a night off is running: the shield is down without a pass. */
+export function isLockPaused(s: AppState = state, nowMs = Date.now()): boolean {
+  return s.lockPausedUntil !== null && s.lockPausedUntil > nowMs;
+}
+
+/** Forget a pause that has run out. Call before any re-lock decision. */
+export function expireLockPause(nowMs = Date.now()): void {
+  if (state.lockPausedUntil !== null && state.lockPausedUntil <= nowMs) setState({ lockPausedUntil: null });
+}
+
+/**
+ * Take the lock off until `untilMs`. Lifts the real shield through the same
+ * grant path a paid fare uses, so the native re-lock is armed for the end of
+ * the pause and the apps close again even if LangToll is never reopened.
+ */
+export function pauseLock(untilMs: number): void {
+  setState({ lockPausedUntil: untilMs, unlockExpiresAt: null });
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('@/lib/blocking') as typeof import('@/lib/blocking')).grantUnlock(
+      Math.max(1, Math.ceil((untilMs - Date.now()) / 60_000))
+    );
+  } catch {
+    // blocking unavailable — the timestamp alone carries the pause in the UI
+  }
+}
+
+/** End a night off early: the shield returns now. */
+export function resumeLock(): void {
+  setState({ lockPausedUntil: null });
+  lockNow();
+}
+
+/** ISO date of the Monday of the week holding `iso` (device-local weeks). */
+export function weekStartISO(iso: string = todayISO()): string {
+  const d = new Date(`${iso}T12:00:00`); // noon: DST can't push it across a day
+  const back = (d.getDay() + 6) % 7; // Mon → 0 … Sun → 6
+  return addDays(iso, -back);
+}
+
+/**
+ * Close a finished recap week. Counters from a past week become `recapLast`
+ * (only if there is something to tell — an empty week is no story) and the
+ * current week starts clean. Called before every bump and by the home card,
+ * so a week that ended while the app slept is still rolled when it wakes.
+ */
+export function rollRecap(): void {
+  const week = weekStartISO();
+  if (state.recapWeekStart === week) return;
+  const had = state.recapWeekStart !== null && state.recapFares > 0;
+  setState({
+    recapLast: had
+      ? {
+          weekStart: state.recapWeekStart as string,
+          fares: state.recapFares,
+          words: state.recapWords,
+          minutes: state.recapMinutes,
+        }
+      : state.recapLast,
+    recapWeekStart: week,
+    recapFares: 0,
+    recapWords: 0,
+    recapMinutes: 0,
+  });
+}
+
+/** One paid fare: count it, its distinct words and the minutes it bought. */
+export function bumpRecap(words: number, minutes: number): void {
+  rollRecap();
+  setState({
+    recapFares: state.recapFares + 1,
+    recapWords: state.recapWords + words,
+    recapMinutes: state.recapMinutes + minutes,
+  });
+}
+
+export function dismissRecap(weekStart: string): void {
+  setState({ recapDismissedWeek: weekStart });
 }
 
 /** Expire the grant now — clears the countdown and re-applies the real shield (native only). */

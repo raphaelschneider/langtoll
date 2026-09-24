@@ -20,7 +20,7 @@ import {
   maybeRelock,
 } from '@/lib/blocking';
 import { requestNotificationPermission, notificationsGranted, openSystemSettings } from '@/lib/notify';
-import { isPlus, isUnlocked, getState } from '@/lib/store';
+import { isPlus, isUnlocked, getState, isLockPaused } from '@/lib/store';
 import { selectionExceedsFreeLimit } from '@/lib/plans';
 
 // The native module (and its view components) only exist in a dev build.
@@ -102,7 +102,7 @@ export function AppPicker() {
       // maybeRelock rather than lockNow: it shields only when the pass is not
       // active, so editing the list during an unlock does not slam the gate on
       // someone who has already paid the fare.
-      if (has) maybeRelock(isUnlocked(getState()));
+      if (has) maybeRelock(isUnlocked(getState()) || isLockPaused(getState()));
     }
   }
 

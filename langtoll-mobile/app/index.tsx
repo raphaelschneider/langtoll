@@ -18,13 +18,23 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Logo } from '@/components/ui/Logo';
 import { FareGate, type FareGateTrigger } from '@/components/pass/FareGate';
 import { JourneyLine, nextStop } from '@/components/home/JourneyLine';
+import { WeeklyRecap } from '@/components/home/WeeklyRecap';
 import { useTheme, space, radius } from '@/design/theme';
 import { useLayout, opticalCenter, MAX_WIDE_CONTENT } from '@/design/layout';
 import { TicketRow, ticketsForActivePack } from '@/components/wallet/TicketRow';
 import { withAlpha } from '@/lib/color';
 import { activePack } from '@/lib/pack';
 import { packFor } from '@/content';
-import { effectiveExercisesPerUnlock, effectiveUnlockMinutes, effectiveLevel, canUseLevel, describePlusLoss } from '@/lib/plans';
+import {
+  effectiveExercisesPerUnlock,
+  effectiveUnlockMinutes,
+  effectiveLevel,
+  canUseLevel,
+  describePlusLoss,
+  expressFareActive,
+  expressEndsWeekday,
+  chosenExercisesPerUnlock,
+} from '@/lib/plans';
 import { openPaywall } from '@/lib/paywall';
 import { useT, type StringKey } from '@/lib/i18n';
 import {
@@ -33,8 +43,7 @@ import {
   unlockRemainingMs,
   wordsSeen,
   wordsMastered,
-  lockNow,
-} from '@/lib/store';
+  lockNow, isLockPaused, resumeLock } from '@/lib/store';
 
 function Stat({ value, label, divider }: { value: number; label: string; divider?: boolean }) {
   const theme = useTheme();
@@ -177,12 +186,39 @@ export default function Home() {
             serial={state.sessionsCompleted}
             passenger={state.name}
           />
+          {/* First-week express (lib/plans): the pass says 3, this says why,
+              and when their own fare takes over. */}
+          {expressFareActive() && (
+            <Text variant="caption" color="inkFaint" center style={{ marginTop: space.sm }}>
+              {t('express.home', { day: expressEndsWeekday(), n: chosenExercisesPerUnlock() })}
+            </Text>
+          )}
         </View>
       </Entrance>
     </>
   );
   const secBanners = (
     <>
+      {/* A night off is running: the shield is down without a pass. Tolly is
+          asleep, the time it returns is on the row, and the way back is one
+          tap — never a mystery why the apps are open. */}
+      {isLockPaused(state, now) && (
+        <Entrance delay={180}>
+          <View style={[styles.activityOff, { borderColor: theme.line, backgroundColor: theme.surface }]}>
+            <Tolly mood="asleep" size={36} />
+            <Text variant="caption" color="inkSoft" style={{ flex: 1 }}>
+              {t('pause.home', {
+                time: new Date(state.lockPausedUntil!).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+              })}
+            </Text>
+            <PressableScale onPress={resumeLock} haptic={null} accessibilityRole="button">
+              <Text variant="label" color="accent">
+                {t('pause.resume')}
+              </Text>
+            </PressableScale>
+          </View>
+        </Entrance>
+      )}
       {/* A pass is running but iOS won't show its countdown: the user hit
           "Turn Off" while clearing the Live Activity (one swipe away from
           "Clear" — easy to hit by mistake, founder did it too). The app
@@ -289,6 +325,8 @@ export default function Home() {
 
   const secJourney = (
     <>
+      {/* Last week's story, Monday and Tuesday only; renders nothing otherwise. */}
+      <WeeklyRecap />
       {/* your journey — the CEFR route line (A1 → B2) */}
       <Entrance delay={360}>
         <JourneyLine
