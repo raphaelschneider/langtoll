@@ -268,7 +268,7 @@ export const en = {
   'plus.privacy': 'Privacy Policy',
   'plus.later': 'Maybe later',
   'plus.legal': 'Cancel anytime. Renews automatically.',
-  'plus.trialLegal': '{days} days free, then {price}. Cancel anytime.',
+  'plus.trialLegal': '{days} days free, then {price}. We remind you the day before it ends. Cancel anytime.',
   'plus.locked': 'Plus feature',
   'plus.lockedCta': 'This is part of LangToll Plus.',
 

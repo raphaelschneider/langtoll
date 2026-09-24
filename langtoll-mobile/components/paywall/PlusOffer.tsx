@@ -73,7 +73,11 @@ export function PlusOffer({
   const theme = useTheme();
   const t = useT();
   const [packages, setPackages] = useState<PlusPackage[]>([]);
-  const [selected, setSelected] = useState<Period>('yearly');
+  // Monthly is preselected, not yearly: Apple's sheet quotes the price the trial
+  // turns into, and "7 days free, then €39.99/year" is what the first paywall
+  // viewers backed out of (3 of 3 on 2026-09-24, one tapped twice and cancelled
+  // both). Yearly stays on the page with its saving for whoever wants it.
+  const [selected, setSelected] = useState<Period>('monthly');
   const L = useLayout();
   const [busy, setBusy] = useState(false);
   // A failed purchase used to do NOTHING visible: the button pressed, the promise
@@ -86,7 +90,7 @@ export function PlusOffer({
     track('paywall_viewed', { source });
     getPackages().then((pkgs) => {
       setPackages(pkgs);
-      if (pkgs.length && !pkgs.some((p) => p.period === 'yearly')) setSelected(pkgs[0].period);
+      if (pkgs.length && !pkgs.some((p) => p.period === 'monthly')) setSelected(pkgs[0].period);
     });
   }, []);
 
@@ -258,7 +262,14 @@ export function PlusOffer({
             global constant — otherwise this legal line can misstate the terms of
             a paid subscription when products carry different offers. */}
         {trial
-          ? t('plus.trialLegal', { price: current?.priceString ?? '', days: current!.trialDays })
+          ? t('plus.trialLegal', {
+              // "then €7.99" alone leaves the period to the imagination; say
+              // "then €7.99 per month", the same words as the card.
+              price: `${current?.priceString ?? ''} ${t(
+                current?.period === 'weekly' ? 'plus.perWeek' : current?.period === 'monthly' ? 'plus.perMonth' : 'plus.perYear',
+              )}`,
+              days: current!.trialDays,
+            })
           : t('plus.legal')}
       </Text>
       {failed && (

@@ -258,7 +258,7 @@ export const es: Partial<Record<StringKey, string>> = {
   'plus.privacy': 'Privacidad',
   'plus.later': 'Quizá más tarde',
   'plus.legal': 'Cancela cuando quieras. Se renueva automáticamente.',
-  'plus.trialLegal': '{days} días gratis, luego {price}. Cancela cuando quieras.',
+  'plus.trialLegal': '{days} días gratis, luego {price}. Te avisamos un día antes de que termine. Cancela cuando quieras.',
   'plus.locked': 'Función Plus',
   'plus.lockedCta': 'Esto es parte de LangToll Plus.',
 
