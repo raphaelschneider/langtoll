@@ -8,6 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { AuroraBackground } from '@/components/skia/AuroraBackground';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
+import { Tolly } from '@/components/ui/Tolly';
 import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { useTheme, space } from '@/design/theme';
 import { useLayout, band } from '@/design/layout';
@@ -38,12 +39,19 @@ export default function Paywall() {
         {/* PlusOffer scrolls its own feature list and pins the purchase controls to
             the bottom — an outer ScrollView would put the CTA below the fold again. */}
         <View style={[styles.content, band(L)]}>
-          <Text variant="overline" color="accent">
-            {t('ob.payOver')}
-          </Text>
-          <Text variant="hero" style={{ marginTop: space.md }}>
-            {t('plus.title')}
-          </Text>
+          {/* Tolly stands to the right of the headline — the one empty corner
+              of the wall, and the operator is who's selling the pass. */}
+          <View style={styles.headline}>
+            <View style={{ flex: 1 }}>
+              <Text variant="overline" color="accent">
+                {t('ob.payOver')}
+              </Text>
+              <Text variant="hero" style={{ marginTop: space.md }}>
+                {t('plus.title')}
+              </Text>
+            </View>
+            <Tolly mood="happy" size={112} style={{ marginLeft: space.sm }} />
+          </View>
           <View style={{ marginTop: space.xl, flex: 1 }}>
             <PlusOffer onDone={close} source={from ?? 'unknown'} />
           </View>
@@ -57,6 +65,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: space.lg, paddingTop: space.sm },
+  headline: { flexDirection: 'row', alignItems: 'flex-end' },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, paddingHorizontal: space.xl, paddingBottom: space.xl },
 });
