@@ -21,6 +21,7 @@ import { HeroLive } from '@/components/landing/HeroLive';
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher';
 import { Logo } from '@/components/landing/Logo';
 import { Guilloche } from '@/components/landing/Guilloche';
+import { Damage } from '@/components/landing/Damage';
 import { APP_STORE_URL } from '@/lib/app-store';
 
 
@@ -103,6 +104,17 @@ export async function Landing({ locale }: { locale: Locale }) {
         <HeroLive hero={c.hero} pass={c.pass} locale={locale} issued={issued} />
       </header>
 
+      {/* the damage — the app's mirror step as a calculator: tap your apps, watch
+          the bill. Straight after the hero, before the deal, because the ad that
+          brought them here promised the doomscroll would pay for something. */}
+      <section id="damage">
+        <div className="sec-head reveal">
+          <p className="eyebrow">{c.damage.eyebrow}</p>
+          <h2>{c.damage.title}</h2>
+        </div>
+        <Damage copy={c.damage} htmlLang={HTML_LANG[locale]} ctaHref={APP_STORE_URL} />
+      </section>
+
       {/* how it works */}
       <section id="how">
         <div className="sec-head reveal">
@@ -118,6 +130,29 @@ export async function Landing({ locale }: { locale: Locale }) {
               <p>{s.body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* versus */}
+      <section>
+        <div className="sec-head reveal">
+          <p className="eyebrow">{c.versus.eyebrow}</p>
+          <h2>{c.versus.title}</h2>
+          <p className="lede">{c.versus.lede}</p>
+        </div>
+        <div className="versus">
+          <div className="card them reveal">
+            <h3>{c.versus.themTitle}</h3>
+            <ul>
+              {c.versus.themPoints.map((p, i) => <li key={i}>{p}</li>)}
+            </ul>
+          </div>
+          <div className="card us reveal">
+            <h3>{c.versus.usTitle}</h3>
+            <ul>
+              {c.versus.usPoints.map((p, i) => <li key={i}>{p}</li>)}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -208,29 +243,6 @@ export async function Landing({ locale }: { locale: Locale }) {
               <p>{f.body}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* versus */}
-      <section>
-        <div className="sec-head reveal">
-          <p className="eyebrow">{c.versus.eyebrow}</p>
-          <h2>{c.versus.title}</h2>
-          <p className="lede">{c.versus.lede}</p>
-        </div>
-        <div className="versus">
-          <div className="card them reveal">
-            <h3>{c.versus.themTitle}</h3>
-            <ul>
-              {c.versus.themPoints.map((p, i) => <li key={i}>{p}</li>)}
-            </ul>
-          </div>
-          <div className="card us reveal">
-            <h3>{c.versus.usTitle}</h3>
-            <ul>
-              {c.versus.usPoints.map((p, i) => <li key={i}>{p}</li>)}
-            </ul>
-          </div>
         </div>
       </section>
 
@@ -381,7 +393,7 @@ a { color: inherit; }
 .hero-headline > h1 { grid-area: 1 / 1; }
 .hero .sub { margin-top: 22px; font-size: 19px; color: var(--soft); max-width: 33em; }
 .hero .sub strong { color: var(--ink); font-weight: 400; box-shadow: inset 0 -0.5em 0 var(--rail-soft); }
-.hero .sub .lang { display: inline-block; min-width: 5.9em; text-align: center; white-space: nowrap; color: var(--rail); font-weight: 600; }
+.hero .sub .lang { display: inline-block; white-space: nowrap; color: var(--rail); font-weight: 600; }
 .hero-rot { transition: opacity 0.36s ease; }
 @media (prefers-reduced-motion: reduce) { .hero-rot { transition: none; } }
 .cta-row { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
@@ -447,6 +459,21 @@ section::before { left: -12px; } section::after { right: -12px; }
 .stub::before { content: ''; position: absolute; left: 0; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg); border: 2px solid var(--rail); box-shadow: 0 0 0 4px var(--rail-soft); }
 .stub .label { color: var(--rail); }
 .stub h3 { font-size: 22px; margin-top: 6px; }
+/* the damage — chips on the left, the bill on the right */
+.damage { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; margin-top: 40px; align-items: start; }
+.damage-hint { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin: 0 0 14px; }
+.damage-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { font-family: var(--body); font-size: 16px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 11px 18px; cursor: pointer; transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease; }
+.chip:hover { border-color: var(--rail); }
+.chip.on { border-color: var(--rail); background: var(--rail-soft); color: var(--rail); font-weight: 600; }
+.damage-bill { border-left: 2px solid var(--line); padding-left: 32px; }
+.damage-num { font-family: var(--sans); font-weight: 800; letter-spacing: -0.03em; font-size: clamp(56px, 8vw, 96px); line-height: 0.95; margin: 0; font-variant-numeric: tabular-nums; }
+.damage-line { font-family: var(--sans); font-weight: 800; letter-spacing: -0.02em; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; margin: 18px 0 0; text-wrap: balance; }
+.damage-sub { color: var(--soft); font-size: 18px; margin: 18px 0 0; max-width: 30em; }
+.damage-fluent { color: var(--ink); font-size: 17px; margin: 12px 0 0; max-width: 30em; }
+.damage-note { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--faint); margin: 14px 0 0; }
+.damage .cta-row { margin-top: 28px; }
+
 .stub p { color: var(--soft); font-size: 16.5px; margin-top: 8px; max-width: 46em; }
 
 /* ---- languages → lines-served board, flags kept, transit-line colour stripe ---- */
@@ -531,6 +558,8 @@ footer .fine a:hover { color: var(--rail); border-color: var(--rail); }
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; padding-top: 48px; gap: 44px; }
   .grid, .versus { grid-template-columns: 1fr; }
+  .damage { grid-template-columns: 1fr; gap: 32px; }
+  .damage-bill { border-left: none; padding-left: 0; border-top: 2px solid var(--line); padding-top: 28px; }
   .price-card { grid-template-columns: 1fr; }
   .price-side { text-align: left; }
 }

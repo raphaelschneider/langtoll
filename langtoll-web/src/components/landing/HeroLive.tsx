@@ -131,8 +131,7 @@ export function HeroLive({
         {/* static sub — only the language word rotates, in a fixed-width slot (no reflow) */}
         <p className="sub">
           {hero.subBefore}
-          <span className="lang hero-rot" style={{ opacity: show ? 1 : 0 }}>{v.lang}</span>
-          {hero.subAfter}
+          <span className="lang hero-rot" style={{ opacity: show ? 1 : 0, textAlign: 'left' }}>{v.lang}{hero.subAfter}</span>{' '}
           <strong>{hero.subStrong}</strong>
           {hero.subTail}
         </p>

@@ -140,6 +140,24 @@ export interface LandingCopy {
     lede: string;
     stubs: [StubCopy, StubCopy, StubCopy];
   };
+  /** The damage calculator under the hero — mirrors the app's mirror step (src/lib/damage.ts). */
+  damage: {
+    eyebrow: string;
+    title: string;
+    /** Small mono line above the chips. */
+    hint: string;
+    /** Under the big number. */
+    line: string;
+    /** {days} {horizon} {years} */
+    sub: string;
+    /** {hours} {fluent} {lang} */
+    fluent: string;
+    note: string;
+    cta: string;
+    /** The course this market most likely learns — its name mid-sentence, and its code for the fluency bar. */
+    lang: string;
+    course: string;
+  };
   shots: {
     eyebrow: string;
     title: string;
@@ -242,17 +260,17 @@ const en: LandingCopy = {
   hero: {
     eyebrow: 'Your apps, behind a fare gate',
     variants: [
-      { headline: 'Erst Deutsch, dann TikTok.', lang: 'German', code: 'de' },
-      { headline: 'Primero español, luego Instagram.', lang: 'Spanish', code: 'es' },
-      { headline: 'Primeiro português, depois YouTube.', lang: 'Portuguese', code: 'pt' },
-      { headline: 'D’abord le français, ensuite Netflix.', lang: 'French', code: 'fr' },
-      { headline: 'Prima l’italiano, poi Reddit.', lang: 'Italian', code: 'it' },
-      { headline: 'English first, TikTok after.', lang: 'English', code: 'en' },
+      { headline: 'Turn your doomscroll into German.', lang: 'German', code: 'de' },
+      { headline: 'Turn your doomscroll into Spanish.', lang: 'Spanish', code: 'es' },
+      { headline: 'Turn your doomscroll into Portuguese.', lang: 'Portuguese', code: 'pt' },
+      { headline: 'Turn your doomscroll into French.', lang: 'French', code: 'fr' },
+      { headline: 'Turn your doomscroll into Italian.', lang: 'Italian', code: 'it' },
+      { headline: 'Turn your doomscroll into English.', lang: 'English', code: 'en' },
     ],
-    subBefore: 'LangToll locks the apps that eat your nights — until you’ve done your ',
-    subAfter: ' reps. ',
-    subStrong: 'Five quick exercises buy 30 minutes of phone time.',
-    subTail: ' Then the wall comes back. You’ll learn, because you can’t not.',
+    subBefore: 'Streaks didn’t stick. Now endless scrolls pay a fare in ',
+    subAfter: ': ',
+    subStrong: 'a few quick exercises, and your apps open again.',
+    subTail: '',
     ctaPrimary: 'Start my free week',
     ctaSecondary: 'See the deal',
   },
@@ -307,6 +325,18 @@ const en: LandingCopy = {
           '30 minutes later the wall is back — even if you never reopen LangToll. Scroll enough and you’ll be fluent out of spite.',
       },
     ],
+  },
+  damage: {
+    eyebrow: 'The damage',
+    title: 'Tap what steals your nights.',
+    hint: 'Tap the apps',
+    line: "That's what those apps take from you. Every single day.",
+    sub: "{days} full days a year. Keep it up for {horizon} years and that's {years} years of your life — gone to a feed.",
+    fluent: "In one year that's {hours} hours. Fluent {lang} takes about {fluent}.",
+    note: "You know it's more than that.",
+    cta: 'Make it pay a fare',
+    lang: 'Spanish',
+    course: 'es',
   },
   shots: {
     eyebrow: 'The app',
@@ -461,17 +491,17 @@ const de: LandingCopy = {
   hero: {
     eyebrow: 'Deine Apps, hinter der Schranke',
     variants: [
-      { headline: 'Erst Deutsch, dann TikTok.', lang: 'Deutsch', code: 'de' },
-      { headline: 'Primero español, luego Instagram.', lang: 'Spanisch', code: 'es' },
-      { headline: 'Primeiro português, depois YouTube.', lang: 'Portugiesisch', code: 'pt' },
-      { headline: 'D’abord le français, ensuite Netflix.', lang: 'Französisch', code: 'fr' },
-      { headline: 'Prima l’italiano, poi Reddit.', lang: 'Italienisch', code: 'it' },
-      { headline: 'English first, TikTok after.', lang: 'Englisch', code: 'en' },
+      { headline: 'Doomscrollen, jetzt auf Deutsch.', lang: 'Deutsch', code: 'de' },
+      { headline: 'Doomscrollen, jetzt auf Spanisch.', lang: 'Spanisch', code: 'es' },
+      { headline: 'Doomscrollen, jetzt auf Portugiesisch.', lang: 'Portugiesisch', code: 'pt' },
+      { headline: 'Doomscrollen, jetzt auf Französisch.', lang: 'Französisch', code: 'fr' },
+      { headline: 'Doomscrollen, jetzt auf Italienisch.', lang: 'Italienisch', code: 'it' },
+      { headline: 'Doomscrollen, jetzt auf Englisch.', lang: 'Englisch', code: 'en' },
     ],
-    subBefore: 'LangToll sperrt die Apps, die deine Abende fressen — bis du deine Übungen auf ',
-    subAfter: ' gemacht hast. ',
-    subStrong: 'Fünf kurze Übungen kaufen 30 Minuten Handyzeit.',
-    subTail: ' Dann steht die Wand wieder. Du wirst lernen — weil du nicht anders kannst.',
+    subBefore: 'Mit Streaks hat es nie geklappt? Hier kostet Scrollen einen Fahrpreis auf ',
+    subAfter: ': ',
+    subStrong: 'ein paar kurze Übungen, dann sind deine Apps wieder frei.',
+    subTail: '',
     ctaPrimary: 'Gratis-Woche starten',
     ctaSecondary: 'Den Deal ansehen',
   },
@@ -528,6 +558,18 @@ const de: LandingCopy = {
           '30 Minuten später steht die Wand wieder — auch wenn du LangToll nie wieder öffnest. Scroll genug, und du wirst aus Trotz fließend.',
       },
     ],
+  },
+  damage: {
+    eyebrow: 'Der Schaden',
+    title: 'Tipp an, was deine Nächte frisst.',
+    hint: 'Apps antippen',
+    line: 'So viel nehmen dir diese Apps. Jeden einzelnen Tag.',
+    sub: '{days} volle Tage im Jahr. Noch {horizon} Jahre so, und es sind {years} Jahre deines Lebens — weg, in einem Feed.',
+    fluent: 'Aufs Jahr gerechnet sind das {hours} Stunden. Für fließendes {lang} reichen rund {fluent}.',
+    note: 'Und du weißt, dass es eigentlich mehr ist.',
+    cta: 'Lass sie den Fahrpreis zahlen',
+    lang: 'Spanisch',
+    course: 'es',
   },
   shots: {
     eyebrow: 'Die App',
@@ -673,17 +715,17 @@ const es: LandingCopy = {
   hero: {
     eyebrow: 'Tus apps, detrás del torniquete',
     variants: [
-      { headline: 'Erst Deutsch, dann TikTok.', lang: 'alemán', code: 'de' },
-      { headline: 'Primero español, luego Instagram.', lang: 'español', code: 'es' },
-      { headline: 'Primeiro português, depois YouTube.', lang: 'portugués', code: 'pt' },
-      { headline: 'D’abord le français, ensuite Netflix.', lang: 'francés', code: 'fr' },
-      { headline: 'Prima l’italiano, poi Reddit.', lang: 'italiano', code: 'it' },
-      { headline: 'English first, TikTok after.', lang: 'inglés', code: 'en' },
+      { headline: 'Que tu scroll infinito te enseñe alemán.', lang: 'alemán', code: 'de' },
+      { headline: 'Que tu scroll infinito te enseñe español.', lang: 'español', code: 'es' },
+      { headline: 'Que tu scroll infinito te enseñe portugués.', lang: 'portugués', code: 'pt' },
+      { headline: 'Que tu scroll infinito te enseñe francés.', lang: 'francés', code: 'fr' },
+      { headline: 'Que tu scroll infinito te enseñe italiano.', lang: 'italiano', code: 'it' },
+      { headline: 'Que tu scroll infinito te enseñe inglés.', lang: 'inglés', code: 'en' },
     ],
-    subBefore: 'LangToll bloquea las apps que te comen las noches — hasta que hagas tus repeticiones de ',
-    subAfter: '. ',
-    subStrong: 'Cinco ejercicios rápidos compran 30 minutos de móvil.',
-    subTail: ' Después vuelve el muro. Vas a aprender, porque no te queda otra.',
+    subBefore: '¿Nunca te duró la racha? Aquí, scrollear tiene tarifa en ',
+    subAfter: ': ',
+    subStrong: 'unos ejercicios rápidos y tus apps vuelven a abrirse.',
+    subTail: '',
     ctaPrimary: 'Empezar mi semana gratis',
     ctaSecondary: 'Ver el trato',
   },
@@ -738,6 +780,18 @@ const es: LandingCopy = {
           'A los 30 minutos vuelve el muro, aunque no vuelvas a abrir LangToll. Scrollea lo suficiente y acabarás hablándolo por pura cabezonería.',
       },
     ],
+  },
+  damage: {
+    eyebrow: 'El daño',
+    title: 'Toca las que te roban las noches.',
+    hint: 'Toca las apps',
+    line: 'Eso es lo que te quitan esas apps. Todos los días.',
+    sub: '{days} días enteros al año. Sigue así {horizon} años y son {years} años de tu vida — tirados a un feed.',
+    fluent: 'En un año son {hours} horas. Hablar {lang} con soltura lleva unas {fluent}.',
+    note: 'Y sabes de sobra que es más.',
+    cta: 'Que paguen tarifa',
+    lang: 'inglés',
+    course: 'en',
   },
   shots: {
     eyebrow: 'La app',
@@ -883,18 +937,17 @@ const fr: LandingCopy = {
   hero: {
     eyebrow: 'Tes apps, derrière le portillon',
     variants: [
-      { headline: 'Erst Deutsch, dann TikTok.', lang: 'allemand', code: 'de' },
-      { headline: 'Primero español, luego Instagram.', lang: 'espagnol', code: 'es' },
-      { headline: 'Primeiro português, depois YouTube.', lang: 'portugais', code: 'pt' },
-      { headline: 'D’abord le français, ensuite Netflix.', lang: 'français', code: 'fr' },
-      { headline: 'Prima l’italiano, poi Reddit.', lang: 'italien', code: 'it' },
-      { headline: 'English first, TikTok after.', lang: 'anglais', code: 'en' },
+      { headline: 'Ton scroll infini, désormais en allemand.', lang: 'allemand', code: 'de' },
+      { headline: 'Ton scroll infini, désormais en espagnol.', lang: 'espagnol', code: 'es' },
+      { headline: 'Ton scroll infini, désormais en portugais.', lang: 'portugais', code: 'pt' },
+      { headline: 'Ton scroll infini, désormais en français.', lang: 'français', code: 'fr' },
+      { headline: 'Ton scroll infini, désormais en italien.', lang: 'italien', code: 'it' },
+      { headline: 'Ton scroll infini, désormais en anglais.', lang: 'anglais', code: 'en' },
     ],
-    subBefore:
-      'LangToll verrouille les apps qui bouffent tes soirées — tant que tu n’as pas fait tes exercices en ',
-    subAfter: '. ',
-    subStrong: 'Cinq exercices rapides t’achètent 30 minutes de téléphone.',
-    subTail: ' Puis le mur revient. Tu vas apprendre, parce que tu n’as pas le choix.',
+    subBefore: 'Les séries, tu les lâches toujours ? Ici, le scroll se paie en ',
+    subAfter: ' : ',
+    subStrong: 'quelques exercices rapides, et tes apps se rouvrent.',
+    subTail: '',
     ctaPrimary: 'Démarrer ma semaine gratuite',
     ctaSecondary: 'Voir le deal',
   },
@@ -949,6 +1002,18 @@ const fr: LandingCopy = {
           '30 minutes plus tard, le mur est de retour — même si tu ne rouvres jamais LangToll. Scrolle assez et tu deviendras bilingue par pure rancune.',
       },
     ],
+  },
+  damage: {
+    eyebrow: 'Les dégâts',
+    title: 'Touche celles qui te volent tes soirées.',
+    hint: 'Touche les apps',
+    line: 'Voilà ce que ces apps te prennent. Chaque jour, sans exception.',
+    sub: "{days} jours pleins par an. Continue {horizon} ans comme ça et ça fait {years} ans de ta vie — partis dans un fil d'actu.",
+    fluent: "Sur un an, ça fait {hours} heures. Parler {lang} couramment, c'est environ {fluent}.",
+    note: "Et tu sais très bien que c'est plus.",
+    cta: 'Fais-leur payer le tarif',
+    lang: 'espagnol',
+    course: 'es',
   },
   shots: {
     eyebrow: 'L’app',
@@ -1096,17 +1161,17 @@ const it: LandingCopy = {
   hero: {
     eyebrow: 'Le tue app, dietro al tornello',
     variants: [
-      { headline: 'Erst Deutsch, dann TikTok.', lang: 'tedesco', code: 'de' },
-      { headline: 'Primero español, luego Instagram.', lang: 'spagnolo', code: 'es' },
-      { headline: 'Primeiro português, depois YouTube.', lang: 'portoghese', code: 'pt' },
-      { headline: 'D’abord le français, ensuite Netflix.', lang: 'francese', code: 'fr' },
-      { headline: 'Prima l’italiano, poi Reddit.', lang: 'italiano', code: 'it' },
-      { headline: 'English first, TikTok after.', lang: 'inglese', code: 'en' },
+      { headline: 'Il tuo scroll infinito, adesso in tedesco.', lang: 'tedesco', code: 'de' },
+      { headline: 'Il tuo scroll infinito, adesso in spagnolo.', lang: 'spagnolo', code: 'es' },
+      { headline: 'Il tuo scroll infinito, adesso in portoghese.', lang: 'portoghese', code: 'pt' },
+      { headline: 'Il tuo scroll infinito, adesso in francese.', lang: 'francese', code: 'fr' },
+      { headline: 'Il tuo scroll infinito, adesso in italiano.', lang: 'italiano', code: 'it' },
+      { headline: 'Il tuo scroll infinito, adesso in inglese.', lang: 'inglese', code: 'en' },
     ],
-    subBefore: 'LangToll blocca le app che ti mangiano le serate — finché non ti sei allenato in ',
-    subAfter: '. ',
-    subStrong: 'Cinque esercizi veloci valgono 30 minuti di telefono.',
-    subTail: ' Poi il muro torna su. Imparerai — perché non puoi farne a meno.',
+    subBefore: 'Le serie non le hai mai tenute? Qui lo scroll si paga in ',
+    subAfter: ': ',
+    subStrong: 'qualche esercizio veloce e le tue app si riaprono.',
+    subTail: '',
     ctaPrimary: 'Inizia la settimana gratis',
     ctaSecondary: 'Guarda il patto',
   },
@@ -1161,6 +1226,18 @@ const it: LandingCopy = {
           'Dopo 30 minuti il muro è di nuovo su — anche se LangToll non lo riapri più. Scrolla abbastanza e diventerai fluente per ripicca.',
       },
     ],
+  },
+  damage: {
+    eyebrow: 'Il danno',
+    title: 'Tocca quelle che ti rubano le serate.',
+    hint: 'Tocca le app',
+    line: 'Ecco quanto ti portano via quelle app. Ogni santo giorno.',
+    sub: '{days} giorni pieni all’anno. Vai avanti così per {horizon} anni e sono {years} anni della tua vita — buttati in un feed.',
+    fluent: 'In un anno fanno {hours} ore. Per parlare {lang} con scioltezza ne bastano circa {fluent}.',
+    note: 'E lo sai benissimo che è di più.',
+    cta: 'Fagli pagare la tariffa',
+    lang: 'spagnolo',
+    course: 'es',
   },
   shots: {
     eyebrow: 'L’app',
@@ -1306,17 +1383,17 @@ const pt: LandingCopy = {
   hero: {
     eyebrow: 'Seus apps, atrás da catraca',
     variants: [
-      { headline: 'Erst Deutsch, dann TikTok.', lang: 'alemão', code: 'de' },
-      { headline: 'Primero español, luego Instagram.', lang: 'espanhol', code: 'es' },
-      { headline: 'Primeiro português, depois YouTube.', lang: 'português', code: 'pt' },
-      { headline: 'D’abord le français, ensuite Netflix.', lang: 'francês', code: 'fr' },
-      { headline: 'Prima l’italiano, poi Reddit.', lang: 'italiano', code: 'it' },
-      { headline: 'English first, TikTok after.', lang: 'inglês', code: 'en' },
+      { headline: 'Seu scroll infinito agora te ensina alemão.', lang: 'alemão', code: 'de' },
+      { headline: 'Seu scroll infinito agora te ensina espanhol.', lang: 'espanhol', code: 'es' },
+      { headline: 'Seu scroll infinito agora te ensina português.', lang: 'português', code: 'pt' },
+      { headline: 'Seu scroll infinito agora te ensina francês.', lang: 'francês', code: 'fr' },
+      { headline: 'Seu scroll infinito agora te ensina italiano.', lang: 'italiano', code: 'it' },
+      { headline: 'Seu scroll infinito agora te ensina inglês.', lang: 'inglês', code: 'en' },
     ],
-    subBefore: 'O LangToll tranca os apps que comem suas noites — até você treinar seu ',
-    subAfter: '. ',
-    subStrong: 'Cinco exercícios rápidos compram 30 minutos de celular.',
-    subTail: ' Depois a catraca volta. Você vai aprender, porque não tem como escapar.',
+    subBefore: 'Cansou de perder a sequência? Aqui, rolar o feed tem pedágio em ',
+    subAfter: ': ',
+    subStrong: 'alguns exercícios rápidos e seus apps liberam de novo.',
+    subTail: '',
     ctaPrimary: 'Começar minha semana grátis',
     ctaSecondary: 'Ver o trato',
   },
@@ -1371,6 +1448,18 @@ const pt: LandingCopy = {
           '30 minutos depois o muro está de volta — mesmo que você nunca mais abra o LangToll. Role o suficiente e você fica fluente de raiva.',
       },
     ],
+  },
+  damage: {
+    eyebrow: 'O estrago',
+    title: 'Toque nos apps que roubam suas noites.',
+    hint: 'Toque nos apps',
+    line: 'É isso que esses apps tiram de você. Todo santo dia.',
+    sub: '{days} dias inteiros por ano. Mais {horizon} anos assim e são {years} anos da sua vida — jogados num feed.',
+    fluent: 'Num ano, são {hours} horas. Para falar {lang} de verdade, bastam umas {fluent}.',
+    note: 'E você sabe que é mais que isso.',
+    cta: 'Quero que paguem pedágio',
+    lang: 'inglês',
+    course: 'en',
   },
   shots: {
     eyebrow: 'O app',

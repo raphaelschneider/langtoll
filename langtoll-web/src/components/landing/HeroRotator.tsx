@@ -56,8 +56,7 @@ export function HeroRotator({ copy, locale }: { copy: LandingCopy['hero']; local
       {/* static sub — only the language word rotates, in a fixed-width slot (no reflow) */}
       <p className="sub">
         {copy.subBefore}
-        <span className="lang hero-rot" style={{ opacity: show ? 1 : 0 }}>{v.lang}</span>
-        {copy.subAfter}
+        <span className="lang hero-rot" style={{ opacity: show ? 1 : 0, textAlign: 'left' }}>{v.lang}{copy.subAfter}</span>{' '}
         <strong>{copy.subStrong}</strong>
         {copy.subTail}
       </p>
