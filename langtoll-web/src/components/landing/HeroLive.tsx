@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ENDONYMS, type Locale } from '@/lib/locales';
 import type { LandingCopy } from '@/lib/landing-copy';
+import { APP_STORE_URL } from '@/lib/app-store';
 
 const BARCODE = [2, 1, 3, 1, 1, 2, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 1, 2, 2, 1, 4, 1, 3, 1, 2, 1, 1, 3];
 // The six lines the pass is valid on — transit-line colours, matched to the languages board.
@@ -137,7 +138,7 @@ export function HeroLive({
         </p>
 
         <div className="cta-row">
-          <a className="btn btn-lime" href="#pricing">{hero.ctaPrimary}</a>
+          <a className="btn btn-lime" href={APP_STORE_URL}>{hero.ctaPrimary}</a>
           <a className="btn btn-ghost" href="#how">{hero.ctaSecondary}</a>
         </div>
       </div>

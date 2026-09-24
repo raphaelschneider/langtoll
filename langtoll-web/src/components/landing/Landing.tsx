@@ -21,6 +21,8 @@ import { HeroLive } from '@/components/landing/HeroLive';
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher';
 import { Logo } from '@/components/landing/Logo';
 import { Guilloche } from '@/components/landing/Guilloche';
+import { APP_STORE_URL } from '@/lib/app-store';
+
 
 function buildJsonLd(p: Pricing, locale: Locale) {
   const c = COPY[locale];
@@ -91,7 +93,7 @@ export async function Landing({ locale }: { locale: Locale }) {
         <Logo height={36} id="nav" />
         <span className="nav-right">
           <LanguageSwitcher current={locale} ariaLabel={c.switcher.ariaLabel} />
-          <a className="nav-cta" href="#pricing">{c.nav.cta}</a>
+          <a className="nav-cta" href={APP_STORE_URL}>{c.nav.cta}</a>
         </span>
       </nav>
 
@@ -256,10 +258,7 @@ export async function Landing({ locale }: { locale: Locale }) {
             <p className="fine">{monthlyLine}</p>
             <p className="fine price-local">{c.pricing.localNote}</p>
             <div className="cta-row" style={{ justifyContent: 'flex-end' }}>
-              <a
-                className="btn btn-lime"
-                href={`mailto:hello@langtoll.app?subject=${encodeURIComponent(c.pricing.ctaMailSubject)}`}
-              >
+              <a className="btn btn-lime" href={APP_STORE_URL}>
                 {c.pricing.cta}
               </a>
             </div>

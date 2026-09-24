@@ -192,8 +192,6 @@ export interface LandingCopy {
     /** Appended after monthlyNote (+ saveNote). */
     trialNote: string;
     cta: string;
-    /** mailto: subject line for the early-access link. */
-    ctaMailSubject: string;
   };
   /**
    * The six languages we teach, with flags. The flag encodes the VARIANT we
@@ -239,7 +237,7 @@ const en: LandingCopy = {
     offerYearly: 'LangToll Plus (yearly)',
   },
   nav: {
-    cta: 'Get early access',
+    cta: 'Get the app',
   },
   hero: {
     eyebrow: 'Your apps, behind a fare gate',
@@ -406,8 +404,7 @@ const en: LandingCopy = {
     monthlyNote: 'or {price}/mo',
     saveNote: ' — save {pct}% on the year',
     trialNote: '. 7-day free trial, no card to start.',
-    cta: 'Get early access',
-    ctaMailSubject: 'Early access',
+    cta: 'Download on the App Store',
   },
   languages: {
     eyebrow: 'Six languages',
@@ -459,7 +456,7 @@ const de: LandingCopy = {
     offerYearly: 'LangToll Plus (jährlich)',
   },
   nav: {
-    cta: 'Früh dabei sein',
+    cta: 'App laden',
   },
   hero: {
     eyebrow: 'Deine Apps, hinter der Schranke',
@@ -628,8 +625,7 @@ const de: LandingCopy = {
     monthlyNote: 'oder {price}/Monat',
     saveNote: ' — {pct} % günstiger im Jahr',
     trialNote: '. 7 Tage gratis, keine Karte zum Starten.',
-    cta: 'Früh dabei sein',
-    ctaMailSubject: 'Früher Zugang',
+    cta: 'Im App Store laden',
   },
   languages: {
     eyebrow: 'Sechs Sprachen',
@@ -672,7 +668,7 @@ const es: LandingCopy = {
     offerYearly: 'LangToll Plus (anual)',
   },
   nav: {
-    cta: 'Conseguir acceso anticipado',
+    cta: 'Descargar la app',
   },
   hero: {
     eyebrow: 'Tus apps, detrás del torniquete',
@@ -839,8 +835,7 @@ const es: LandingCopy = {
     monthlyNote: 'o {price}/mes',
     saveNote: ' — ahorra un {pct}% con el anual',
     trialNote: '. 7 días de prueba gratis, sin tarjeta para empezar.',
-    cta: 'Conseguir acceso anticipado',
-    ctaMailSubject: 'Acceso anticipado',
+    cta: 'Descargar en el App Store',
   },
   languages: {
     eyebrow: 'Seis idiomas',
@@ -883,7 +878,7 @@ const fr: LandingCopy = {
     offerYearly: 'LangToll Plus (annuel)',
   },
   nav: {
-    cta: 'Accès anticipé',
+    cta: 'Télécharger l’app',
   },
   hero: {
     eyebrow: 'Tes apps, derrière le portillon',
@@ -1052,8 +1047,7 @@ const fr: LandingCopy = {
     monthlyNote: 'ou {price}/mois',
     saveNote: ' — {pct} % d’économie sur l’année',
     trialNote: '. 7 jours d’essai gratuit, sans carte pour démarrer.',
-    cta: 'Accès anticipé',
-    ctaMailSubject: 'Accès anticipé',
+    cta: 'Télécharger dans l’App Store',
   },
   languages: {
     eyebrow: 'Six langues',
@@ -1097,7 +1091,7 @@ const it: LandingCopy = {
     offerYearly: 'LangToll Plus (annuale)',
   },
   nav: {
-    cta: 'Accesso anticipato',
+    cta: 'Scarica l’app',
   },
   hero: {
     eyebrow: 'Le tue app, dietro al tornello',
@@ -1264,8 +1258,7 @@ const it: LandingCopy = {
     monthlyNote: 'oppure {price}/mese',
     saveNote: ' — risparmi il {pct}% sull’anno',
     trialNote: '. 7 giorni di prova gratis, senza carta.',
-    cta: 'Accesso anticipato',
-    ctaMailSubject: 'Accesso anticipato',
+    cta: 'Scarica dall’App Store',
   },
   languages: {
     eyebrow: 'Sei lingue',
@@ -1308,7 +1301,7 @@ const pt: LandingCopy = {
     offerYearly: 'LangToll Plus (anual)',
   },
   nav: {
-    cta: 'Quero acesso antecipado',
+    cta: 'Baixar o app',
   },
   hero: {
     eyebrow: 'Seus apps, atrás da catraca',
@@ -1355,7 +1348,7 @@ const pt: LandingCopy = {
   },
   how: {
     eyebrow: 'O trato',
-    title: 'Agora sua dopamina paga tarifa.',
+    title: 'Agora sua dopamina paga pedágio.',
     lede:
       'Cada liberação custa exercícios. Não é meta diária que você zera às 8 da manhã — é pedágio, toda vez.',
     stubs: [
@@ -1367,7 +1360,7 @@ const pt: LandingCopy = {
       },
       {
         label: 'Catraca · 2',
-        title: '90 segundos de treino pagam a tarifa',
+        title: '90 segundos de treino pagam o pedágio',
         body:
           'Vocabulário e frases de verdade no idioma que você está aprendendo, no seu nível. Acertou, seu passe é impresso — carimbado, numerado, com seu nome nele.',
       },
@@ -1384,7 +1377,7 @@ const pt: LandingCopy = {
     title: 'Pague o pedágio. Retire seu passe.',
     lede: 'Cinco exercícios devolvem seu celular. Veja o ritual completo.',
     passAlt:
-      'Tela inicial do LangToll: um passe vencido com a tarifa — 5 exercícios por 30 minutos de celular',
+      'Tela inicial do LangToll: um passe vencido com o pedágio — 5 exercícios por 30 minutos de celular',
     passCaption: 'O passe — vencido, carimbado, esperando.',
     practiceAlt: 'Sessão de treino do LangToll: exercício de vocabulário em alemão com áudio',
     practiceCaption: 'Treino — com uma voz que fala o idioma de verdade.',
@@ -1396,7 +1389,7 @@ const pt: LandingCopy = {
     title: 'Este é o Tolly.',
     lede: 'O pequeno cobrador da sua catraca. Ele carimba seu passe, vigia seus apps — e leva seu scroll para o lado pessoal.',
     captions: [
-      'Tarifa paga. Passe carimbado e emitido.',
+      'Pedágio pago. Passe carimbado e emitido.',
       'Sem passe? A catraca não abre.',
       'Expirado. Ele não está bravo — só decepcionado.',
       'Fora de pico. Você mereceu o sossego.',
@@ -1412,7 +1405,7 @@ const pt: LandingCopy = {
         tag: 'No sistema',
         title: 'Um muro, não um widget',
         body:
-          'Bloqueio do Tempo de Uso da Apple. Seus apps ficam trancados até a tarifa ser paga — sem soneca, sem deslizar pro lado.',
+          'Bloqueio do Tempo de Uso da Apple. Seus apps ficam trancados até o pedágio ser pago — sem soneca, sem deslizar pro lado.',
       },
       {
         tag: 'A1 → B2',
@@ -1464,19 +1457,18 @@ const pt: LandingCopy = {
     ],
   },
   pricing: {
-    eyebrow: 'Tabela de tarifas',
+    eyebrow: 'Tabela de pedágios',
     title: 'A primeira semana é a experiência completa. De graça.',
     planName: 'LangToll Plus',
     planBlurb:
-      'Tarifa sob medida, modo linha-dura, o currículo completo, pacotes de temas com IA e todo idioma que a gente lançar. A tranca em si é grátis pra sempre.',
+      'Pedágio sob medida, modo linha-dura, o currículo completo, pacotes de temas com IA e todo idioma que a gente lançar. A tranca em si é grátis pra sempre.',
     fromPrefix: 'a partir de',
     perYear: ' / ano',
     localNote: 'Preço dos EUA. Seu preço local aparece na App Store.',
     monthlyNote: 'ou {price}/mês',
     saveNote: ' — economize {pct}% no ano',
     trialNote: '. 7 dias grátis, sem cartão pra começar.',
-    cta: 'Quero acesso antecipado',
-    ctaMailSubject: 'Acesso antecipado',
+    cta: 'Baixar na App Store',
   },
   languages: {
     eyebrow: 'Seis idiomas',
