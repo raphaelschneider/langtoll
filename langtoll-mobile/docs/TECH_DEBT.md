@@ -3,6 +3,23 @@
 Things we know we owe the app. One entry per item, newest at the top. An entry
 leaves this file when it ships (mention the commit in the removal).
 
+## Landing page videos (2026-09-24, Ralph)
+
+**What:** regenerate the three phone videos in the landing page's "Pay the toll.
+Collect your pass." section (langtoll-web/public/shots/pass-loop.mp4,
+practice-loop.mp4, wallet-loop.mp4 and their poster PNGs), one per language
+if the capture rig allows it.
+
+**Why:** the loops were recorded before the sentence builder, Tolly's moods,
+the first-fare onboarding and the new hook. The section promises "watch the
+whole ritual" and shows a stale app. The rig for stills exists
+(marketing/appstore/capture); video needs a recording pass on the simulator
+(`xcrun simctl io <udid> recordVideo`) driven by the same seeds, then a trim
+and loop-point pass.
+
+**Open questions:** one set in English or six localized sets; whether the
+landing shows the ritual as three loops or one continuous clip.
+
 ## Buyback offer (2026-09-23, Ralph)
 
 **What:** an offer that wins back people who cancelled, as a discount or free
