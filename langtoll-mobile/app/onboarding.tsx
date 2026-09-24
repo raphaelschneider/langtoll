@@ -38,10 +38,11 @@ import {
   openSystemSettings,
 } from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
+import { TasteFare } from '@/components/onboarding/TasteFare';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band, opticalBias, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
-import { levelForDifficulty } from '@/lib/pack';
+import { levelForDifficulty, localizePack } from '@/lib/pack';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
 import { updateProfile, getState, isPlus, saveOnboardingDraft } from '@/lib/store';
@@ -76,9 +77,12 @@ const STEPS = [
   'when',
   'fare',
   'goal',
+  'tease',
+  'future',
   'forms',
   'printing',
   'summary',
+  'taste',
   'paywall',
   'lock',
 ] as const;
@@ -104,41 +108,38 @@ function resumeIndex(saved: string, steps: readonly Step[]): number {
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 
-// Published 2026 averages, minutes/day *per daily active user of that app*. The
-// mirror step presents these as what the average user spends, never as the
-// reader's own measured time — iOS does not expose Screen Time figures to us
-// (DeviceActivityReport can only render them inside its own extension sandbox).
-// Netflix is deliberately below its ~2.5h/account figure: that number is
-// TV-inclusive and we are estimating phone time.
+// Minutes/day for a HEAVY user of each app — the person who picks it on a
+// screen that asks which apps steal their nights. The mirror step used to
+// quote per-app daily-active averages with an overlap discount, and "average
+// user" read as "not me" (founder call, 2026-09-24: make the damage insane).
+// These are the upper end of the published usage distributions, and they are
+// summed: someone who names three apps is not sharing one habit across them.
+// Netflix stays under its TV-inclusive figure: this is phone time.
 const APP_MINUTES: Record<string, number> = {
-  TikTok: 90,
-  YouTube: 80,
-  Netflix: 75,
-  Games: 70,
-  Instagram: 60,
-  X: 32,
-  Reddit: 30,
+  TikTok: 120,
+  YouTube: 100,
+  Games: 90,
+  Instagram: 90,
+  Netflix: 90,
+  X: 45,
+  Reddit: 45,
 };
-
-// Per-app averages cannot simply be summed: each is conditioned on being a daily
-// user of that app, and total social time (~2h21m) is far below the sum of the
-// big three. So we decay each additional app — the heaviest counts fully, the
-// rest progressively less. Picking all seven lands ~4h25m, which sits sensibly
-// under the 4-5h total-phone-time figure rather than above it.
-const OVERLAP_DECAY = [1, 0.7, 0.55, 0.45, 0.35, 0.3, 0.25];
-// Shown when the user skips app selection: the reported all-in social average.
-const SOCIAL_AVERAGE_MINUTES = 141;
+// Naming everything still has to leave a night's sleep: eight hours is where
+// the arithmetic stops being a mirror and becomes a joke.
+const MAX_DAILY_MINUTES = 8 * 60;
+// Shown when the user skips app selection: a heavy scroller's day.
+const SOCIAL_AVERAGE_MINUTES = 210;
+// The horizon the yearly loss is projected over — a working life of feeds.
+const HORIZON_YEARS = 40;
+// Guided hours to B2 in the language — FSI category I (es/fr/it/pt) sits at
+// 600–750, German at 750. Rounded down: the point is that a year of scrolling
+// dwarfs it, and a smaller bar makes that truer, not weaker.
+const FLUENT_HOURS: Record<string, number> = { de: 750, es: 600, fr: 600, it: 600, pt: 600, en: 600 };
 
 function estimateDailyMinutes(selected: string[]): number {
   if (selected.length === 0) return roundToQuarterHour(SOCIAL_AVERAGE_MINUTES);
-  const weights = selected
-    .map((a) => APP_MINUTES[a] ?? 45)
-    .sort((a, b) => b - a);
-  const total = weights.reduce(
-    (sum, mins, i) => sum + mins * (OVERLAP_DECAY[i] ?? OVERLAP_DECAY[OVERLAP_DECAY.length - 1]),
-    0
-  );
-  return roundToQuarterHour(total);
+  const total = selected.reduce((sum, a) => sum + (APP_MINUTES[a] ?? 45), 0);
+  return roundToQuarterHour(Math.min(total, MAX_DAILY_MINUTES));
 }
 
 // A precise-looking 2h 59m reads as arithmetic; 3h reads as a fact. Snapping to
@@ -465,6 +466,43 @@ export default function Onboarding() {
   const dailyH = Math.floor(dailyMinutes / 60);
   const dailyM = dailyMinutes % 60;
   const daysPerYear = Math.round((dailyMinutes * 365) / 1440);
+  // Whole years of life over the horizon, and hours a year to the nearest
+  // fifty — blunt numbers read as facts, precise ones as arithmetic.
+  const yearsLost = Math.max(1, Math.round((daysPerYear * HORIZON_YEARS) / 365));
+  const hoursPerYear = Math.round((dailyMinutes * 365) / 60 / 50) * 50;
+  const fluentHours = FLUENT_HOURS[language] ?? 600;
+  // The other side of the mirror, from the fare they just set: every unlock
+  // of that daily time costs fareEx exercises. ~20s per exercise (the "60–90
+  // seconds" fare of ob.how3 is five of them), and about six new words in
+  // every ten exercises — the rest is review. Levels from cumulative words:
+  // A1 ≈ 500, A2 ≈ 1,000, B1 ≈ 2,000, B2 ≈ 4,000, capped where the courses end.
+  const faresPerDay = Math.max(1, Math.floor(dailyMinutes / fareMin));
+  const practiceMinutes = Math.max(1, Math.round((faresPerDay * fareEx * 20) / 60));
+  const wordsPerDay = faresPerDay * fareEx * 0.6;
+  const words30 = Math.max(10, Math.round((wordsPerDay * 30) / 10) * 10);
+  const LEVELS = ['A1', 'A2', 'B1', 'B2'] as const;
+  const levelIdxAfter = (days: number) => {
+    const w = wordsPerDay * days;
+    return w >= 4000 ? 3 : w >= 2000 ? 2 : w >= 1000 ? 1 : 0;
+  };
+  // The timeline must climb: a heavy scroller's arithmetic lands on B2 by
+  // month six, and "B2, then B2" reads as a broken screen. Month six shows
+  // A2 at least and B1 at most; month twelve is one level above it or the
+  // projection, whichever is higher, capped where the courses end.
+  const level6Idx = Math.min(2, Math.max(1, levelIdxAfter(182)));
+  const level6 = LEVELS[level6Idx];
+  const level12 = LEVELS[Math.min(3, Math.max(level6Idx + 1, levelIdxAfter(365)))];
+  // The year-12 line follows the goal, which is asked just before these screens.
+  const future12Key: StringKey =
+    goal === 'ob.goalTravel'
+      ? 'ob.future12Travel'
+      : goal === 'ob.goalLove'
+        ? 'ob.future12Love'
+        : goal === 'ob.goalWork'
+          ? 'ob.future12Work'
+          : goal === 'ob.goalBrain'
+            ? 'ob.future12Brain'
+            : 'ob.future12Generic';
 
   // 'paywall' does NOT skip. The way past it is starting the trial (or
   // restoring a purchase): founder call, 2026-09-16 — "they should at least
@@ -485,7 +523,8 @@ export default function Onboarding() {
   // backing into the offer again is nonsense. The arrow hid itself on 'printing'
   // only, so on launch day (2026-09-22) an ad install tapped back on the paywall,
   // landed on summary, tapped back again, and was bounced by the loader five times.
-  const canGoBack = stepIdx > 0 && step !== 'printing' && step !== 'paywall' && step !== 'lock';
+  const canGoBack =
+    stepIdx > 0 && step !== 'printing' && step !== 'taste' && step !== 'paywall' && step !== 'lock';
   function back() {
     if (!canGoBack) return;
     setStepIdx((i) => {
@@ -498,7 +537,12 @@ export default function Onboarding() {
   }
   const derivedLevel = levelForDifficulty(difficulty);
   const pack = packFor(language, derivedLevel);
+  // The fare is played in the UI language's glosses, like a real session.
+  const tastePack = React.useMemo(() => localizePack(pack, resolvedLocale()), [pack]);
+  const [tasteDone, setTasteDone] = useState(false);
   const lang = t(`lang.${language}` as StringKey);
+  // es/fr/it/pt write language names lowercase mid-sentence ("en español").
+  const langMid = ['es', 'fr', 'it', 'pt'].includes(resolvedLocale()) ? lang.toLowerCase() : lang;
 
   function finish() {
     finishedRef.current = true;
@@ -553,11 +597,19 @@ export default function Onboarding() {
                     ? !lockReady
                       ? t('ob.lockCtaWait')
                       : t('ob.lockCta')
-                    : t('common.continue')
+                    : step === 'taste'
+                      ? tasteDone
+                        ? t('ob.tasteCta')
+                        : t('ob.tasteCtaWait')
+                      : step === 'tease'
+                        ? t('ob.teaseCta')
+                        : step === 'future'
+                          ? t('ob.futureCta')
+                          : t('common.continue')
           }
           glow
           full
-          disabled={step === 'lock' && !lockReady}
+          disabled={(step === 'lock' && !lockReady) || (step === 'taste' && !tasteDone)}
           onPress={step === 'lock' ? finish : next}
         />
       </View>
@@ -566,7 +618,7 @@ export default function Onboarding() {
   const stepBody = (
     <>
             {step === 'hook' && (
-              <Entrance key="hook">
+              <Entrance key="hook" style={{ flex: 1 }}>
                 <Text variant="overline" color="accent">
                   LangToll
                 </Text>
@@ -576,7 +628,9 @@ export default function Onboarding() {
                 </Text>
                 {/* Tolly greets under the copy, matching the mirror step's composition —
                     a still portrait (relift's lesson: motion on the hook reads as gimmick). */}
-                <Tolly mood="happy" size={132} style={{ alignSelf: 'center', marginTop: space.xxl }} />
+                <View style={styles.tollySlot}>
+                  <Tolly mood="happy" size={144} />
+                </View>
               </Entrance>
             )}
 
@@ -707,7 +761,7 @@ export default function Onboarding() {
             )}
 
             {step === 'mirror' && (
-              <Entrance key="mirror">
+              <Entrance key="mirror" style={{ flex: 1 }}>
                 <Text variant="overline" color="danger">
                   {t('ob.mirrorOver')}
                 </Text>
@@ -722,13 +776,18 @@ export default function Onboarding() {
                     : t('ob.mirrorTitle')}
                 </Text>
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
-                  {t('ob.mirrorSub', { days: daysPerYear, lang })}
+                  {t('ob.mirrorSub', { days: daysPerYear, years: yearsLost, horizon: HORIZON_YEARS })}
+                </Text>
+                <Text variant="callout" color="ink" style={{ marginTop: space.md }}>
+                  {t('ob.mirrorFluent', { hours: hoursPerYear.toLocaleString(), fluent: fluentHours, lang })}
                 </Text>
                 <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
                   {t('ob.mirrorNote')}
                 </Text>
                 {/* The operator takes the damage personally. */}
-                <Tolly mood="sad" size={104} style={{ alignSelf: 'center', marginTop: space.xl }} />
+                <View style={styles.tollySlot}>
+                  <Tolly mood="sad" size={144} />
+                </View>
               </Entrance>
             )}
 
@@ -789,6 +848,63 @@ export default function Onboarding() {
                     </Text>
                   </View>
                 )}
+              </Entrance>
+            )}
+
+            {step === 'tease' && (
+              <Entrance key="tease" style={{ flex: 1 }}>
+                <Text variant="overline" color="accent">
+                  {t('ob.teaseOver')}
+                </Text>
+                <Text variant="title" style={{ marginTop: space.md }}>
+                  {t('ob.teaseTitle', { lang: langMid })}
+                </Text>
+                <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
+                  {t('ob.teaseSub', { fares: faresPerDay, mins: practiceMinutes, lang: langMid })}
+                </Text>
+                <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+                  {t('ob.teaseNote')}
+                </Text>
+                <View style={styles.tollySlot}>
+                  <Tolly mood="stern" size={144} />
+                </View>
+              </Entrance>
+            )}
+
+            {step === 'future' && (
+              <Entrance key="future" style={{ flex: 1 }}>
+                <Text variant="overline" color="accent">
+                  {t('ob.futureOver')}
+                </Text>
+                <Text variant="title" style={{ marginTop: space.md }}>
+                  {t('ob.futureTitle', { lang: langMid })}
+                </Text>
+                <View style={{ marginTop: space.xl, gap: space.lg }}>
+                  {(
+                    [
+                      ['ob.futureDay30', t('ob.futureWords', { words: words30.toLocaleString() }), t('ob.futureWordsLine')],
+                      ['ob.futureMonth6', t('ob.futureLevel', { level: level6 }), t('ob.future6Line')],
+                      ['ob.futureMonth12', t('ob.futureLevel', { level: level12 }), t(future12Key)],
+                    ] as const
+                  ).map(([when, head, line], i) => (
+                    <Entrance key={when} delay={120 * i} from={8}>
+                      <View style={{ flexDirection: 'row', gap: space.md }}>
+                        <Text variant="label" color="accent" style={{ width: 84, paddingTop: 3 }}>
+                          {t(when)}
+                        </Text>
+                        <View style={{ flex: 1 }}>
+                          <Text variant="bodyMedium">{head}</Text>
+                          <Text variant="callout" color="inkSoft" style={{ marginTop: 2 }}>
+                            {line}
+                          </Text>
+                        </View>
+                      </View>
+                    </Entrance>
+                  ))}
+                </View>
+                <View style={styles.tollySlot}>
+                  <Tolly mood="celebrate" size={144} />
+                </View>
               </Entrance>
             )}
 
@@ -921,6 +1037,12 @@ export default function Onboarding() {
                     • {difficulty <= 3 ? t('ob.sumFromZero', { lang }) : t('ob.sumFromBasics', { lang })}
                   </Text>
                 </View>
+              </Entrance>
+            )}
+
+            {step === 'taste' && (
+              <Entrance key="taste" style={{ flex: 1 }}>
+                <TasteFare pack={tastePack} onDone={() => setTasteDone(true)} />
               </Entrance>
             )}
 
@@ -1057,6 +1179,10 @@ const styles = StyleSheet.create({
   track: { flex: 1, height: 3, borderRadius: 1.5, overflow: 'hidden' },
   fill: { height: 3, borderRadius: 1.5 },
   body: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
+  // Takes whatever height the copy leaves and centres Tolly in it (the
+  // session's orderTolly): the figure absorbs the slack, never a blank band
+  // above the CTA.
+  tollySlot: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', minHeight: 170, marginTop: space.lg },
   bodyScroll: { flexGrow: 1, paddingHorizontal: space.xl, paddingTop: space.xxl },
   footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm },
   chipWrap: {

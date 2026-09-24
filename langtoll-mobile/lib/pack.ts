@@ -37,7 +37,7 @@ export function levelForDifficulty(d: number): Level {
 // degrades word by word instead of failing.
 const localized = new Map<string, LanguagePack>();
 
-function localizePack(pack: LanguagePack, locale: LocaleCode): LanguagePack {
+export function localizePack(pack: LanguagePack, locale: LocaleCode): LanguagePack {
   if (locale === FALLBACK_LOCALE) return pack;
   const key = `${pack.id}:${locale}`;
   const hit = localized.get(key);
