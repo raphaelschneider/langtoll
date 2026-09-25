@@ -8,6 +8,7 @@ import {
   View,
   StyleSheet,
   TextInput,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   AccessibilityInfo,
@@ -365,6 +366,11 @@ export default function Onboarding() {
   const [daypart, setDaypart] = useState<Daypart | null>((draft?.daypart as Daypart | null) ?? null);
   const [fareEx, setFareEx] = useState(draft?.fareEx ?? 5);
   const [fareMin, setFareMin] = useState(draft?.fareMin ?? 30);
+  // The custom-goal field has the keyboard: the suggestion rows step aside
+  // until it is dismissed, so field, keyboard and CTA are all that is on
+  // screen (2026-09-25: the four rows, the field and the CTA fought for the
+  // half a screen the keyboard leaves).
+  const [goalTyping, setGoalTyping] = useState(false);
 
   // Save as they go. Debounced so a slider drag is one write, not fifty; the
   // finished flag stops a late write from resurrecting the draft after finish().
@@ -576,12 +582,17 @@ export default function Onboarding() {
             )}
 
             {step === 'how' && (
-              <Entrance key="how">
+              <Entrance key="how" style={{ flex: 1 }}>
                 <Text variant="title">{t('ob.howTitle')}</Text>
                 <View style={{ marginTop: space.xl, gap: space.lg }}>
                   <HowRow icon="lock-closed" title={t('ob.how1')} detail={t('ob.how1d')} />
                   <HowRow icon="flash" title={t('ob.how2')} detail={t('ob.how2d')} />
                   <HowRow icon="time" title={t('ob.how3')} detail={t('ob.how3d')} />
+                </View>
+                {/* The operator who runs this deal, arms crossed, filling the
+                    half of the screen the three rows leave. */}
+                <View style={styles.tollySlot}>
+                  <Tolly mood="stern" size={168} />
                 </View>
               </Entrance>
             )}
@@ -801,7 +812,9 @@ export default function Onboarding() {
                   {t('ob.teaseTitle', { lang: langMid })}
                 </Text>
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
-                  {t('ob.teaseSub', { fares: faresPerDay, mins: practiceMinutes, lang: langMid })}
+                  {faresPerDay === 1
+                    ? t('ob.teaseSubOne', { ex: fareEx, mins: practiceMinutes, lang: langMid })
+                    : t('ob.teaseSub', { fares: faresPerDay, ex: fareEx, mins: practiceMinutes, lang: langMid })}
                 </Text>
                 <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
                   {t('ob.teaseNote')}
@@ -854,16 +867,18 @@ export default function Onboarding() {
                 {/* The body scrolls (see below), so focusing the custom-goal
                     input can scroll it clear of the keyboard and the CTA. */}
                 <Text variant="title">{t('ob.goalTitle', { lang })}</Text>
-                <View style={{ marginTop: space.xl, gap: space.sm }}>
-                  {GOAL_KEYS.map((k) => (
-                    <OptionRow
-                      key={k}
-                      label={t(k)}
-                      selected={goal === k}
-                      onPress={() => setGoal(k)}
-                    />
-                  ))}
-                </View>
+                {!goalTyping && (
+                  <View style={{ marginTop: space.xl, gap: space.sm }}>
+                    {GOAL_KEYS.map((k) => (
+                      <OptionRow
+                        key={k}
+                        label={t(k)}
+                        selected={goal === k}
+                        onPress={() => setGoal(k)}
+                      />
+                    ))}
+                  </View>
+                )}
                 {/* A typed goal ("Pass the B1 exam") gears every AI-generated
                     pack toward it — the chips only flavor the copy. Chip and
                     text are one field: typing replaces the chip, tapping a
@@ -877,8 +892,15 @@ export default function Onboarding() {
                   style={[styles.input, { borderColor: theme.line, color: theme.ink, marginTop: space.md }]}
                   maxLength={120}
                   returnKeyType="done"
-                  onFocus={() => setTimeout(() => goalScrollRef.current?.scrollToEnd({ animated: true }), 250)}
+                  onFocus={() => setGoalTyping(true)}
+                  onBlur={() => setGoalTyping(false)}
+                  onSubmitEditing={() => Keyboard.dismiss()}
                 />
+                {goalTyping && (
+                  <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+                    {t('ob.goalTypingHint')}
+                  </Text>
+                )}
               </Entrance>
             )}
 
