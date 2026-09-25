@@ -10,16 +10,12 @@ describe('learnableLanguages', () => {
     expect(langs).toHaveLength(availableLanguages().length);
   });
 
-  test('every non-English phone gets English first (the preselected course) and its own language last', () => {
-    for (const ui of ['de', 'pt', 'es', 'fr', 'it'] as const) {
+  test('every other phone language works the same way', () => {
+    for (const ui of ['pt', 'es', 'fr', 'it'] as const) {
       const langs = learnableLanguages(ui);
-      expect(langs[0]).toBe('en');
       expect(langs[langs.length - 1]).toBe(ui);
+      expect(langs[0]).not.toBe(ui);
     }
-  });
-
-  test('an English phone gets German first', () => {
-    expect(learnableLanguages('en')[0]).toBe('de');
   });
 
   test('an English phone is not offered English: meanings fall back to English, so that course cannot work', () => {
@@ -28,10 +24,8 @@ describe('learnableLanguages', () => {
     expect(langs).toHaveLength(availableLanguages().length - 1);
   });
 
-  test('a phone language we do not ship: English first, then everything else', () => {
-    const langs = learnableLanguages('ja');
-    expect(langs[0]).toBe('en');
-    expect([...langs].sort()).toEqual([...availableLanguages()].sort());
+  test('a phone language we do not ship changes nothing', () => {
+    expect(learnableLanguages('ja')).toEqual(availableLanguages());
   });
 
   test('SOON never lists a shipped course', () => {

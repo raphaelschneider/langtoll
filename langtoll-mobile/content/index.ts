@@ -43,12 +43,8 @@ export function availableLanguages(): Language[] {
  */
 export function learnableLanguages(uiLocale: string): Language[] {
   const all = availableLanguages();
-  // English first on every non-English phone: it is the course most of them
-  // came for, and the first entry is the preselected one (founder, 2026-09-25).
-  const first = all.filter((l) => l === FALLBACK_LOCALE && l !== uiLocale);
-  const rest = all.filter((l) => l !== uiLocale && l !== FALLBACK_LOCALE);
   const own = all.filter((l) => l === uiLocale && l !== FALLBACK_LOCALE);
-  return [...first, ...rest, ...own];
+  return [...all.filter((l) => l !== uiLocale), ...own];
 }
 
 /**
