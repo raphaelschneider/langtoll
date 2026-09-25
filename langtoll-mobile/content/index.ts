@@ -43,9 +43,16 @@ export function availableLanguages(): Language[] {
  */
 export function learnableLanguages(uiLocale: string): Language[] {
   const all = availableLanguages();
+  // Spanish first on every phone that is not Spanish: the first entry is the
+  // preselected one (founder, 2026-09-25).
+  const first = all.filter((l) => l === DEFAULT_COURSE && l !== uiLocale);
+  const rest = all.filter((l) => l !== uiLocale && l !== DEFAULT_COURSE);
   const own = all.filter((l) => l === uiLocale && l !== FALLBACK_LOCALE);
-  return [...all.filter((l) => l !== uiLocale), ...own];
+  return [...first, ...rest, ...own];
 }
+
+/** The course preselected in the picker, wherever the phone is not already that language. */
+const DEFAULT_COURSE: Language = 'es';
 
 /**
  * Languages shown as "SOON" — everything we intend to teach that has no pack
