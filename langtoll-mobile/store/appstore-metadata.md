@@ -46,14 +46,15 @@ Text for anything seasonal ("New: five languages", a launch offer).
 LangToll: Learn Languages
 ```
 
-**Subtitle** (≤30)
+**Subtitle** (≤30) — decided 2026-09-25: the lock plus the vocabulary keyword;
+"screen time" stays in the keyword field, so neither word repeats.
 ```
-Unlock your apps by learning
+App lock paid in vocabulary
 ```
 
 **Keywords** (≤100) — no word repeats anything above
 ```
-german,spanish,french,italian,portuguese,vocabulary,screen,time,blocker,focus,habit,practice
+german,spanish,french,italian,portuguese,fluent,screen,time,blocker,focus,habit,practice
 ```
 
 **Promotional text** (≤170, editable any time without review)
@@ -130,32 +131,32 @@ one, so the subtitle must not imply "learn German" to a German reader.
 
 ### German (de-DE)
 - Name: `LangToll: Sprachen lernen` (25)
-- Subtitle: `Lernen entsperrt deine Apps` (27)
-- Keywords: `vokabeln,spanisch,franzoesisch,italienisch,englisch,bildschirmzeit,fokus,gewohnheit`
+- Subtitle: `App-Sperre gegen Vokabeln` (25)
+- Keywords: `woerter,spanisch,franzoesisch,italienisch,englisch,bildschirmzeit,fokus,gewohnheit`
 - Promotional text: `Sechs Sprachen, eine Regel: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du übst. Tolly steht an der Schranke.` (123)
 
 ### Spanish (es-ES / es-MX)
 - Name: `LangToll: Aprende idiomas` (25)
-- Subtitle: `Aprende y desbloquea tus apps` (29)
-- Keywords: `vocabulario,aleman,frances,italiano,ingles,pantalla,bloqueo,concentracion,habito`
+- Subtitle: `El vocabulario abre tus apps` (28)
+- Keywords: `palabras,aleman,frances,italiano,ingles,pantalla,bloqueo,concentracion,habito`
 - Promotional text: `Seis idiomas, una regla: las apps que se comen tus tardes siguen bloqueadas hasta que practiques. Tolly vigila la puerta.` (121)
 
 ### French (fr-FR)
 - Name: `LangToll : Apprends une langue` (30)
-- Subtitle: `Apprends et débloque tes apps` (29)
-- Keywords: `vocabulaire,allemand,espagnol,italien,anglais,ecran,blocage,concentration,habitude`
+- Subtitle: `Le vocabulaire ouvre tes apps` (29)
+- Keywords: `mots,allemand,espagnol,italien,anglais,ecran,blocage,concentration,habitude`
 - Promotional text: `Six langues, une règle : les apps qui dévorent tes soirées restent verrouillées tant que tu ne pratiques pas. Tolly garde la barrière.` (134)
 
 ### Italian (it-IT)
 - Name: `LangToll: Impara le lingue` (26)
-- Subtitle: `Impara e sblocca le tue app` (27)
-- Keywords: `vocabolario,tedesco,spagnolo,francese,inglese,schermo,blocco,concentrazione,abitudine`
+- Subtitle: `Blocco app pagato in vocaboli` (29)
+- Keywords: `vocabolario,tedesco,spagnolo,francese,inglese,schermo,parole,concentrazione,abitudine`
 - Promotional text: `Sei lingue, una regola: le app che ti mangiano le serate restano bloccate finché non ti alleni. Tolly è al cancello.` (116)
 
 ### Portuguese (pt-BR)
 - Name: `LangToll: Aprenda idiomas` (25)
-- Subtitle: `Aprenda e libere seus apps` (26)
-- Keywords: `vocabulario,alemao,espanhol,frances,ingles,tela,bloqueio,concentracao,habito`
+- Subtitle: `Vocabulário destrava seus apps` (30)
+- Keywords: `palavras,alemao,espanhol,frances,ingles,tela,bloqueio,concentracao,habito`
 - Promotional text: `Seis idiomas, uma regra: os apps que devoram suas noites ficam bloqueados até você praticar. O Tolly está na cancela.` (117)
 
 ---
