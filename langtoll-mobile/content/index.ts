@@ -8,6 +8,7 @@ import { SPANISH_A1, SPANISH_A2, SPANISH_B1, SPANISH_B2 } from '@/content/spanis
 import { ITALIAN_A1, ITALIAN_A2, ITALIAN_B1, ITALIAN_B2 } from '@/content/italian';
 import { FRENCH_A1, FRENCH_A2, FRENCH_B1, FRENCH_B2 } from '@/content/french';
 import { ENGLISH_A1, ENGLISH_A2, ENGLISH_B1, ENGLISH_B2 } from '@/content/english';
+import { FALLBACK_LOCALE } from '@/lib/locales';
 
 export * from '@/content/german/types';
 
@@ -29,24 +30,34 @@ export function availableLanguages(): Language[] {
 }
 
 /**
- * Languages we offer to someone whose interface is `uiLocale`. We never offer
- * a user their own UI language — an English UI learning English is nonsense,
- * and the locale codes and Language codes share the same alphabet ('de', 'pt',
- * …) so a plain inequality is the whole rule.
+ * Languages we offer to someone whose interface is `uiLocale`: every shipped
+ * course, with the phone's own language LAST. A phone set to German is often
+ * a newcomer immersing in Germany, and the German course is exactly theirs
+ * (founder, 2026-09-25: "if I set my phone to German, I don't even see a
+ * German course"). Meanings then fall back to English — a pack never glosses
+ * its own language (lib/pack.ts) — so the one course that cannot work is
+ * English on an English interface, and that one stays out. Own language last
+ * also keeps it from being the preselected default: the picker takes the
+ * first entry. Locale codes and Language codes share the same alphabet
+ * ('de', 'pt', …), so plain equality is the whole comparison.
  */
 export function learnableLanguages(uiLocale: string): Language[] {
-  return availableLanguages().filter((l) => l !== uiLocale);
+  const all = availableLanguages();
+  const own = all.filter((l) => l === uiLocale && l !== FALLBACK_LOCALE);
+  return [...all.filter((l) => l !== uiLocale), ...own];
 }
 
 /**
  * Languages shown as "SOON" — everything we intend to teach that has no pack
- * yet, minus the user's own UI language. Derived rather than hardcoded so a
- * language moves from SOON to the real list the moment its pack lands in
- * REGISTRY, with no second place to remember to edit.
+ * yet. Derived rather than hardcoded so a language moves from SOON to the real
+ * list the moment its pack lands in REGISTRY, with no second place to remember
+ * to edit. The same own-language rule as learnableLanguages.
  */
 export function soonLanguages(uiLocale: string): Language[] {
   const shipped = new Set(availableLanguages());
-  return (Object.keys(REGISTRY) as Language[]).filter((l) => !shipped.has(l) && l !== uiLocale);
+  return (Object.keys(REGISTRY) as Language[]).filter(
+    (l) => !shipped.has(l) && !(l === uiLocale && l === FALLBACK_LOCALE),
+  );
 }
 
 /** Levels a language ships, in order. */
