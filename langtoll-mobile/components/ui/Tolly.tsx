@@ -9,6 +9,8 @@ const SOURCES = {
   happy: require('../../assets/tolly/tolly-happy.png'),
   sad: require('../../assets/tolly/tolly-sad.png'),
   stern: require('../../assets/tolly/tolly-stern.png'),
+  /** Binoculars up, scanning the horizon — the look ahead before the payoff. */
+  lookout: require('../../assets/tolly/tolly-lookout.png'),
   asleep: require('../../assets/tolly/tolly-asleep.png'),
   celebrate: require('../../assets/tolly/tolly-celebrate.png'),
   /** Half-body, paws at the bottom edge — made for gripping a card/screen edge. */
