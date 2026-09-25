@@ -868,25 +868,7 @@ export default function Onboarding() {
                 {/* The body scrolls (see below), so focusing the custom-goal
                     input can scroll it clear of the keyboard and the CTA. */}
                 <Text variant="title">{t('ob.goalTitle', { lang })}</Text>
-                {/* The presets never leave the screen. With the keyboard up
-                    they fold into chips (a row or two instead of four tall
-                    rows), so field, chips, keyboard and CTA all fit; a chip
-                    tap picks it and puts the keyboard away. */}
-                {goalTyping ? (
-                  <View style={{ marginTop: space.lg, flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
-                    {GOAL_KEYS.map((k) => (
-                      <Chip
-                        key={k}
-                        label={t(k)}
-                        selected={goal === k}
-                        onPress={() => {
-                          setGoal(k);
-                          Keyboard.dismiss();
-                        }}
-                      />
-                    ))}
-                  </View>
-                ) : (
+                {!goalTyping && (
                   <View style={{ marginTop: space.xl, gap: space.sm }}>
                     {GOAL_KEYS.map((k) => (
                       <OptionRow
@@ -915,6 +897,11 @@ export default function Onboarding() {
                   onBlur={() => setGoalTyping(false)}
                   onSubmitEditing={() => Keyboard.dismiss()}
                 />
+                {goalTyping && (
+                  <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+                    {t('ob.goalTypingHint')}
+                  </Text>
+                )}
 
               </Entrance>
             )}
