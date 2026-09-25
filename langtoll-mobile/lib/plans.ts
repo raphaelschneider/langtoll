@@ -263,6 +263,19 @@ export function chosenExercisesPerUnlock(): number {
 export const EXPRESS_DAYS = 3;
 export const EXPRESS_EXERCISES = 3;
 
+// SWITCHED OFF (founder, 2026-09-25): chose five in onboarding, got three on
+// the first fare, read it as a bug — the fare someone picks is the fare they
+// get, from the first unlock. The machinery stays behind this switch, with
+// its tests, so it can come back as an opt-in rather than a surprise.
+let expressEnabled = false;
+export function isExpressEnabled(): boolean {
+  return expressEnabled;
+}
+/** Tests only: the express tests exercise the machinery with the switch on. */
+export function setExpressEnabled(on: boolean): void {
+  expressEnabled = on;
+}
+
 export function expressEndsAt(): number {
   const since = getState().firstLaunchAt;
   const ms = since ? Date.parse(since) : NaN;
@@ -271,7 +284,7 @@ export function expressEndsAt(): number {
 
 /** Whether express would change a fare of `chosen` exercises at all. */
 export function expressWillApply(chosen: number): boolean {
-  return chosen > EXPRESS_EXERCISES;
+  return expressEnabled && chosen > EXPRESS_EXERCISES;
 }
 
 export function expressFareActive(): boolean {

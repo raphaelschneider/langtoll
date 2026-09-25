@@ -9,10 +9,25 @@ const plus = { plan: 'plus' as const, plusExpiresAt: '2027-01-01T00:00:00.000Z',
 
 afterEach(() => jest.useRealTimers());
 
+// Express ships switched OFF (plans.ts): every test here turns the switch on
+// for its fresh module, so the machinery stays covered for the day it returns.
 async function at(offsetMs: number, seed: Record<string, unknown>) {
   jest.useFakeTimers().setSystemTime(T0 + offsetMs);
-  return freshStore({ firstLaunchAt: new Date(T0).toISOString(), ...plus, ...seed });
+  const r = await freshStore({ firstLaunchAt: new Date(T0).toISOString(), ...plus, ...seed });
+  r.plans.setExpressEnabled(true);
+  return r;
 }
+
+describe('express switch', () => {
+  test('ships off: the chosen fare is the fare from the first unlock, and nothing announces express', async () => {
+    jest.useFakeTimers().setSystemTime(T0 + H);
+    const { plans } = await freshStore({ firstLaunchAt: new Date(T0).toISOString(), ...plus, exercisesPerUnlock: 5, unlockMinutes: 30 });
+    expect(plans.isExpressEnabled()).toBe(false);
+    expect(plans.expressFareActive()).toBe(false);
+    expect(plans.expressWillApply(5)).toBe(false);
+    expect(plans.effectiveExercisesPerUnlock()).toBe(5);
+  });
+});
 
 describe('express fare — three exercises for the first three days', () => {
   test('constants: three days, three exercises', async () => {
@@ -37,6 +52,7 @@ describe('express fare — three exercises for the first three days', () => {
   test('hydration stamps a first launch, so a fresh install gets express from its first minute', async () => {
     jest.useFakeTimers().setSystemTime(T0);
     const { store, plans } = await freshStore({ firstLaunchAt: null, ...plus, exercisesPerUnlock: 5, unlockMinutes: 30 });
+    plans.setExpressEnabled(true);
     expect(store.getState().firstLaunchAt).not.toBeNull();
     expect(plans.expressFareActive()).toBe(true);
     expect(plans.effectiveExercisesPerUnlock()).toBe(3);
@@ -90,6 +106,7 @@ describe('express fare — three exercises for the first three days', () => {
   test('a first launch stamped in the future (clock skew) is not an eternal express', async () => {
     jest.useFakeTimers().setSystemTime(T0);
     const { plans } = await freshStore({ firstLaunchAt: new Date(T0 + 30 * 24 * H).toISOString(), ...plus, exercisesPerUnlock: 5, unlockMinutes: 30 });
+    plans.setExpressEnabled(true);
     // Documented current behaviour: it IS active until that future date + 3 days.
     // If this ever flips, decide deliberately; the assertion pins the rule.
     expect(plans.expressFareActive()).toBe(true);
