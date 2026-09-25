@@ -63,7 +63,7 @@ german,spanish,french,italian,portuguese,screen,time,block,blocker,focus,habit,p
 
 **Promotional text** (≤170, editable any time without review)
 ```
-Six languages, one rule: the apps that eat your evenings stay locked until you practice. Tolly is at the gate.
+Streaks didn't stick? Now your feeds cost a fare: a few real words in the language you keep meaning to learn, and the apps open again. No games, no fluff. 7 days free.
 ```
 
 **Description** (≤4000) — sells the transformation, not the feature list
@@ -137,31 +137,31 @@ one, so the subtitle must not imply "learn German" to a German reader.
 - Name: `LangToll: Sprachen lernen` (25)
 - Subtitle: `App-Sperre gegen Vokabeln` (25)
 - Keywords: `spanisch,franzoesisch,italienisch,englisch,portugiesisch,deutsch,bildschirmzeit,fokus,wörter`
-- Promotional text: `Sechs Sprachen, eine Regel: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du übst. Tolly steht an der Schranke.` (123)
+- Promotional text: `Serien haben nicht gehalten? Jetzt kostet dein Feed einen Fahrpreis: ein paar echte Vokabeln, und die Apps gehen wieder auf. Kein Schnickschnack. 7 Tage gratis.` (160)
 
 ### Spanish (es-ES / es-MX)
 - Name: `LangToll: Aprende idiomas` (25)
 - Subtitle: `El vocabulario abre tus apps` (28)
 - Keywords: `aleman,frances,italiano,ingles,portugues,espanol,pantalla,tiempo,bloqueo,concentracion,palabras`
-- Promotional text: `Seis idiomas, una regla: las apps que se comen tus tardes siguen bloqueadas hasta que practiques. Tolly vigila la puerta.` (121)
+- Promotional text: `¿Las rachas no funcionaron? Ahora tus apps cobran peaje: unas palabras de verdad en el idioma que siempre quisiste aprender, y se abren. Sin juegos. 7 días gratis.` (163)
 
 ### French (fr-FR)
 - Name: `LangToll : Apprends une langue` (30)
 - Subtitle: `Le vocabulaire ouvre tes apps` (29)
 - Keywords: `allemand,espagnol,italien,anglais,portugais,francais,ecran,temps,blocage,concentration,mots,habitude`
-- Promotional text: `Six langues, une règle : les apps qui dévorent tes soirées restent verrouillées tant que tu ne pratiques pas. Tolly garde la barrière.` (134)
+- Promotional text: `Les séries n'ont pas tenu ? Désormais tes apps font payer un péage : quelques vrais mots dans la langue que tu veux apprendre, et elles se rouvrent. 7 jours gratuits.` (166)
 
 ### Italian (it-IT)
 - Name: `LangToll: Impara le lingue` (26)
 - Subtitle: `Blocco app pagato in vocaboli` (29)
 - Keywords: `tedesco,spagnolo,francese,inglese,portoghese,italiano,schermo,tempo,concentrazione,parole,abitudine`
-- Promotional text: `Sei lingue, una regola: le app che ti mangiano le serate restano bloccate finché non ti alleni. Tolly è al cancello.` (116)
+- Promotional text: `Le serie non hanno retto? Ora le tue app fanno pagare il pedaggio: poche parole vere nella lingua che vuoi imparare, e si riaprono. Niente giochi. 7 giorni gratis.` (163)
 
 ### Portuguese (pt-BR)
 - Name: `LangToll: Aprenda idiomas` (25)
 - Subtitle: `Vocabulário destrava seus apps` (30)
 - Keywords: `alemao,espanhol,frances,ingles,italiano,portugues,tela,tempo,bloqueio,concentracao,palavras,habito`
-- Promotional text: `Seis idiomas, uma regra: os apps que devoram suas noites ficam bloqueados até você praticar. O Tolly está na cancela.` (117)
+- Promotional text: `As ofensivas não duraram? Agora seus apps cobram pedágio: umas palavras de verdade no idioma que você sempre quis aprender, e eles abrem. Sem joguinhos. 7 dias grátis.` (167)
 
 ---
 
