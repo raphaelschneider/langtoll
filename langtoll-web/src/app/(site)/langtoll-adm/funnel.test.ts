@@ -28,10 +28,30 @@ describe('buildReport', () => {
     ];
     const r = buildReport(users, events, [], { days: null, excludeTest: true }, new Date('2026-09-02T00:00:00Z'));
     const onb = r.sections.find((s) => s.key === 'onboarding')!;
-    expect(onb.rows[0]).toEqual(['1. hook', '3', '100%', '0', '1']); // b stopped on hook
-    expect(onb.rows[1]).toEqual(['2. how', '2', '67%', '1', '1']); // a stopped on how
+    expect(onb.rows[0]).toEqual(['1. hook', '3', '100%', '0', '1', '—']); // b stopped on hook
+    expect(onb.rows[1]).toEqual(['2. how', '2', '67%', '1', '1', '—']); // a stopped on how
     expect(onb.rows[onb.rows.length - 1][1]).toBe('1'); // c finished
     expect(r.kpis.find((k) => k.label === 'Paid a fare')!.value).toBe('1');
+  });
+
+  it('counts a back-out on the screen the person left from, not the deepest one reached', () => {
+    // 2026-09-27: hook → how → name → language → name → how → hook, then gone.
+    const users = [u('d'), u('e')];
+    const events = [
+      ...['hook', 'how', 'name', 'language', 'name', 'how', 'hook'].map((s) => e('d', 'onboarding_step', { step: s })),
+      // e reaches `taste` (a step the old list did not know) and quits there.
+      ...['hook', 'how', 'name', 'language', 'difficulty', 'apps', 'mirror', 'when', 'fare', 'goal', 'tease', 'future', 'printing', 'summary', 'taste'].map((s) => e('e', 'onboarding_step', { step: s })),
+    ];
+    const r = buildReport(users, events, [], { days: null, excludeTest: true }, new Date('2026-09-28T00:00:00Z'));
+    const onb = r.sections.find((s) => s.key === 'onboarding')!;
+    const row = (name: string) => onb.rows.find((x) => x[0].endsWith(` ${name}`))!;
+    expect(row('hook').slice(1)).toEqual(['2', '100%', '0', '1', '1']); // d left from hook, having been further
+    expect(row('language')[1]).toBe('2'); // both reached language
+    expect(row('language')[4]).toBe('0'); // nobody stopped on it
+    expect(row('taste').slice(4)).toEqual(['1', '—']); // e stopped on taste, never backed out
+    const installs = r.sections.find((s) => s.key === 'installs')!;
+    const dRow = installs.rows.find((x) => x[0] === 'd')!;
+    expect(dRow[7]).toBe('4/18 language ↩ left on hook');
   });
 
   it('attributes a subscription to the wall it came from and hides mock devices', () => {

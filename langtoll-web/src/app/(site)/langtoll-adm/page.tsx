@@ -8,7 +8,7 @@ import { BarChart } from './Charts';
 import { BRAND, FONT, BRAND_CSS } from './brand';
 import { adminFontClassName } from '@/lib/fonts';
 import { CopyButton } from './CopyButton';
-import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS } from './funnel';
+import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS, ONBOARDING_STEPS } from './funnel';
 
 // Weekly is not in the pricing settings (the landing card never shows it): the App Store
 // price, as the app's FALLBACK_PRICES has it. Apple's cut under the Small Business Program.
@@ -422,6 +422,25 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   );
 }
 
+/**
+ * On the support timeline, an onboarding_step row gets ↓ when it is further along
+ * than the previous step seen and ↩ when the person tapped back — the list is
+ * newest first, so "previous" is the row below. Three sessions on 2026-09-27 read
+ * as "stopped on the name screen" until the direction was spelled out: they had
+ * reached `language` and walked back to `hook`.
+ */
+function stepArrow(ev: Record<string, unknown>, prev: Record<string, unknown> | undefined): string {
+  if (ev.event !== 'onboarding_step' || !prev || prev.event !== 'onboarding_step') return '';
+  const step = (row: Record<string, unknown>) => {
+    const d = typeof row.data === 'string' ? (JSON.parse(row.data) as { step?: string }) : (row.data as { step?: string } | null);
+    return (ONBOARDING_STEPS as readonly string[]).indexOf(String(d?.step ?? ''));
+  };
+  const a = step(prev);
+  const b = step(ev);
+  if (a < 0 || b < 0 || a === b) return '';
+  return b > a ? ' ↓' : ' ↩ back';
+}
+
 // FUNNEL tab — where installs are lost, step by step (see ./funnel.ts). Every table has its own
 // copy button and the whole report downloads as CSV/Markdown, so a number can be pasted into a
 // conversation with its context attached. Ported from relift-adm.
@@ -597,12 +616,12 @@ async function SupportTab(rawCode?: string) {
             {(keys as unknown[]).length === 0 ? <tr><td style={cell}>no attest keys for this device (older app version, or never reached a paid route)</td></tr> : null}
           </tbody></table>
 
-          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>Activity — last 60 events</h3>
+          <h3 style={{ fontFamily: FONT.display, fontWeight: 800, letterSpacing: -0.5, margin: '20px 0 8px' }}>Activity — last 60 events <span style={{ fontWeight: 400, color: BRAND.inkSoft, fontSize: 13 }}>(newest first; read upwards for the walk)</span></h3>
           <table style={{ borderCollapse: 'collapse' }}><tbody>
-            {(timeline as Record<string, unknown>[]).map((ev, i) => (
+            {(timeline as Record<string, unknown>[]).map((ev, i, all) => (
               <tr key={i}>
                 <td style={cell}>{String(ev.at)}</td>
-                <td style={cell}><strong>{String(ev.event)}</strong></td>
+                <td style={cell}><strong>{String(ev.event)}</strong>{stepArrow(ev, all[i + 1])}</td>
                 <td style={{ ...cell, color: BRAND.inkSoft, fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>
                   {ev.data ? (typeof ev.data === 'string' ? ev.data : JSON.stringify(ev.data)).slice(0, 90) : ''}
                 </td>
