@@ -86,6 +86,7 @@ const NUDGE_ID = 'daily-nudge';
 const EXPIRY_ID = 'pass-expiry';
 const TRIAL_ID = 'trial-end';
 const RECAP_ID = 'weekly-recap';
+const COMEBACK_IDS = ['comeback-1', 'comeback-3'] as const;
 
 /** Resolve a bundled Tolly PNG into a notification attachment (best-effort). */
 async function tollyAttachment(
@@ -261,4 +262,44 @@ export async function scheduleDailyNudge(hour: number | null): Promise<void> {
   } catch {
     // best-effort — a failed schedule must never break onboarding or settings
   }
+}
+
+/**
+ * Someone who left the onboarding paywall without starting the trial: one note
+ * the next day and one two days after that, at the hour they said they lose the
+ * most time (evening if they skipped the question), then nothing. Before this a
+ * person who closed the wall was gone for good — notifications were only asked
+ * for on the lock step, after paying (founder call, 2026-09-28). Tapping opens the
+ * app, which resumes onboarding on the paywall with every answer kept.
+ * Cancelled on purchase and at the end of onboarding; fixed ids, so leaving the
+ * wall twice re-plans rather than stacks. Silently nothing without permission.
+ */
+export async function scheduleComebackNotices(hour: number | null): Promise<void> {
+  try {
+    await cancelComebackNotices();
+    if (!(await notificationsGranted())) return;
+    const at = (daysAhead: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + daysAhead);
+      d.setHours(hour ?? 18, 0, 0, 0);
+      return d;
+    };
+    const plans: [string, Date, string, string][] = [
+      [COMEBACK_IDS[0], at(1), t('comeback.firstTitle'), t('comeback.firstBody')],
+      [COMEBACK_IDS[1], at(3), t('comeback.secondTitle'), t('comeback.secondBody')],
+    ];
+    for (const [identifier, date, title, body] of plans) {
+      await Notifications.scheduleNotificationAsync({
+        identifier,
+        content: { title, body },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+      });
+    }
+  } catch {
+    // best-effort — must never break the paywall
+  }
+}
+
+export async function cancelComebackNotices(): Promise<void> {
+  for (const id of COMEBACK_IDS) await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
 }

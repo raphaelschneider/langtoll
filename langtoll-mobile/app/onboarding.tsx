@@ -36,6 +36,8 @@ import {
   scheduleTrialEndNotice,
   requestNotificationPermission,
   notificationPermissionState,
+  scheduleComebackNotices,
+  cancelComebackNotices,
   openSystemSettings,
 } from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
@@ -480,8 +482,32 @@ export default function Onboarding() {
 
   function next() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Leaving "when" with a time picked is the moment to ask for notifications: they
+    // have just said when they want the nudge, so Apple's prompt reads as the obvious
+    // next step. It is also the only way to reach someone who later leaves the
+    // paywall (founder call, 2026-09-28). Skip = no time = no prompt.
+    if (step === 'when' && daypart) {
+      void requestNotificationPermission().then((granted) =>
+        track('notify_permission', { where: 'when', granted }),
+      );
+    }
     setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   }
+
+  // The paywall left without a trial: plan the two come-back notes when the app
+  // goes to the background on it; clear them the moment the wall is passed.
+  useEffect(() => {
+    if (step !== 'paywall') {
+      void cancelComebackNotices();
+      return;
+    }
+    const hour = DAYPARTS.find((d) => d.key === daypart)?.hour ?? null;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'background' && !isPlus()) void scheduleComebackNotices(hour);
+      if (s === 'active') void cancelComebackNotices();
+    });
+    return () => sub.remove();
+  }, [step, daypart]);
   // No way back once the wall is up: the paywall is the only door (founder call,
   // 2026-09-16), and the lock step is only reached by someone who just paid, so
   // backing into the offer again is nonsense. The arrow hid itself on 'printing'
@@ -763,6 +789,9 @@ export default function Onboarding() {
             {step === 'when' && (
               <Entrance key="when">
                 <Text variant="title">{t('ob.whenTitle')}</Text>
+                <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
+                  {t('ob.whenSub')}
+                </Text>
                 <View style={{ marginTop: space.xl, gap: space.sm }}>
                   {DAYPARTS.map((d) => (
                     <OptionRow
@@ -1047,6 +1076,7 @@ export default function Onboarding() {
                 <PlusOffer
                   onDone={next}
                   source="onboarding"
+                  language={language}
                   header={
                     <>
                       <Text variant="overline" color="accent">

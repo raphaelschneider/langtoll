@@ -19,6 +19,8 @@ interface Props {
   glow?: boolean;
   /** Optional leading Ionicons glyph, e.g. "lock-open". */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
+  /** Keep a long label on one line by shrinking it (down to 80%) instead of wrapping. */
+  fit?: boolean;
 }
 
 export function Button({
@@ -31,6 +33,7 @@ export function Button({
   full,
   glow,
   icon,
+  fit,
 }: Props) {
   const theme = useTheme();
   const isGhost = variant === 'ghost';
@@ -64,7 +67,11 @@ export function Button({
         ) : (
           <>
             {icon && <Ionicons name={icon} size={19} color={fg} />}
-            <Text variant="bodyMedium" style={{ color: fg }}>
+            <Text
+              variant="bodyMedium"
+              style={fit ? { color: fg, flexShrink: 1 } : { color: fg }}
+              {...(fit ? { numberOfLines: 1, adjustsFontSizeToFit: true, minimumFontScale: 0.8 } : {})}
+            >
               {label}
             </Text>
           </>

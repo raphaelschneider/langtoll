@@ -3,7 +3,7 @@
 // pricing and purchase logic live in exactly one place. Purchases route through
 // lib/purchases (real RevenueCat on the dev build, mock in Expo Go/simulator).
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Linking } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Linking, Modal } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
@@ -26,11 +26,15 @@ import {
   type PlusPackage,
 } from '@/lib/purchases';
 import { track } from '@/lib/telemetry';
-import { useT } from '@/lib/i18n';
+import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 import type { PaywallSource } from '@/lib/paywall';
-import { isPlus, useAppState } from '@/lib/store';
+import { isPlus, useAppState, getState } from '@/lib/store';
+import type { Language } from '@/content/german/types';
 
-function HowRow({ icon, title, detail }: { icon: any; title: string; detail: string }) {
+// Title only (2026-09-29, "so crowded"): the detail lines ran to six lines of grey
+// under three headlines and pushed the plans below the fold. The comparisons they
+// carried ("free locks one app") live in Settings and the store description.
+function HowRow({ icon, title }: { icon: any; title: string }) {
   const theme = useTheme();
   return (
     <View style={styles.featureRow}>
@@ -41,9 +45,6 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="bodyMedium">{title}</Text>
-        <Text variant="callout" color="inkSoft" style={{ marginTop: 1 }}>
-          {detail}
-        </Text>
       </View>
     </View>
   );
@@ -54,11 +55,16 @@ const ORDER: Record<Period, number> = { yearly: 0, monthly: 1, weekly: 2 };
 
 export function PlusOffer({
   onDone,
+  language,
   onStoreUnavailable,
   source,
   header,
 }: {
   onDone: () => void;
+  /** The course being sold, for the outcome-led button ("Start speaking Italian free").
+   *  Onboarding passes the language just chosen (the profile isn't written until the
+   *  end); elsewhere it falls back to the profile's course. */
+  language?: Language;
   /**
    * Rendered INSIDE the scroll, above the pitch. Onboarding used to draw its
    * title and the learner's own goal line as a sibling above this component;
@@ -89,6 +95,9 @@ export function PlusOffer({
   // A failed purchase used to do NOTHING visible: the button pressed, the promise
   // resolved 'error', and the screen sat there. Every failure now says something.
   const [failed, setFailed] = useState(false);
+  // Apple's sheet was dismissed without buying: the one moment left to answer the
+  // fear and to learn what stopped them (founder call, 2026-09-28).
+  const [cancelled, setCancelled] = useState(false);
 
   useEffect(() => {
     // Tagged with the gate that opened it — the number that says which gate
@@ -103,6 +112,10 @@ export function PlusOffer({
   }, []);
 
   const current = packages.find((p) => p.period === selected);
+  const course = language ?? getState().learningLanguage;
+  const courseRaw = t(`lang.${course}` as StringKey);
+  // es/fr/it/pt write language names lowercase mid-sentence ("hablar italiano").
+  const courseName = ['es', 'fr', 'it', 'pt'].includes(resolvedLocale()) ? courseRaw.toLowerCase() : courseRaw;
   const trial = current?.hasTrial;
 
   // Plus can arrive while the wall is up without a tap landing here: a purchase
@@ -135,6 +148,12 @@ export function PlusOffer({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setFailed(true);
     }
+    if (res === 'cancelled') setCancelled(true);
+  }
+
+  function cancelReason(reason: 'price' | 'unsure' | 'looking' | 'other') {
+    track('purchase_cancel_reason', { reason, period: current?.period, source });
+    setCancelled(false);
   }
 
   async function onRestore() {
@@ -170,7 +189,7 @@ export function PlusOffer({
       {header ? <View style={{ marginBottom: space.lg }}>{header}</View> : null}
       <View style={{ gap: space.sm }}>
         {PLUS_FEATURES.slice(0, 3).map((f) => (
-          <HowRow key={f.title} icon={f.icon} title={t(f.title)} detail={t(f.detail)} />
+          <HowRow key={f.title} icon={f.icon} title={t(f.title)} />
         ))}
       </View>
 
@@ -244,13 +263,8 @@ export function PlusOffer({
                 <View style={{ flex: 1 }}>
                   <View style={styles.pkgTop}>
                     <Text variant="bodyMedium">{t(`plus.${p.period}` as const)}</Text>
-                    {savings !== null && (
-                      <View style={[styles.badge, { backgroundColor: theme.accent }]}>
-                        <Text variant="caption" style={{ color: theme.onAccent, letterSpacing: 0.5 }}>
-                          {t('plus.save', { percent: savings })}
-                        </Text>
-                      </View>
-                    )}
+                    {/* No "Save 58%" pill: the struck price beside the real one says it,
+                        and two badges on one card read as noise ("so crowded"). */}
                   </View>
                   {perWeek ? (
                     // Beside a weekly plan at several times this, the weekly figure is
@@ -267,13 +281,16 @@ export function PlusOffer({
                   )}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                  {struck && (
-                    // Twelve months of the monthly plan, which is what yearly replaces.
-                    <Text variant="caption" color="inkFaint" style={{ textDecorationLine: 'line-through' }}>
-                      {struck}
-                    </Text>
-                  )}
-                  <Text variant="bodyMedium">{p.priceString}</Text>
+                  {/* Twelve months of the monthly plan, which is what yearly replaces —
+                      beside the price, not above it, where the trial flag sits. */}
+                  <View style={styles.priceRow}>
+                    {struck && (
+                      <Text variant="caption" color="inkFaint" style={{ textDecorationLine: 'line-through' }}>
+                        {struck}
+                      </Text>
+                    )}
+                    <Text variant="bodyMedium">{p.priceString}</Text>
+                  </View>
                   <Text variant="caption" color="inkFaint">
                     {t(subKey)}
                   </Text>
@@ -284,19 +301,68 @@ export function PlusOffer({
         )}
       </View>
 
+      <Modal visible={cancelled} transparent animationType="slide" onRequestClose={() => setCancelled(false)}>
+        <View style={styles.sheetScrim}>
+          <View style={[styles.sheet, { backgroundColor: theme.surface, borderColor: theme.line }]}>
+            {/* The fear first: Apple's sheet just quoted a price. With a trial, nothing
+                is charged today, and saying so plainly brings a share of the reflex
+                cancels back. Without a trial there is nothing to reassure about. */}
+            {trial && (
+              <>
+                <Text variant="title">{t('plus.cancelTitle')}</Text>
+                <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
+                  {t('plus.cancelBody', { days: current!.trialDays })}
+                </Text>
+                <Button
+                  label={t('plus.startTrial', { days: current!.trialDays })}
+                  onPress={() => {
+                    setCancelled(false);
+                    void buy();
+                  }}
+                  glow
+                  full
+                  fit
+                  style={{ marginTop: space.lg }}
+                />
+              </>
+            )}
+            <Text variant="overline" color="inkFaint" style={{ marginTop: trial ? space.xl : 0 }}>
+              {t('plus.cancelAsk')}
+            </Text>
+            <View style={{ marginTop: space.sm, gap: space.xs }}>
+              {(
+                [
+                  ['price', 'plus.cancelPrice'],
+                  ['unsure', 'plus.cancelUnsure'],
+                  ['looking', 'plus.cancelLooking'],
+                  ['other', 'plus.cancelOther'],
+                ] as const
+              ).map(([key, label]) => (
+                <PressableScale
+                  key={key}
+                  onPress={() => cancelReason(key)}
+                  style={[styles.reason, { backgroundColor: theme.fill, borderColor: theme.line }]}
+                >
+                  <Text variant="bodyMedium">{t(label)}</Text>
+                </PressableScale>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
       {/* The reminder, said where the decision is made: the fear on a trial paywall is
           being charged without warning, and this line is the answer. It used to sit
           inside the faint legal caption, where nobody reads. */}
       {trial && (
-        <View style={styles.remind}>
-          <Ionicons name="notifications" size={16} color={theme.accent} />
-          <Text variant="callout" style={{ flexShrink: 1 }}>
-            {t('plus.remindLine')}
-          </Text>
-        </View>
+        <Text variant="callout" center style={{ marginTop: space.md }}>
+          <Ionicons name="notifications" size={15} color={theme.accent} /> {t('plus.remindLine')}
+        </Text>
       )}
       <Button
-        label={trial ? t('plus.startTrial', { days: current!.trialDays }) : t('plus.subscribe')}
+        // Outcome-led, per course: "Start speaking Italian free". The trial's length
+        // and price stay in the line underneath, where they always were.
+        label={trial ? t('plus.startSpeaking', { lang: courseName }) : t('plus.subscribe')}
+        fit
         onPress={buy}
         loading={busy}
         disabled={!current}
@@ -385,7 +451,16 @@ export function PlusOffer({
 }
 
 const styles = StyleSheet.create({
-  remind: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, marginTop: space.md },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  sheetScrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+  sheet: {
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: space.lg,
+    paddingBottom: space.xl + space.lg,
+  },
+  reason: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.md },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   featureIcon: {
     width: 34,

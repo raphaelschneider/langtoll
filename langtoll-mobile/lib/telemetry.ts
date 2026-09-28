@@ -47,6 +47,10 @@ export type TelemetryEvent =
   // The lock step (onboarding) and the app picker: what Screen Time answered when asked
   // (result granted / denied / error, with Apple's error code) and whether apps were
   // picked. Added 2026-09-28 after payers reached the lock step and never finished.
+  // Notification permission asked on the "when" screen (granted true/false).
+  | 'notify_permission'
+  // After cancelling Apple's sheet: the one-tap answer to "what stopped you?".
+  | 'purchase_cancel_reason'
   | 'lock_auth'
   | 'lock_apps_picked'
   | 'paywall_viewed'
