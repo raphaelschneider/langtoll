@@ -394,7 +394,6 @@ export function PlusOffer({
         onPress={buy}
         loading={busy}
         disabled={!current}
-        glow
         full
         style={{ marginTop: space.md }}
       />
