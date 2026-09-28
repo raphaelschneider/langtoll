@@ -54,6 +54,23 @@ describe('buildReport', () => {
     expect(dRow[7]).toBe('4/18 language ↩ left on hook');
   });
 
+  it('files cancelled / failed / unavailable under the wall of the tap they follow', () => {
+    // The app sends these three without a source; they used to land on 'direct'.
+    const users = [u('x'), u('y')];
+    const events = [
+      e('x', 'paywall_viewed', { source: 'onboarding' }),
+      e('x', 'purchase_tapped', { period: 'yearly', source: 'onboarding' }),
+      e('x', 'purchase_cancelled', { period: 'yearly' }),
+      e('y', 'paywall_viewed', { source: 'onboarding' }),
+      e('y', 'purchase_tapped', { period: 'monthly', source: 'onboarding' }),
+      e('y', 'purchase_unavailable', {}),
+    ];
+    const r = buildReport(users, events, [], { days: null, excludeTest: true });
+    const row = r.sections.find((s) => s.key === 'paywall')!.rows.find((x) => x[0] === 'onboarding')!;
+    expect(row.slice(0, 7)).toEqual(['onboarding', '2', '2', '100%', '1', '0', '1']);
+    expect(r.sections.find((s) => s.key === 'paywall')!.rows.some((x) => x[0] === 'direct')).toBe(false);
+  });
+
   it('attributes a subscription to the wall it came from and hides mock devices', () => {
     const users = [u('p'), u('m')];
     const events = [

@@ -138,6 +138,10 @@ interface Device {
   paywallFroms: string[];
   /** per entry point: what happened on THAT wall (a tap on the settings wall is not an onboarding tap) */
   walls: Map<string, { taps: number; cancelled: number; failed: number; unavailable: number }>;
+  /** The wall of the last purchase_tapped. The app sends cancelled / failed / unavailable
+   *  without a source (lib/purchases.ts), so they are filed under the tap they follow. Before
+   *  2026-09-28 they all landed on 'direct' and the onboarding row showed 11 taps, 0 outcomes. */
+  lastTapWall: string | null;
   tapped: number;
   cancelled: number;
   failed: string[];
@@ -174,7 +178,7 @@ export function fareLabel(d: Pick<Device, 'fareEx' | 'fareMin' | 'fareMinApprox'
 }
 
 function wall(d: Device, data: Record<string, unknown>) {
-  const from = String(data.source ?? data.from ?? 'direct');
+  const from = String(data.source ?? data.from ?? d.lastTapWall ?? 'direct');
   let w = d.walls.get(from);
   if (!w) {
     w = { taps: 0, cancelled: 0, failed: 0, unavailable: 0 };
@@ -207,6 +211,7 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
       onboarded: !!u.onboarded_at,
       paywallFroms: [],
       walls: new Map(),
+      lastTapWall: null,
       tapped: 0,
       cancelled: 0,
       failed: [],
@@ -258,6 +263,7 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
       case 'purchase_tapped':
         d.tapped++;
         wall(d, data).taps++;
+        d.lastTapWall = String(data.source ?? data.from ?? 'direct');
         break;
       case 'purchase_cancelled':
         d.cancelled++;
