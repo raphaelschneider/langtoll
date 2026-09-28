@@ -238,7 +238,6 @@ export function PlusOffer({
               >
                 {best && (
                   <>
-                    <Twinkle size={16} color={theme.amber} style={{ top: -22, left: 150 }} />
                     <Twinkle size={12} color={theme.accentSoft} delay={500} style={{ bottom: -10, right: 26 }} />
                   </>
                 )}
@@ -274,6 +273,9 @@ export function PlusOffer({
                     <Text variant="caption" style={{ color: GIFT_INK, fontFamily: font.semibold, letterSpacing: 0.6 }}>
                       {t('plus.bestValue')}
                     </Text>
+                    {/* Rides the ribbon's corner, so it follows the ribbon's length in
+                        every language. */}
+                    <Twinkle size={15} color={theme.amber} style={{ top: -11, right: -9 }} />
                   </View>
                 )}
                 <View style={[styles.radio, { borderColor: on ? theme.accent : theme.inkFaint }]}>
