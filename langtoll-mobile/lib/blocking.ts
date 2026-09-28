@@ -129,6 +129,14 @@ export function isAuthorized(): boolean {
   return authorizationStatus() === 2;
 }
 
+/** The outcome of the last authorization request, for telemetry: a plain "no" and an
+ *  error (a restricted, managed or child device that cannot grant it) look the same to
+ *  callers but mean very different things for a user who has just paid. */
+let lastAuth: { result: 'granted' | 'denied' | 'error'; status: number | null; error: string | null } | null = null;
+export function lastAuthorizationResult() {
+  return lastAuth;
+}
+
 /** Ask iOS for Screen Time authorization. Resolves true if approved. No-op in stub. */
 export async function requestAuthorization(): Promise<boolean> {
   const m = native();
@@ -136,13 +144,17 @@ export async function requestAuthorization(): Promise<boolean> {
   try {
     await m.requestAuthorization('individual');
     // status can lag right after the prompt — poll briefly if available.
+    let status: number;
     if (typeof m.pollAuthorizationStatus === 'function') {
-      const status = await m.pollAuthorizationStatus({ pollIntervalMs: 300, maxAttempts: 10 });
-      return status === 2;
+      status = await m.pollAuthorizationStatus({ pollIntervalMs: 300, maxAttempts: 10 });
+    } else {
+      status = m.getAuthorizationStatus();
     }
-    return m.getAuthorizationStatus() === 2;
-  } catch (e) {
+    lastAuth = { result: status === 2 ? 'granted' : 'denied', status, error: null };
+    return status === 2;
+  } catch (e: any) {
     console.warn('[blocking] authorization failed', e);
+    lastAuth = { result: 'error', status: null, error: String(e?.code ?? e?.message ?? e).slice(0, 80) };
     return false;
   }
 }

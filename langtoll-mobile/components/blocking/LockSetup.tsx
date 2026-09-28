@@ -22,8 +22,11 @@ import {
   selectionId,
   configureShieldAppearance,
   lockNow,
+  lastAuthorizationResult,
+  selectionCounts,
 } from '@/lib/blocking';
 import { requestNotificationPermission } from '@/lib/notify';
+import { track } from '@/lib/telemetry';
 import { useT } from '@/lib/i18n';
 
 function nativeModule(): any | null {
@@ -53,6 +56,13 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
   async function authorize() {
     setBusy(true);
     const ok = await requestAuthorization();
+    const r = lastAuthorizationResult();
+    track('lock_auth', {
+      where: 'onboarding',
+      result: r?.result ?? (ok ? 'granted' : 'denied'),
+      ...(r?.status !== null && r?.status !== undefined ? { status: r.status } : {}),
+      ...(r?.error ? { error: r.error } : {}),
+    });
     setAuthed(ok);
     if (ok) {
       configureShieldAppearance();
@@ -133,6 +143,12 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
           onDismissRequest={() => {
             setPicking(false);
             const has = hasSelection();
+            const counts = selectionCounts();
+            track('lock_apps_picked', {
+              where: 'onboarding',
+              picked: has,
+              ...(counts ? { apps: counts.applicationCount, categories: counts.categoryCount } : {}),
+            });
             setConfigured(has);
             if (has) lockNow(); // shield immediately so home lands "locked"
           }}

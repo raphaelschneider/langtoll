@@ -44,6 +44,11 @@ export type TelemetryEvent =
   | 'recap_shown'
   // Funnel step views: one per onboarding screen seen (step: 'hook'…'lock').
   | 'onboarding_step'
+  // The lock step (onboarding) and the app picker: what Screen Time answered when asked
+  // (result granted / denied / error, with Apple's error code) and whether apps were
+  // picked. Added 2026-09-28 after payers reached the lock step and never finished.
+  | 'lock_auth'
+  | 'lock_apps_picked'
   | 'paywall_viewed'
   | 'purchase_tapped'
   | 'purchase_cancelled'
