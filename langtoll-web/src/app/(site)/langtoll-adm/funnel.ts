@@ -16,11 +16,27 @@ import { query } from '@/lib/db';
  *  English learners skip it, so its "stopped here" count is meaningful only per language. */
 // Must match STEPS in langtoll-mobile/app/onboarding.tsx. Three screens (tease, future, taste)
 // were missing here until 2026-09-27, so anyone who quit on them was counted on the previous step.
+// The name screen moved from third to just before the mirror in 1.0.4 (2026-09-28). A device is
+// read in the order ITS build showed, or an old install that stopped on the name field would
+// count as having reached the course screens. The two orders get separate tables.
 export const ONBOARDING_STEPS = [
+  'hook', 'how', 'language', 'difficulty', 'apps', 'name', 'mirror', 'when', 'fare', 'goal',
+  'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
+] as const;
+export const ONBOARDING_STEPS_BEFORE_1_0_4 = [
   'hook', 'how', 'name', 'language', 'difficulty', 'apps', 'mirror', 'when', 'fare', 'goal',
   'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
 ] as const;
-/** The paywall IS a step here (it is a screen of the flow); steps past it are only reached by people who saw it. */
+/** The step order a build showed. Unknown versions are read as the older order. */
+export function stepOrderFor(version: string | null | undefined): readonly string[] {
+  const parts = String(version ?? '').split('.').map((x) => Number(x));
+  if (parts.length === 0 || parts.some((n) => Number.isNaN(n))) return ONBOARDING_STEPS_BEFORE_1_0_4;
+  const [a = 0, b = 0, c = 0] = parts;
+  const newer = a > 1 || (a === 1 && (b > 0 || c >= 4));
+  return newer ? ONBOARDING_STEPS : ONBOARDING_STEPS_BEFORE_1_0_4;
+}
+/** The paywall IS a step here (it is a screen of the flow); steps past it are only reached by people who saw it.
+ *  Same index in both orders (only 'name' moved, and it moved before the paywall). */
 export const PAYWALL_STEP = (ONBOARDING_STEPS as readonly string[]).indexOf('paywall');
 
 export interface UserRow {
@@ -129,6 +145,8 @@ interface Device {
   fareMin: number | null;
   fareMinApprox: boolean;
   /** highest onboarding step index seen (-1 = no step events, i.e. a pre-build-17 install) */
+  /** The step order this device's build showed; stepMax / stepLast / stepSeen index into it. */
+  order: readonly string[];
   stepMax: number;
   stepSeen: Set<number>;
   /** The last onboarding screen seen in time order. Differs from stepMax when the person
@@ -205,6 +223,7 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
       fareEx: null,
       fareMin: null,
       fareMinApprox: false,
+      order: stepOrderFor(u.app_version),
       stepMax: -1,
       stepSeen: new Set(),
       stepLast: -1,
@@ -243,7 +262,7 @@ function rollup(users: UserRow[], events: EventRow[]): Device[] {
         d.opens++;
         break;
       case 'onboarding_step': {
-        const idx = (ONBOARDING_STEPS as readonly string[]).indexOf(String(data.step ?? ''));
+        const idx = d.order.indexOf(String(data.step ?? ''));
         if (idx >= 0) {
           d.stepSeen.add(idx);
           if (idx > d.stepMax) d.stepMax = idx;
@@ -343,7 +362,7 @@ export function stageOf(d: Device): string {
   if (d.onboarded) return 'onboarded';
   if (d.tapped > 0) return 'tapped buy';
   if (d.paywallFroms.length && d.stepMax < PAYWALL_STEP) return 'saw paywall';
-  if (d.stepMax >= 0) return `onboarding:${ONBOARDING_STEPS[d.stepMax]}`;
+  if (d.stepMax >= 0) return `onboarding:${d.order[d.stepMax]}`;
   if (d.opens > 0) return 'opened';
   return 'installed';
 }
@@ -447,28 +466,33 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
     rows: product.map(([s, c, e]) => [s, String(c), String(e), pct(c, e)]),
   });
 
-  // 4) Onboarding step by step.
+  // 4) Onboarding step by step — one table per step order (the name screen moved in 1.0.4).
   const stepDevices = devices.filter((d) => d.stepMax >= 0);
-  {
+  for (const [key, title, order] of [
+    ['onboarding', 'Onboarding step by step (1.0.4+, name before the mirror)', ONBOARDING_STEPS],
+    ['onboarding-before-1.0.4', 'Onboarding step by step (before 1.0.4, name third)', ONBOARDING_STEPS_BEFORE_1_0_4],
+  ] as const) {
+    const group = stepDevices.filter((d) => d.order === order);
+    if (group.length === 0) continue;
     const rows: string[][] = [];
-    let prev = stepDevices.length;
-    ONBOARDING_STEPS.forEach((step, i) => {
-      const reached = stepDevices.filter((d) => d.stepMax >= i).length;
+    let prev = group.length;
+    order.forEach((step, i) => {
+      const reached = group.filter((d) => d.stepMax >= i).length;
       // "stopped here" = the last screen seen, in time order, by someone who never finished.
       // A person who reached `language` and tapped back to `hook` stopped on hook, not language.
-      const stopped = stepDevices.filter((d) => d.stepLast === i && !d.onboarded).length;
+      const stopped = group.filter((d) => d.stepLast === i && !d.onboarded).length;
       // "backed out" = of those, how many had already been further along: they came back to
       // this screen on purpose and left from it — the screen after it is the one to suspect.
-      const backedOut = stepDevices.filter((d) => d.stepLast === i && d.stepMax > i && !d.onboarded).length;
-      rows.push([`${i + 1}. ${step}`, String(reached), pct(reached, stepDevices.length), String(prev - reached), String(stopped), backedOut ? String(backedOut) : '—']);
+      const backedOut = group.filter((d) => d.stepLast === i && d.stepMax > i && !d.onboarded).length;
+      rows.push([`${i + 1}. ${step}`, String(reached), pct(reached, group.length), String(prev - reached), String(stopped), backedOut ? String(backedOut) : '—']);
       prev = reached;
     });
-    const finished = stepDevices.filter((d) => d.onboarded).length;
-    rows.push(['— finished (onboarded)', String(finished), pct(finished, stepDevices.length), String(prev - finished), '—', '—']);
+    const finished = group.filter((d) => d.onboarded).length;
+    rows.push(['— finished (onboarded)', String(finished), pct(finished, group.length), String(prev - finished), '—', '—']);
     sections.push({
-      key: 'onboarding',
-      title: 'Onboarding step by step',
-      note: `${stepDevices.length} installs have step events. "reached" = got at least this far; "stopped here" = the last screen seen (in time order) by someone who never finished; "backed out" = of those, the ones who had been further and tapped back to here before leaving — read it as an objection to the screen after. 'forms' is skipped for German and English learners, so its "lost vs prev" is not a drop.`,
+      key,
+      title,
+      note: `${group.length} installs have step events. "reached" = got at least this far; "stopped here" = the last screen seen (in time order) by someone who never finished; "backed out" = of those, the ones who had been further and tapped back to here before leaving — read it as an objection to the screen after. 'forms' is skipped for German and English learners, so its "lost vs prev" is not a drop.`,
       headers: ['step', 'reached', '% of onboardings', 'lost vs prev', 'stopped here', 'backed out'],
       rows,
     });
@@ -574,7 +598,7 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
         fareLabel(d),
         String(d.opens),
         d.stepMax >= 0
-          ? `${d.stepMax + 1}/${ONBOARDING_STEPS.length} ${ONBOARDING_STEPS[d.stepMax]}${d.onboarded ? ' ✓' : d.stepLast >= 0 && d.stepLast < d.stepMax ? ` ↩ left on ${ONBOARDING_STEPS[d.stepLast]}` : ''}`
+          ? `${d.stepMax + 1}/${d.order.length} ${d.order[d.stepMax]}${d.onboarded ? ' ✓' : d.stepLast >= 0 && d.stepLast < d.stepMax ? ` ↩ left on ${d.order[d.stepLast]}` : ''}`
           : d.onboarded ? '✓' : '—',
         [...new Set(d.paywallFroms)].join('+') || '—',
         d.tapped ? String(d.tapped) : '—',

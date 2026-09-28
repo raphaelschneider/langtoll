@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildReport, ONBOARDING_STEPS, stageOf } from './funnel';
+import { buildReport, ONBOARDING_STEPS, ONBOARDING_STEPS_BEFORE_1_0_4, stageOf, stepOrderFor } from './funnel';
 import type { EventRow, UserRow } from './funnel';
 
 const u = (id: string, extra: Partial<UserRow> = {}): UserRow => ({
@@ -21,13 +21,13 @@ describe('buildReport', () => {
       e('a', 'onboarding_step', { step: 'hook' }),
       e('a', 'onboarding_step', { step: 'how' }),
       e('b', 'onboarding_step', { step: 'hook' }),
-      ...ONBOARDING_STEPS.map((s) => e('c', 'onboarding_step', { step: s })),
+      ...ONBOARDING_STEPS_BEFORE_1_0_4.map((s) => e('c', 'onboarding_step', { step: s })),
       e('c', 'onboarded', { language: 'de', level: 'A1' }),
       e('c', 'session_started', { language: 'de', level: 'A1' }),
       e('c', 'session_completed', { language: 'de', level: 'A1' }),
     ];
     const r = buildReport(users, events, [], { days: null, excludeTest: true }, new Date('2026-09-02T00:00:00Z'));
-    const onb = r.sections.find((s) => s.key === 'onboarding')!;
+    const onb = r.sections.find((s) => s.key === 'onboarding-before-1.0.4')!;
     expect(onb.rows[0]).toEqual(['1. hook', '3', '100%', '0', '1', '—']); // b stopped on hook
     expect(onb.rows[1]).toEqual(['2. how', '2', '67%', '1', '1', '—']); // a stopped on how
     expect(onb.rows[onb.rows.length - 1][1]).toBe('1'); // c finished
@@ -43,7 +43,7 @@ describe('buildReport', () => {
       ...['hook', 'how', 'name', 'language', 'difficulty', 'apps', 'mirror', 'when', 'fare', 'goal', 'tease', 'future', 'printing', 'summary', 'taste'].map((s) => e('e', 'onboarding_step', { step: s })),
     ];
     const r = buildReport(users, events, [], { days: null, excludeTest: true }, new Date('2026-09-28T00:00:00Z'));
-    const onb = r.sections.find((s) => s.key === 'onboarding')!;
+    const onb = r.sections.find((s) => s.key === 'onboarding-before-1.0.4')!;
     const row = (name: string) => onb.rows.find((x) => x[0].endsWith(` ${name}`))!;
     expect(row('hook').slice(1)).toEqual(['2', '100%', '0', '1', '1']); // d left from hook, having been further
     expect(row('language')[1]).toBe('2'); // both reached language
@@ -52,6 +52,29 @@ describe('buildReport', () => {
     const installs = r.sections.find((s) => s.key === 'installs')!;
     const dRow = installs.rows.find((x) => x[0] === 'd')!;
     expect(dRow[7]).toBe('4/18 language ↩ left on hook');
+  });
+
+  it('reads each install in the step order its build showed', () => {
+    expect(stepOrderFor('1.0.3')[2]).toBe('name');
+    expect(stepOrderFor('1.0.4')[5]).toBe('name');
+    expect(stepOrderFor('1.1.0')[5]).toBe('name');
+    expect(stepOrderFor(null)[2]).toBe('name');
+    // Old build: stopped on the name field. New build: stopped on the name field. Neither
+    // may count as having reached a screen it never saw.
+    const users = [u('old', { app_version: '1.0.3' }), u('new', { app_version: '1.0.4' })];
+    const events = [
+      ...['hook', 'how', 'name'].map((s) => e('old', 'onboarding_step', { step: s })),
+      ...['hook', 'how', 'language', 'difficulty', 'apps', 'name'].map((s) => e('new', 'onboarding_step', { step: s })),
+    ];
+    const r = buildReport(users, events, [], { days: null, excludeTest: true });
+    const oldT = r.sections.find((s) => s.key === 'onboarding-before-1.0.4')!;
+    const newT = r.sections.find((s) => s.key === 'onboarding')!;
+    const cell = (t: typeof oldT, step: string, col: number) => t.rows.find((x) => x[0].endsWith(` ${step}`))![col];
+    expect(cell(oldT, 'language', 1)).toBe('0');
+    expect(cell(oldT, 'name', 4)).toBe('1');
+    expect(cell(newT, 'language', 1)).toBe('1');
+    expect(cell(newT, 'name', 4)).toBe('1');
+    expect(cell(newT, 'mirror', 1)).toBe('0');
   });
 
   it('files cancelled / failed / unavailable under the wall of the tap they follow', () => {

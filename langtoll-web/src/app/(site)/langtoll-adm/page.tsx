@@ -8,7 +8,7 @@ import { BarChart } from './Charts';
 import { BRAND, FONT, BRAND_CSS } from './brand';
 import { adminFontClassName } from '@/lib/fonts';
 import { CopyButton } from './CopyButton';
-import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS, ONBOARDING_STEPS } from './funnel';
+import { loadFunnel, parseDays, reportToText, sectionToText, FUNNEL_WINDOWS, stepOrderFor } from './funnel';
 
 // Weekly is not in the pricing settings (the landing card never shows it): the App Store
 // price, as the app's FALLBACK_PRICES has it. Apple's cut under the Small Business Program.
@@ -429,11 +429,11 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
  * as "stopped on the name screen" until the direction was spelled out: they had
  * reached `language` and walked back to `hook`.
  */
-function stepArrow(ev: Record<string, unknown>, prev: Record<string, unknown> | undefined): string {
+function stepArrow(ev: Record<string, unknown>, prev: Record<string, unknown> | undefined, order: readonly string[]): string {
   if (ev.event !== 'onboarding_step' || !prev || prev.event !== 'onboarding_step') return '';
   const step = (row: Record<string, unknown>) => {
     const d = typeof row.data === 'string' ? (JSON.parse(row.data) as { step?: string }) : (row.data as { step?: string } | null);
-    return (ONBOARDING_STEPS as readonly string[]).indexOf(String(d?.step ?? ''));
+    return order.indexOf(String(d?.step ?? ''));
   };
   const a = step(prev);
   const b = step(ev);
@@ -621,7 +621,7 @@ async function SupportTab(rawCode?: string) {
             {(timeline as Record<string, unknown>[]).map((ev, i, all) => (
               <tr key={i}>
                 <td style={cell}>{String(ev.at)}</td>
-                <td style={cell}><strong>{String(ev.event)}</strong>{stepArrow(ev, all[i + 1])}</td>
+                <td style={cell}><strong>{String(ev.event)}</strong>{stepArrow(ev, all[i + 1], stepOrderFor(u.app_version as string | null))}</td>
                 <td style={{ ...cell, color: BRAND.inkSoft, fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>
                   {ev.data ? (typeof ev.data === 'string' ? ev.data : JSON.stringify(ev.data)).slice(0, 90) : ''}
                 </td>
