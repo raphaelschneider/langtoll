@@ -402,7 +402,7 @@ export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<Pu
       lastError = !purchasesEnabled()
         ? 'RevenueCat not configured in this build'
         : offeringsDiag ?? 'store returned no purchasable product';
-      track('purchase_unavailable');
+      track('purchase_unavailable', { period: pkg.period, source });
       return 'error';
     }
     applyPlan(true, undefined, undefined, source); // mock: grant Plus locally (telemetry is off in mock builds)
@@ -424,11 +424,11 @@ export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<Pu
     // App Store products shipped with none attached while the Test Store copies
     // had `plus`, so every sandbox purchase reported failure after succeeding.
     lastError = `purchased, but "${PLUS_ENTITLEMENT}" is not active — attach the entitlement to ${pkg.raw?.product?.identifier ?? 'this product'} in RevenueCat`;
-    track('purchase_failed', { period: pkg.period, reason: 'entitlement_inactive' });
+    track('purchase_failed', { period: pkg.period, reason: 'entitlement_inactive', source });
     return 'error';
   } catch (e: any) {
     if (e?.userCancelled) {
-      track('purchase_cancelled', { period: pkg.period });
+      track('purchase_cancelled', { period: pkg.period, source });
       return 'cancelled';
     }
     // RevenueCat wraps StoreKit: userInfo.readableErrorCode is the useful one.
@@ -437,7 +437,7 @@ export async function purchase(pkg: PlusPackage, source = 'unknown'): Promise<Pu
       e?.code ??
       e?.message ??
       'unknown store error';
-    track('purchase_failed', { period: pkg.period, reason: String(lastError).slice(0, 60) });
+    track('purchase_failed', { period: pkg.period, reason: String(lastError).slice(0, 60), source });
     return 'error';
   } finally {
     pending = null;

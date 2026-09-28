@@ -70,13 +70,18 @@ import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 import { LOCALE_ENDONYMS } from '@/lib/locales';
 
+// The name is asked just before the mirror, the first screen that uses it. It was
+// third, before anything about the learner: in the 30 days to 2026-09-28, 10 of 62
+// installs got no further than the name field, and 8 of those walked back to the
+// start and left (founder call to move it). Keep in sync with ONBOARDING_STEPS in
+// langtoll-web/src/app/(site)/langtoll-adm/funnel.ts (it maps old builds' order too).
 const STEPS = [
   'hook',
   'how',
-  'name',
   'language',
   'difficulty',
   'apps',
+  'name',
   'mirror',
   'when',
   'fare',
@@ -353,10 +358,22 @@ export default function Onboarding() {
   // people stop instead of guessing. Early on, every lost step matters.
   // The first step seen after a relaunch carries resumed: true, so the funnel
   // can tell a comeback from a fresh walk.
+  // `from` is the screen before this one, so the funnel can tell a back tap from a
+  // forward one; `language` is the course chosen so far, so an exit on or after the
+  // language screen says which course the person was looking at when they left.
   const resumedRef = useRef(!!draft && stepIdx > 0);
+  const prevStepRef = useRef<Step | null>(null);
   useEffect(() => {
-    track('onboarding_step', resumedRef.current ? { step, resumed: true } : { step });
+    const from = prevStepRef.current;
+    track('onboarding_step', {
+      step,
+      ...(from ? { from } : {}),
+      language,
+      ...(resumedRef.current ? { resumed: true } : {}),
+    });
     resumedRef.current = false;
+    prevStepRef.current = step;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
   const [difficulty, setDifficulty] = useState(draft?.difficulty ?? 3);
   const [apps, setApps] = useState<string[]>(draft?.apps ?? ['TikTok', 'Instagram']);
