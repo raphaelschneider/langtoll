@@ -306,6 +306,8 @@ export const fr: Partial<Record<StringKey, string>> = {
   'plus.perYear': 'par an',
   'plus.save': 'Économisez {percent} %',
   'plus.monthlyEquiv': '≈ {price}/mois',
+  'plus.bestValue': 'MEILLEURE OFFRE',
+  'plus.weeklyEquiv': 'Seulement {price} par semaine',
   'plus.cardTrial': '{days} jours d’essai gratuit',
   'plus.cardNoTrial': 'Pas d’essai gratuit — facturé aujourd’hui',
   'plus.purchaseFailed': 'L’App Store n’a pas pu finaliser. Réessaie dans un instant.',
@@ -317,7 +319,8 @@ export const fr: Partial<Record<StringKey, string>> = {
   'plus.privacy': 'Confidentialité',
   'plus.later': 'Plus tard',
   'plus.legal': 'Résiliable à tout moment. Renouvellement automatique.',
-  'plus.trialLegal': '{days} jours gratuits, puis {price}. On te prévient la veille de la fin. Résiliable à tout moment.',
+  'plus.trialLegal': '{days} jours gratuits, puis {price}. Résiliable à tout moment.',
+  'plus.remindLine': "On te prévient la veille de la fin de ton essai.",
   'plus.locked': 'Fonction Plus',
   'plus.lockedCta': 'Ça fait partie de LangToll Plus.',
 

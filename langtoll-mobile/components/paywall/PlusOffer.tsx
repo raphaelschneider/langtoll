@@ -19,6 +19,8 @@ import {
   purchase,
   restore,
   perMonthEquivalent,
+  perWeekEquivalent,
+  yearOfMonthly,
   savingsVsMonthly,
   lastPurchaseError,
   type PlusPackage,
@@ -47,6 +49,9 @@ function HowRow({ icon, title, detail }: { icon: any; title: string; detail: str
   );
 }
 
+/** Card order: the offer first. */
+const ORDER: Record<Period, number> = { yearly: 0, monthly: 1, weekly: 2 };
+
 export function PlusOffer({
   onDone,
   onStoreUnavailable,
@@ -73,11 +78,12 @@ export function PlusOffer({
   const theme = useTheme();
   const t = useT();
   const [packages, setPackages] = useState<PlusPackage[]>([]);
-  // Monthly is preselected, not yearly: Apple's sheet quotes the price the trial
-  // turns into, and "7 days free, then €39.99/year" is what the first paywall
-  // viewers backed out of (3 of 3 on 2026-09-24, one tapped twice and cancelled
-  // both). Yearly stays on the page with its saving for whoever wants it.
-  const [selected, setSelected] = useState<Period>('monthly');
+  // Yearly is preselected (founder call, 2026-09-28). It was monthly from 2026-09-24,
+  // after the first three viewers backed out of "7 days free, then €39.99/year" on
+  // Apple's sheet; the answer to that fear is the reminder line above the button,
+  // now said plainly instead of inside the legal caption. Falls back to monthly,
+  // then to whatever the store returned, if a product is missing.
+  const [selected, setSelected] = useState<Period>('yearly');
   const L = useLayout();
   const [busy, setBusy] = useState(false);
   // A failed purchase used to do NOTHING visible: the button pressed, the promise
@@ -90,7 +96,9 @@ export function PlusOffer({
     track('paywall_viewed', { source });
     getPackages().then((pkgs) => {
       setPackages(pkgs);
-      if (pkgs.length && !pkgs.some((p) => p.period === 'monthly')) setSelected(pkgs[0].period);
+      if (pkgs.length && !pkgs.some((p) => p.period === 'yearly')) {
+        setSelected(pkgs.some((p) => p.period === 'monthly') ? 'monthly' : pkgs[0].period);
+      }
     });
   }, []);
 
@@ -171,7 +179,8 @@ export function PlusOffer({
         {packages.length === 0 ? (
           <ActivityIndicator color={theme.accent} />
         ) : (
-          packages.map((p) => {
+          // Yearly first: it is the offer, and the first card is the one read.
+          [...packages].sort((a, b) => ORDER[a.period] - ORDER[b.period]).map((p) => {
             // Everything shown here is derived from the store's own price and
             // currency — never a frozen string. savingsVsMonthly and
             // perMonthEquivalent return null rather than guess, so a package with
@@ -179,6 +188,9 @@ export function PlusOffer({
             const on = p.period === selected;
             const savings = savingsVsMonthly(p, packages);
             const perMonth = perMonthEquivalent(p);
+            const perWeek = perWeekEquivalent(p);
+            const struck = yearOfMonthly(p, packages);
+            const best = p.period === 'yearly' && savings !== null;
             const subKey =
               p.period === 'weekly' ? 'plus.perWeek' : p.period === 'monthly' ? 'plus.perMonth' : 'plus.perYear';
             return (
@@ -216,6 +228,16 @@ export function PlusOffer({
                     </Text>
                   </Animated.View>
                 )}
+                {/* The offer, named: yearly is the best value, and says so on its edge,
+                    opposite the trial flag. Every number beside it comes from the
+                    store's own prices, so the ribbon only shows when it is true. */}
+                {best && (
+                  <View style={[styles.bestFlag, { backgroundColor: theme.accent }]}>
+                    <Text variant="caption" style={{ color: theme.onAccent, letterSpacing: 0.5, fontWeight: '700' }}>
+                      {t('plus.bestValue')}
+                    </Text>
+                  </View>
+                )}
                 <View style={[styles.radio, { borderColor: on ? theme.accent : theme.inkFaint }]}>
                   {on && <View style={[styles.radioDot, { backgroundColor: theme.accent }]} />}
                 </View>
@@ -230,13 +252,27 @@ export function PlusOffer({
                       </View>
                     )}
                   </View>
-                  {perMonth && (
-                    <Text variant="caption" color="inkFaint" style={{ marginTop: 2 }}>
-                      {t('plus.monthlyEquiv', { price: perMonth })}
+                  {perWeek ? (
+                    // Beside a weekly plan at several times this, the weekly figure is
+                    // the one that lands.
+                    <Text variant="caption" color="accent" style={{ marginTop: 2, fontWeight: '600' }}>
+                      {t('plus.weeklyEquiv', { price: perWeek })}
                     </Text>
+                  ) : (
+                    perMonth && (
+                      <Text variant="caption" color="inkFaint" style={{ marginTop: 2 }}>
+                        {t('plus.monthlyEquiv', { price: perMonth })}
+                      </Text>
+                    )
                   )}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
+                  {struck && (
+                    // Twelve months of the monthly plan, which is what yearly replaces.
+                    <Text variant="caption" color="inkFaint" style={{ textDecorationLine: 'line-through' }}>
+                      {struck}
+                    </Text>
+                  )}
                   <Text variant="bodyMedium">{p.priceString}</Text>
                   <Text variant="caption" color="inkFaint">
                     {t(subKey)}
@@ -248,6 +284,17 @@ export function PlusOffer({
         )}
       </View>
 
+      {/* The reminder, said where the decision is made: the fear on a trial paywall is
+          being charged without warning, and this line is the answer. It used to sit
+          inside the faint legal caption, where nobody reads. */}
+      {trial && (
+        <View style={styles.remind}>
+          <Ionicons name="notifications" size={16} color={theme.accent} />
+          <Text variant="callout" style={{ flexShrink: 1 }}>
+            {t('plus.remindLine')}
+          </Text>
+        </View>
+      )}
       <Button
         label={trial ? t('plus.startTrial', { days: current!.trialDays }) : t('plus.subscribe')}
         onPress={buy}
@@ -338,6 +385,7 @@ export function PlusOffer({
 }
 
 const styles = StyleSheet.create({
+  remind: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, marginTop: space.md },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   featureIcon: {
     width: 34,
@@ -368,6 +416,14 @@ const styles = StyleSheet.create({
   radioDot: { width: 11, height: 11, borderRadius: 6 },
   // Sits ON the top border (paper fill punches the line through), right-aligned
   // clear of the price column.
+  bestFlag: {
+    position: 'absolute',
+    top: -11,
+    left: 14,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
   trialFlag: {
     position: 'absolute',
     top: -11,

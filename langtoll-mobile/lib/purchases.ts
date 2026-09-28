@@ -176,6 +176,21 @@ export function perMonthEquivalent(p: PlusPackage): string | null {
   return formatMoney(p.amount / MONTHS_PER_PERIOD.yearly, p.currency);
 }
 
+/** A yearly price as a weekly one ("≈ €0.77/wk"), set beside the weekly plan's own price. */
+export function perWeekEquivalent(p: PlusPackage): string | null {
+  if (p.period !== 'yearly' || p.amount <= 0) return null;
+  return formatMoney(p.amount / 52, p.currency);
+}
+
+/** Twelve months of the monthly plan, for the struck-through price on the yearly card.
+ *  Null when there is no monthly plan in the same currency or no saving to show. */
+export function yearOfMonthly(p: PlusPackage, all: PlusPackage[]): string | null {
+  const monthly = all.find((x) => x.period === 'monthly');
+  if (p.period !== 'yearly' || !monthly || monthly.currency !== p.currency) return null;
+  const year = monthly.amount * 12;
+  return year > p.amount ? formatMoney(year, p.currency) : null;
+}
+
 /**
  * Percentage saved against the monthly plan, annualized. Returns null rather
  * than a wrong number when it cannot be computed honestly: no monthly package to

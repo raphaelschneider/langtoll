@@ -316,6 +316,8 @@ export const en = {
   'plus.perYear': 'per year',
   'plus.save': 'Save {percent}%',
   'plus.monthlyEquiv': '≈ {price}/mo',
+  'plus.bestValue': 'BEST VALUE',
+  'plus.weeklyEquiv': 'Just {price} a week',
   'plus.cardTrial': '{days}-day free trial',
   'plus.cardNoTrial': 'No free trial — billed today',
   'plus.purchaseFailed': 'The App Store could not complete that. Try again in a moment.',
@@ -327,7 +329,8 @@ export const en = {
   'plus.privacy': 'Privacy Policy',
   'plus.later': 'Maybe later',
   'plus.legal': 'Cancel anytime. Renews automatically.',
-  'plus.trialLegal': '{days} days free, then {price}. We remind you the day before it ends. Cancel anytime.',
+  'plus.trialLegal': '{days} days free, then {price}. Cancel anytime.',
+  'plus.remindLine': "We'll remind you the day before your trial ends.",
   'plus.locked': 'Plus feature',
   'plus.lockedCta': 'This is part of LangToll Plus.',
 
