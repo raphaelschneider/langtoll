@@ -1079,14 +1079,21 @@ export default function Onboarding() {
                   language={language}
                   header={
                     <>
-                      <Text variant="overline" color="accent">
-                        {t('ob.payOver')}
-                      </Text>
-                      <Text variant="headline" style={{ marginTop: space.xs }}>
-                        {firstName
-                          ? t('ob.payTitleNamed', { name: firstName, lang })
-                          : t('ob.payTitle', { lang })}
-                      </Text>
+                      {/* Tolly celebrates beside the ask, as on the /paywall route: the
+                          wall should feel like an arrival (founder, 2026-09-29). */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text variant="overline" color="accent">
+                            {t('ob.payOver')}
+                          </Text>
+                          <Text variant="headline" style={{ marginTop: space.xs }}>
+                            {firstName
+                              ? t('ob.payTitleNamed', { name: firstName, lang })
+                              : t('ob.payTitle', { lang })}
+                          </Text>
+                        </View>
+                        <Tolly mood="celebrate" size={88} style={{ marginLeft: space.sm }} />
+                      </View>
                       {/* Quote the dream back (relift's move): their own answer, at the moment of the ask. */}
                       {goal && (
                         <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>

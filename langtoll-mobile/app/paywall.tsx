@@ -50,7 +50,7 @@ export default function Paywall() {
                 {t('plus.title')}
               </Text>
             </View>
-            <Tolly mood="happy" size={112} style={{ marginLeft: space.sm }} />
+            <Tolly mood="celebrate" size={112} style={{ marginLeft: space.sm }} />
           </View>
           <View style={{ marginTop: space.xl, flex: 1 }}>
             <PlusOffer onDone={close} source={from ?? 'unknown'} />

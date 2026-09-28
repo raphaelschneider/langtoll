@@ -12,6 +12,8 @@ import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
+import { font } from '@/design/tokens';
+import { Confetti, Twinkle } from './Festive';
 import { useLayout, opticalCenter } from '@/design/layout';
 import { PLUS_FEATURES, LEGAL_URLS, type Period } from '@/lib/plans';
 import {
@@ -186,6 +188,9 @@ export function PlusOffer({
         L.regular && opticalCenter(L),
       ]}
     >
+      {/* One burst when the wall opens: this is the moment the app asks, so it
+          should feel like an arrival, not a checkout. */}
+      <Confetti colors={[theme.accent, theme.amber, theme.accentSoft, theme.pine]} />
       {header ? <View style={{ marginBottom: space.lg }}>{header}</View> : null}
       <View style={{ gap: space.sm }}>
         {PLUS_FEATURES.slice(0, 3).map((f) => (
@@ -222,14 +227,27 @@ export function PlusOffer({
                     backgroundColor: on ? withAlpha(theme.accent, 0.10) : theme.fill,
                     borderColor: on ? theme.accent : theme.line,
                   },
+                  // Yearly is wrapped like a present: a gold frame and a warm fill,
+                  // whether or not it is the one selected.
+                  best && {
+                    borderColor: theme.amber,
+                    borderWidth: 2,
+                    backgroundColor: withAlpha(theme.amber, on ? 0.14 : 0.07),
+                  },
                 ]}
               >
-                {/* Trial flag on the card's top edge. The GOOD news pops when you
-                    pick a plan; the "no free trial" warning is ALWAYS on, because a
-                    disclosure the buyer has to tap to discover isn't a disclosure.
-                    Text comes from the package's own offer, so granting weekly a
-                    trial in App Store Connect flips this with no code change. */}
-                {(on || !p.hasTrial) && (
+                {best && (
+                  <>
+                    <Twinkle size={16} color={theme.amber} style={{ top: -22, left: 150 }} />
+                    <Twinkle size={12} color={theme.accentSoft} delay={500} style={{ bottom: -10, right: 26 }} />
+                  </>
+                )}
+                {/* Trial flag on the card's top edge, for the selected plan's trial.
+                    The "no free trial" disclosure is always visible too, as a line
+                    inside the card (below). Both come from the package's own offer,
+                    so granting weekly a trial in App Store Connect flips it with no
+                    code change. */}
+                {on && p.hasTrial && (
                   <Animated.View
                     entering={FadeIn.duration(160)}
                     style={[
@@ -240,7 +258,7 @@ export function PlusOffer({
                       },
                     ]}
                   >
-                    <Text variant="caption" color={p.hasTrial ? 'accent' : 'inkSoft'}>
+                    <Text variant="caption" color={p.hasTrial ? 'accent' : 'inkSoft'} style={{ fontFamily: font.semibold, letterSpacing: 0 }}>
                       {p.hasTrial
                         ? t('plus.cardTrial', { days: p.trialDays })
                         : t('plus.cardNoTrial')}
@@ -251,8 +269,9 @@ export function PlusOffer({
                     opposite the trial flag. Every number beside it comes from the
                     store's own prices, so the ribbon only shows when it is true. */}
                 {best && (
-                  <View style={[styles.bestFlag, { backgroundColor: theme.accent }]}>
-                    <Text variant="caption" style={{ color: theme.onAccent, letterSpacing: 0.5, fontWeight: '700' }}>
+                  <View style={[styles.bestFlag, { backgroundColor: theme.amber }]}>
+                    <Ionicons name="gift" size={13} color={GIFT_INK} />
+                    <Text variant="caption" style={{ color: GIFT_INK, fontFamily: font.semibold, letterSpacing: 0.6 }}>
                       {t('plus.bestValue')}
                     </Text>
                   </View>
@@ -266,15 +285,22 @@ export function PlusOffer({
                     {/* No "Save 58%" pill: the struck price beside the real one says it,
                         and two badges on one card read as noise ("so crowded"). */}
                   </View>
-                  {perWeek ? (
+                  {!p.hasTrial ? (
+                    // The no-trial disclosure lives inside the card, quiet but always
+                    // there. It used to be a flag on the card's top edge, always on,
+                    // floating between two cards ("this simply doesn't look right").
+                    <Text variant="caption" color="inkFaint" style={{ marginTop: 2, fontFamily: font.body, letterSpacing: 0 }}>
+                      {t('plus.cardNoTrial')}
+                    </Text>
+                  ) : perWeek ? (
                     // Beside a weekly plan at several times this, the weekly figure is
                     // the one that lands.
-                    <Text variant="caption" color="accent" style={{ marginTop: 2, fontWeight: '600' }}>
+                    <Text variant="callout" style={{ marginTop: 2, fontFamily: font.semibold, color: theme.amber }}>
                       {t('plus.weeklyEquiv', { price: perWeek })}
                     </Text>
                   ) : (
                     perMonth && (
-                      <Text variant="caption" color="inkFaint" style={{ marginTop: 2 }}>
+                      <Text variant="caption" color="inkFaint" style={{ marginTop: 2, fontFamily: font.body, letterSpacing: 0 }}>
                         {t('plus.monthlyEquiv', { price: perMonth })}
                       </Text>
                     )
@@ -285,13 +311,13 @@ export function PlusOffer({
                       beside the price, not above it, where the trial flag sits. */}
                   <View style={styles.priceRow}>
                     {struck && (
-                      <Text variant="caption" color="inkFaint" style={{ textDecorationLine: 'line-through' }}>
+                      <Text variant="callout" color="inkFaint" style={{ textDecorationLine: 'line-through' }}>
                         {struck}
                       </Text>
                     )}
-                    <Text variant="bodyMedium">{p.priceString}</Text>
+                    <Text variant="bodyMedium" style={{ fontFamily: font.semibold }}>{p.priceString}</Text>
                   </View>
-                  <Text variant="caption" color="inkFaint">
+                  <Text variant="caption" color="inkFaint" style={{ fontFamily: font.body, letterSpacing: 0 }}>
                     {t(subKey)}
                   </Text>
                 </View>
@@ -370,7 +396,7 @@ export function PlusOffer({
         full
         style={{ marginTop: space.md }}
       />
-      <Text variant="caption" color="inkFaint" center style={{ marginTop: space.sm }}>
+      <Text variant="caption" color="inkFaint" center style={{ marginTop: space.sm, fontFamily: font.body, letterSpacing: 0 }}>
         {/* Trial length comes from the selected package's own intro offer, not a
             global constant — otherwise this legal line can misstate the terms of
             a paid subscription when products carry different offers. */}
@@ -415,11 +441,11 @@ export function PlusOffer({
           from the subscription screen itself, not only from the store page. */}
       <View style={styles.legalRow}>
         <PressableScale onPress={onRestore} haptic={null} style={styles.legalLink}>
-          <Text variant="caption" color="inkSoft">
+          <Text variant="caption" color="inkSoft" style={FOOTER}>
             {t('plus.restore')}
           </Text>
         </PressableScale>
-        <Text variant="caption" color="inkFaint">
+        <Text variant="caption" color="inkFaint" style={FOOTER}>
           ·
         </Text>
         <PressableScale
@@ -428,11 +454,11 @@ export function PlusOffer({
           accessibilityRole="link"
           style={styles.legalLink}
         >
-          <Text variant="caption" color="inkFaint">
+          <Text variant="caption" color="inkFaint" style={FOOTER}>
             {t('plus.terms')}
           </Text>
         </PressableScale>
-        <Text variant="caption" color="inkFaint">
+        <Text variant="caption" color="inkFaint" style={FOOTER}>
           ·
         </Text>
         <PressableScale
@@ -441,7 +467,7 @@ export function PlusOffer({
           accessibilityRole="link"
           style={styles.legalLink}
         >
-          <Text variant="caption" color="inkFaint">
+          <Text variant="caption" color="inkFaint" style={FOOTER}>
             {t('plus.privacy')}
           </Text>
         </PressableScale>
@@ -449,6 +475,11 @@ export function PlusOffer({
     </ScrollView>
   );
 }
+
+/** Dark ink on the gold ribbon, the same in light and dark themes. */
+const GIFT_INK = '#2A1D05';
+/** Footer links in the regular face: the typewriter mono made the wall read like a terminal. */
+const FOOTER = { fontFamily: font.body, letterSpacing: 0 } as const;
 
 const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
@@ -492,6 +523,9 @@ const styles = StyleSheet.create({
   // Sits ON the top border (paper fill punches the line through), right-aligned
   // clear of the price column.
   bestFlag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     position: 'absolute',
     top: -11,
     left: 14,
