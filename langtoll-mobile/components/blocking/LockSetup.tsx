@@ -65,6 +65,9 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
     });
     setAuthed(ok);
     if (ok) {
+      // Straight into the picker: one blocker app saw ~35% grant Screen Time and then
+      // never pick an app when that took another tap (conversion pass 2026-09-29).
+      setPicking(true);
       configureShieldAppearance();
       // The shield button needs this to do anything at all.
       void requestNotificationPermission();

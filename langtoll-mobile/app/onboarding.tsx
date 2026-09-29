@@ -478,7 +478,10 @@ export default function Onboarding() {
   // reason, and the user retries or restores. See canGoBack below for the arrow.
   const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms'];
   const showSkip = skippable.includes(step);
-  const progress = stepIdx / (STEPS.length - 1);
+  // Front-loaded: the early screens move the bar the most, where most people leave
+  // (hook, name, language). Bars that run fast then slow cut drop-off; linear over
+  // 18 steps barely moved at the start (Villar et al. 2013; conversion pass 2026-09-29).
+  const progress = Math.pow(stepIdx / (steps.length - 1), 0.6);
 
   function next() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1077,6 +1080,18 @@ export default function Onboarding() {
                   onDone={next}
                   source="onboarding"
                   language={language}
+                  // Their plan, not a feature list: the apps they chose, the fare they
+                  // set, the course and level. The wall reads "activate what you built".
+                  plan={[
+                    {
+                      icon: 'lock-closed',
+                      title: apps.length
+                        ? t('ob.planApps', { list: `${apps.slice(0, 3).join(', ')}${apps.length > 3 ? '…' : ''}` })
+                        : t('ob.sumAppsNone'),
+                    },
+                    { icon: 'flash', title: t('ob.sumFare', { ex: fareEx, min: fareMin }) },
+                    { icon: 'school', title: t('ob.planCourse', { lang, level: derivedLevel }) },
+                  ]}
                   header={
                     <>
                       {/* Tolly celebrates beside the ask, as on the /paywall route: the

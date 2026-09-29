@@ -57,12 +57,18 @@ const ORDER: Record<Period, number> = { yearly: 0, monthly: 1, weekly: 2 };
 
 export function PlusOffer({
   onDone,
+  plan,
   language,
   onStoreUnavailable,
   source,
   header,
 }: {
   onDone: () => void;
+  /** Rows shown in place of the generic Plus features. Onboarding passes the plan the
+   *  learner just built (their apps, their fare, their course), so the wall sells what
+   *  already feels like theirs rather than a feature list for a free tier they never
+   *  saw (2026-09-29, conversion pass). */
+  plan?: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string }[];
   /** The course being sold, for the outcome-led button ("Start speaking Italian free").
    *  Onboarding passes the language just chosen (the profile isn't written until the
    *  end); elsewhere it falls back to the profile's course. */
@@ -100,6 +106,10 @@ export function PlusOffer({
   // Apple's sheet was dismissed without buying: the one moment left to answer the
   // fear and to learn what stopped them (founder call, 2026-09-28).
   const [cancelled, setCancelled] = useState(false);
+  // One second chance per visit (Apple allows a single offer after a dismissal):
+  // the weekly plan, for whoever balked at the bigger number.
+  const [cancelledPeriod, setCancelledPeriod] = useState<Period | null>(null);
+  const [weeklyOffered, setWeeklyOffered] = useState(false);
 
   useEffect(() => {
     // Tagged with the gate that opened it — the number that says which gate
@@ -114,6 +124,7 @@ export function PlusOffer({
   }, []);
 
   const current = packages.find((p) => p.period === selected);
+  const weekly = packages.find((p) => p.period === 'weekly');
   const course = language ?? getState().learningLanguage;
   const courseRaw = t(`lang.${course}` as StringKey);
   // es/fr/it/pt write language names lowercase mid-sentence ("hablar italiano").
@@ -131,12 +142,12 @@ export function PlusOffer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plus]);
 
-  async function buy() {
-    if (!current || busy) return;
+  async function buy(pkg: PlusPackage | undefined = current) {
+    if (!pkg || busy) return;
     setBusy(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setFailed(false);
-    const res = await purchase(current, source);
+    const res = await purchase(pkg, source);
     setBusy(false);
     if (res === 'purchased') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -151,11 +162,14 @@ export function PlusOffer({
       setFailed(true);
     }
     if (res === 'cancelled') setCancelled(true);
+    if (res === 'cancelled' && pkg.period !== 'weekly') setCancelledPeriod(pkg.period);
   }
 
   function cancelReason(reason: 'price' | 'unsure' | 'looking' | 'other') {
     track('purchase_cancel_reason', { reason, period: current?.period, source });
     setCancelled(false);
+    // The weekly offer is spent once the sheet has been answered either way.
+    if (cancelledPeriod) setWeeklyOffered(true);
   }
 
   async function onRestore() {
@@ -193,9 +207,9 @@ export function PlusOffer({
       <Confetti colors={[theme.accent, theme.amber, theme.accentSoft, theme.pine]} />
       {header ? <View style={{ marginBottom: space.lg }}>{header}</View> : null}
       <View style={{ gap: space.sm }}>
-        {PLUS_FEATURES.slice(0, 3).map((f) => (
-          <HowRow key={f.title} icon={f.icon} title={t(f.title)} />
-        ))}
+        {plan
+          ? plan.map((r) => <HowRow key={r.title} icon={r.icon} title={r.title} />)
+          : PLUS_FEATURES.slice(0, 3).map((f) => <HowRow key={f.title} icon={f.icon} title={t(f.title)} />)}
       </View>
 
       {/* package cards */}
@@ -297,7 +311,8 @@ export function PlusOffer({
                   ) : perWeek ? (
                     // Beside a weekly plan at several times this, the weekly figure is
                     // the one that lands.
-                    <Text variant="callout" style={{ marginTop: 2, fontFamily: font.semibold, color: theme.amber }}>
+                    // Secondary to the billed price (guideline 3.1.2): smaller than it, never bigger.
+                    <Text variant="caption" style={{ marginTop: 2, fontFamily: font.semibold, letterSpacing: 0, fontSize: 14, color: theme.amber }}>
                       {t('plus.weeklyEquiv', { price: perWeek })}
                     </Text>
                   ) : (
@@ -317,7 +332,9 @@ export function PlusOffer({
                         {struck}
                       </Text>
                     )}
-                    <Text variant="bodyMedium" style={{ fontFamily: font.semibold }}>{p.priceString}</Text>
+                    <Text variant="bodyMedium" style={{ fontFamily: font.semibold, fontSize: 19, lineHeight: 24 }}>
+                      {p.priceString}
+                    </Text>
                   </View>
                   <Text variant="caption" color="inkFaint" style={{ fontFamily: font.body, letterSpacing: 0 }}>
                     {t(subKey)}
@@ -347,12 +364,28 @@ export function PlusOffer({
                     setCancelled(false);
                     void buy();
                   }}
-                  glow
                   full
                   fit
                   style={{ marginTop: space.lg }}
                 />
               </>
+            )}
+            {/* The one second chance: the weekly plan, offered once, only to someone
+                who balked at a bigger plan. Transaction-abandon offers carry 17% of
+                revenue in Superwall's study; Apple allows one, never repeated. */}
+            {weekly && cancelledPeriod && !weeklyOffered && (
+              <Button
+                label={t('plus.cancelWeekly', { price: weekly.priceString })}
+                variant="ghost"
+                full
+                fit
+                style={{ marginTop: space.sm }}
+                onPress={() => {
+                  setWeeklyOffered(true);
+                  setCancelled(false);
+                  void buy(weekly);
+                }}
+              />
             )}
             <Text variant="overline" color="inkFaint" style={{ marginTop: trial ? space.xl : 0 }}>
               {t('plus.cancelAsk')}
@@ -381,10 +414,40 @@ export function PlusOffer({
       {/* The reminder, said where the decision is made: the fear on a trial paywall is
           being charged without warning, and this line is the answer. It used to sit
           inside the faint legal caption, where nobody reads. */}
-      {trial && (
-        <Text variant="callout" center style={{ marginTop: space.md }}>
-          <Ionicons name="notifications" size={15} color={theme.accent} /> {t('plus.remindLine')}
-        </Text>
+      {/* How the free week works, Blinkist-style: today, the reminder, the charge.
+          Blinkist measured +23% trial starts and 55% fewer complaints with it; it is
+          only honest because lib/notify now sends that reminder to every trial. */}
+      {trial && current && (
+        <View style={styles.timeline}>
+          {(
+            [
+              ['lock-open', t('plus.tlToday'), t('plus.tlTodayLine')],
+              ['notifications', t('plus.tlDay', { day: Math.max(1, current.trialDays - 1) }), t('plus.tlRemindLine')],
+              [
+                'card',
+                t('plus.tlDay', { day: current.trialDays }),
+                t('plus.tlChargeLine', {
+                  price: `${current.priceString} ${t(
+                    current.period === 'weekly' ? 'plus.perWeek' : current.period === 'monthly' ? 'plus.perMonth' : 'plus.perYear',
+                  )}`,
+                }),
+              ],
+            ] as const
+          ).map(([icon, when, line], i) => (
+            <View key={i} style={styles.tlStep}>
+              <View style={[styles.tlDot, { backgroundColor: i === 0 ? theme.accent : withAlpha(theme.accent, 0.16) }]}>
+                <Ionicons name={icon} size={14} color={i === 0 ? theme.onAccent : theme.accent} />
+              </View>
+              <Text variant="bodyMedium" center style={{ marginTop: 6, fontSize: 14, lineHeight: 18 }}>
+                {when}
+              </Text>
+              <Text variant="caption" color="inkSoft" center style={{ marginTop: 2, fontFamily: font.body, letterSpacing: 0, lineHeight: 15 }}>
+                {line}
+              </Text>
+            </View>
+          ))}
+          <View pointerEvents="none" style={[styles.tlRail, { backgroundColor: withAlpha(theme.accent, 0.25) }]} />
+        </View>
       )}
       <Button
         // Outcome-led, per course: "Start speaking Italian free". The trial's length
@@ -483,6 +546,10 @@ const GIFT_INK = '#2A1D05';
 const FOOTER = { fontFamily: font.body, letterSpacing: 0 } as const;
 
 const styles = StyleSheet.create({
+  timeline: { flexDirection: 'row', marginTop: space.lg, gap: space.xs },
+  tlStep: { flex: 1, alignItems: 'center' },
+  tlDot: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  tlRail: { position: 'absolute', top: 13, left: '17%', right: '17%', height: 2 },
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
   sheetScrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: {

@@ -154,32 +154,46 @@ export function clearDeliveredNotifications(): void {
  * the day before, not discover after (founder call, 2026-09-05). Fires 24h
  * before the entitlement ends; tapping opens the paywall. Replace-by-id and
  * self-cancelling: re-evaluated on every entitlement change and launch, so a
- * trial that will convert, a paid plan, a free fare, or a past fire time all
- * mean cancel. A trial that still renews gets nothing from us — Apple's own
- * reminder covers the charge, and their fare isn't going anywhere.
+ * paid plan, a free fare, or a past fire time all mean cancel.
+ *
+ * A trial that still RENEWS gets the reminder the paywall promises ("we'll
+ * remind you the day before your trial ends"): tomorrow the plan starts, and
+ * this is where to stop it. Until 2026-09-29 it got nothing — Apple's own notice
+ * was assumed to cover it, while every paywall said we would.
  */
 export function scheduleTrialEndNotice(): void {
   void (async () => {
     try {
       await Notifications.cancelScheduledNotificationAsync(TRIAL_ID);
       const s = getState();
-      if (!isPlus(s) || !s.plusExpiresAt || s.plusWillRenew !== false) return;
-      const changes = describePlusLoss(t);
-      if (!changes) return;
+      if (!isPlus(s) || !s.plusExpiresAt) return;
+      const renewing = s.plusWillRenew !== false;
+      // A paid plan that renews needs nothing from us; only a trial does.
+      if (renewing && s.plusIsTrial !== true) return;
+      const changes = renewing ? null : describePlusLoss(t);
+      if (!renewing && !changes) return;
       const ends = Date.parse(s.plusExpiresAt);
       if (Number.isNaN(ends)) return;
       const fireAt = new Date(ends - 24 * 60 * 60 * 1000);
       if (fireAt <= new Date() || !(await notificationsGranted())) return;
-      // Sad Tolly: losing things is his department.
-      const attachments = await tollyAttachment(require('../assets/tolly/tolly-sad.png'));
+      // Sad Tolly for a lapse; the plain stern one for the honest heads-up.
+      const attachments = await tollyAttachment(
+        renewing ? require('../assets/tolly/tolly-stern.png') : require('../assets/tolly/tolly-sad.png'),
+      );
       await Notifications.scheduleNotificationAsync({
         identifier: TRIAL_ID,
-        content: {
-          title: t('trial.title'),
-          body: t('trial.body', { changes }),
-          data: { url: 'langtoll://paywall?from=notification' },
-          attachments,
-        },
+        content: renewing
+          ? {
+              title: t('trial.renewTitle'),
+              body: t('trial.renewBody'),
+              attachments,
+            }
+          : {
+              title: t('trial.title'),
+              body: t('trial.body', { changes: changes! }),
+              data: { url: 'langtoll://paywall?from=notification' },
+              attachments,
+            },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fireAt },
       });
     } catch {
