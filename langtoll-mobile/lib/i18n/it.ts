@@ -136,6 +136,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'ob.teaseSubOne': 'Una tariffa al giorno, {ex} esercizi. {mins} minuti di {lang}, pagati in un momento in cui prendi già il telefono.',
   'ob.goalTypingHint': 'Con Fine tornano i suggerimenti.',
   'ob.teaseNote': 'Nemmeno un minuto in più nella tua giornata.',
+  'ob.teaseWhy': 'Dalle tue risposte: circa {time} al giorno su quelle app, {min} minuti per sblocco.',
   'ob.teaseCta': 'Fammi vedere',
   'ob.futureOver': 'ECCO COSA TI STAI PERDENDO',
   'ob.futureTitle': 'Stesso telefono. Stessa abitudine. E una lingua in più.',
@@ -226,7 +227,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'ob.notifySettings': 'Attivale nelle Impostazioni',
 
   'lock.enable': 'Attiva Tempo di utilizzo',
-  'lock.authBody': 'Consenti Tempo di utilizzo così LangToll può bloccare le tue app, e le notifiche così il blocco può riportarti qui. Apple lo chiede una volta sola.',
+  'lock.authBody': 'Consenti Tempo di utilizzo così LangToll può bloccare le tue app. È il sistema di Apple: la tua attività resta sul telefono e LangToll non vede mai cosa fai nelle tue app. Può solo bloccare quelle che scegli.',
   'lock.choose': 'Scegli le app da bloccare',
   'lock.selected': 'App scelte — sei a posto',
   'lock.simNote': 'Sul tuo iPhone le scegli nel selettore Tempo di utilizzo di Apple (qui si apre da solo).',

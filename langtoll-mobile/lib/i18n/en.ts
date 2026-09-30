@@ -143,6 +143,7 @@ export const en = {
   'ob.teaseSubOne': 'One fare a day, {ex} exercises. {mins} minutes of {lang}, paid in a moment you already reach for your phone.',
   'ob.goalTypingHint': 'Done brings the suggestions back.',
   'ob.teaseNote': 'Not one minute added to your day.',
+  'ob.teaseWhy': 'From your answers: about {time} a day on those apps, {min} minutes per unlock.',
   'ob.teaseCta': 'Show me',
   'ob.futureOver': 'THIS IS WHAT YOU’RE MISSING',
   'ob.futureTitle': 'Same phone. Same habit. {lang} on top.',
@@ -234,7 +235,7 @@ export const en = {
 
   // lock setup
   'lock.enable': 'Enable Screen Time',
-  'lock.authBody': 'Allow Screen Time so LangToll can shield your apps, and notifications so the lock screen can bring you back. Apple asks once.',
+  'lock.authBody': "Allow Screen Time so LangToll can shield your apps. It's Apple's own system: your activity stays on your phone, and LangToll never sees what you do in your apps. It can only shield the ones you pick.",
   'lock.choose': 'Choose apps to lock',
   'lock.selected': 'Apps selected — you’re set',
   'lock.simNote': 'On your iPhone, you’ll pick these in Apple’s Screen Time picker (it opens automatically here).',

@@ -483,6 +483,7 @@ export default function Onboarding() {
   // 18 steps barely moved at the start (Villar et al. 2013; conversion pass 2026-09-29).
   const progress = Math.pow(stepIdx / (steps.length - 1), 0.6);
 
+  const askingRef = useRef(false);
   function next() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Leaving "when" with a time picked is the moment to ask for notifications: they
@@ -490,9 +491,17 @@ export default function Onboarding() {
     // next step. It is also the only way to reach someone who later leaves the
     // paywall (founder call, 2026-09-28). Skip = no time = no prompt.
     if (step === 'when' && daypart) {
-      void requestNotificationPermission().then((granted) =>
-        track('notify_permission', { where: 'when', granted }),
-      );
+      if (askingRef.current) return; // a second tap while Apple's dialog is up
+      askingRef.current = true;
+      // Apple's dialog must appear on THIS screen, then move on. Firing it and
+      // advancing at once put the prompt over the fare screen, where it made no
+      // sense (founder, TestFlight 1.0.4, 2026-09-30).
+      void requestNotificationPermission().then((granted) => {
+        track('notify_permission', { where: 'when', granted });
+        askingRef.current = false;
+        setStepIdx((i) => Math.min(i + 1, steps.length - 1));
+      });
+      return;
     }
     setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   }
@@ -864,6 +873,14 @@ export default function Onboarding() {
                   {faresPerDay === 1
                     ? t('ob.teaseSubOne', { ex: fareEx, mins: practiceMinutes, lang: langMid })
                     : t('ob.teaseSub', { fares: faresPerDay, ex: fareEx, mins: practiceMinutes, lang: langMid })}
+                </Text>
+                {/* Where the numbers come from, so they read as theirs and not as a
+                    template: their apps' estimated daily time, their unlock minutes. */}
+                <Text variant="callout" color="inkSoft" style={{ marginTop: space.md }}>
+                  {t('ob.teaseWhy', {
+                    time: dailyH > 0 ? (dailyM > 0 ? `${dailyH} h ${dailyM} min` : `${dailyH} h`) : `${dailyM} min`,
+                    min: fareMin,
+                  })}
                 </Text>
                 <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
                   {t('ob.teaseNote')}

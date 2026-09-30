@@ -136,6 +136,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.teaseSubOne': 'Ein Fahrpreis am Tag, {ex} Aufgaben. {mins} Minuten {lang} – bezahlt in einem Moment, in dem du sowieso zum Handy greifst.',
   'ob.goalTypingHint': 'Mit Fertig kommen die Vorschläge zurück.',
   'ob.teaseNote': 'Keine einzige Minute mehr am Tag.',
+  'ob.teaseWhy': 'Aus deinen Antworten: etwa {time} am Tag in diesen Apps, {min} Minuten pro Freischaltung.',
   'ob.teaseCta': 'Zeig mir',
   'ob.futureOver': 'DAS ENTGEHT DIR GERADE',
   'ob.futureTitle': 'Gleiches Handy. Gleiche Gewohnheit. Plus {lang}.',
@@ -226,7 +227,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.notifySettings': 'In den Einstellungen aktivieren',
 
   'lock.enable': 'Bildschirmzeit erlauben',
-  'lock.authBody': 'Erlaube Bildschirmzeit, damit LangToll deine Apps sperren kann, und Mitteilungen, damit die Sperre dich zurückholen kann. Apple fragt nur einmal.',
+  'lock.authBody': 'Erlaube Bildschirmzeit, damit LangToll deine Apps sperren kann. Das ist Apples eigenes System: Deine Nutzung bleibt auf deinem Handy, und LangToll sieht nie, was du in deinen Apps machst. Es kann nur die sperren, die du auswählst.',
   'lock.choose': 'Apps zum Sperren wählen',
   'lock.selected': 'Apps gewählt — alles bereit',
   'lock.simNote': 'Auf deinem iPhone wählst du sie in Apples Bildschirmzeit-Picker (öffnet sich hier automatisch).',

@@ -136,6 +136,7 @@ export const fr: Partial<Record<StringKey, string>> = {
   'ob.teaseSubOne': 'Un tarif par jour, {ex} exercices. {mins} minutes en {lang}, réglées dans un moment où tu attrapes déjà ton téléphone.',
   'ob.goalTypingHint': 'OK fait revenir les suggestions.',
   'ob.teaseNote': 'Pas une minute de plus dans ta journée.',
+  'ob.teaseWhy': "D'après tes réponses : environ {time} par jour sur ces apps, {min} minutes par déblocage.",
   'ob.teaseCta': 'Montre-moi',
   'ob.futureOver': 'VOILÀ CE QUE TU RATES',
   'ob.futureTitle': 'Même téléphone. Même habitude. Et une langue en plus.',
@@ -226,7 +227,7 @@ export const fr: Partial<Record<StringKey, string>> = {
   'ob.notifySettings': 'Active-les dans Réglages',
 
   'lock.enable': "Activer Temps d'écran",
-  'lock.authBody': 'Autorise Temps d’écran pour que LangToll verrouille tes apps, et les notifications pour que le blocage puisse te ramener ici. Apple ne le demande qu’une fois.',
+  'lock.authBody': 'Autorise Temps d’écran pour que LangToll verrouille tes apps. C’est le système d’Apple : ton activité reste sur ton téléphone, et LangToll ne voit jamais ce que tu fais dans tes apps. Il ne peut que verrouiller celles que tu choisis.',
   'lock.choose': 'Choisir les apps à verrouiller',
   'lock.selected': 'Apps sélectionnées — tout est prêt',
   'lock.simNote': "Sur ton iPhone, tu les choisiras dans le sélecteur Temps d'écran d'Apple (il s'ouvre automatiquement ici).",
