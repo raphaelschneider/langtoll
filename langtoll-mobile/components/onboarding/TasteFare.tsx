@@ -18,18 +18,26 @@ import { Tolly, type TollyMood } from '@/components/ui/Tolly';
 import { PassIssue } from '@/components/pass/PassIssue';
 import { useTheme, space, radius } from '@/design/theme';
 import { useT } from '@/lib/i18n';
+import { track } from '@/lib/telemetry';
 import { buildSession, type Exercise } from '@/lib/trainer/engine';
 import type { LanguagePack } from '@/content/german/types';
 
 const COUNT = 3;
-const MC = new Set(['mc_de_en', 'mc_en_de']);
 
-/** Three tap exercises from the pack: word → meaning, meaning → word. */
+/**
+ * Three "tap the meaning" exercises from the pack: the foreign word, three meanings
+ * in their own language. Recognition only. "Tap the word" (meaning → foreign word)
+ * asks a beginner to produce a language they have never seen, which is a guess, and
+ * too many people stopped on this screen once it shipped (2026-09-30). The reverse
+ * direction is only a fallback if a pack is short of the easy kind.
+ */
 function pickTaste(pack: LanguagePack, seed: number): Exercise[] {
-  // A generous plan, filtered down: buildSession seats sentences too, and only
-  // the two tap types belong here.
-  const plan = buildSession(pack, [], COUNT * 4, seed, { audio: false, fullCurriculum: false });
-  return plan.exercises.filter((e) => MC.has(e.type) && e.options?.length).slice(0, COUNT);
+  // A generous plan, filtered down: buildSession seats sentences too.
+  const plan = buildSession(pack, [], COUNT * 8, seed, { audio: false, fullCurriculum: false });
+  const withOptions = plan.exercises.filter((e) => e.options?.length);
+  const meaning = withOptions.filter((e) => e.type === 'mc_de_en');
+  const word = withOptions.filter((e) => e.type === 'mc_en_de');
+  return [...meaning, ...word].slice(0, COUNT);
 }
 
 export function TasteFare({
@@ -57,9 +65,13 @@ export function TasteFare({
 
   const ex = exercises[idx];
   const feedback = picked !== null;
-  // Tolly watches every answer: stern until it lands, then happy or sad, and
-  // celebrating at the end — the same arc as the sentence builder.
-  const mood: TollyMood = done ? 'celebrate' : !feedback ? 'stern' : picked === ex?.answer ? 'happy' : 'sad';
+  // Tolly watches every answer and is never sad here: a wrong guess on a word they
+  // have never seen is how it works, not a failed exam right before the paywall.
+  const mood: TollyMood = done ? 'celebrate' : !feedback ? 'stern' : 'happy';
+  const shownAt = useRef(Date.now());
+  useEffect(() => {
+    shownAt.current = Date.now();
+  }, [idx]);
 
   useEffect(() => {
     if (!feedback) return;
@@ -87,7 +99,11 @@ export function TasteFare({
   function answer(opt: string) {
     if (feedback || !ex) return;
     const ok = opt === ex.answer;
-    Haptics.notificationAsync(ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error);
+    // One event per answer: which question, right or not, how long it took. The step
+    // event alone could not say whether people left at the first question or the last.
+    track('taste_answer', { n: idx + 1, correct: ok, ms: Date.now() - shownAt.current, type: ex.type });
+    // A light tap either way: the error buzz made a guess feel like a mistake.
+    Haptics.notificationAsync(ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
     if (ok) setCorrect((c) => c + 1);
     setPicked(opt);
   }
@@ -156,8 +172,9 @@ export function TasteFare({
         {ex.options!.map((opt, i) => {
           const isPicked = feedback && picked === opt;
           const isAnswer = feedback && opt === ex.answer;
-          const bg = isAnswer ? theme.accent : isPicked ? theme.danger : theme.surface;
-          const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
+          // The right answer lights up; a wrong pick just dims, no red.
+          const bg = isAnswer ? theme.accent : isPicked ? theme.fillStrong : theme.surface;
+          const fg = isAnswer ? theme.onAccent : isPicked ? theme.inkSoft : theme.ink;
           const bystander = feedback && !isAnswer && !isPicked;
           return (
             <Entrance key={`${ex.key}-${opt}-${i}`} delay={40 * i} from={8}>

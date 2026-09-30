@@ -43,6 +43,8 @@ export type TelemetryEvent =
   // The Monday recap card was shown (fares / words / minutes of the week told).
   | 'recap_shown'
   // Funnel step views: one per onboarding screen seen (step: 'hook'…'lock').
+  // Each answer in onboarding's three-question taste: n, correct, ms, type.
+  | 'taste_answer'
   | 'onboarding_step'
   // The lock step (onboarding) and the app picker: what Screen Time answered when asked
   // (result granted / denied / error, with Apple's error code) and whether apps were
