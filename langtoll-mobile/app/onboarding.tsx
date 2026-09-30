@@ -1081,7 +1081,16 @@ export default function Onboarding() {
 
             {step === 'taste' && (
               <Entrance key="taste" style={{ flex: 1 }}>
-                <TasteFare pack={tastePack} onDone={() => setTasteDone(true)} />
+                <TasteFare
+                  pack={tastePack}
+                  onDone={() => setTasteDone(true)}
+                  pass={{
+                    unlockMinutes: fareMin,
+                    exercisesPerUnlock: fareEx,
+                    passenger: firstName,
+                    packLabel: `${pack.language.toUpperCase()} · ${derivedLevel}`,
+                  }}
+                />
               </Entrance>
             )}
 

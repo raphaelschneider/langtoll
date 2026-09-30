@@ -15,6 +15,7 @@ import { Entrance } from '@/components/ui/Entrance';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { Tolly, type TollyMood } from '@/components/ui/Tolly';
+import { PassIssue } from '@/components/pass/PassIssue';
 import { useTheme, space, radius } from '@/design/theme';
 import { useT } from '@/lib/i18n';
 import { buildSession, type Exercise } from '@/lib/trainer/engine';
@@ -34,10 +35,15 @@ function pickTaste(pack: LanguagePack, seed: number): Exercise[] {
 export function TasteFare({
   pack,
   onDone,
+  pass,
 }: {
   pack: LanguagePack;
   /** Fired once, when the third answer has been shown. */
   onDone: () => void;
+  /** The pass this fare would issue, from the learner's own answers: the same
+   *  printed ticket and PAID stamp a real session ends on, so the reward is seen
+   *  before the paywall (founder, TestFlight 1.0.4, 2026-09-30). */
+  pass?: { unlockMinutes: number; exercisesPerUnlock: number; passenger: string | null; packLabel: string };
 }) {
   const theme = useTheme();
   const t = useT();
@@ -103,12 +109,28 @@ export function TasteFare({
             ? t('ob.tasteDoneSub', { n: correct, of: exercises.length, secs })
             : t('ob.tasteDoneSubTime', { secs })}
         </Text>
-        <Text variant="callout" color="inkSoft" style={{ marginTop: space.md }}>
-          {t('ob.tasteDoneNote')}
-        </Text>
-        <View style={styles.slot}>
-          <Tolly mood="celebrate" size={184} />
-        </View>
+        {pass ? (
+          <View style={{ marginTop: space.xl }}>
+            <PassIssue
+              state="active"
+              remainingMs={pass.unlockMinutes * 60_000}
+              unlockMinutes={pass.unlockMinutes}
+              exercisesPerUnlock={pass.exercisesPerUnlock}
+              packLabel={pass.packLabel}
+              serial={1}
+              passenger={pass.passenger}
+            />
+          </View>
+        ) : (
+          <>
+            <Text variant="callout" color="inkSoft" style={{ marginTop: space.md }}>
+              {t('ob.tasteDoneNote')}
+            </Text>
+            <View style={styles.slot}>
+              <Tolly mood="celebrate" size={184} />
+            </View>
+          </>
+        )}
       </Entrance>
     );
   }
