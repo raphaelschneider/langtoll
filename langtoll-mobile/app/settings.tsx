@@ -38,7 +38,7 @@ import { supportCode, SUPPORT_EMAIL } from '@/lib/device';
 import { scheduleTrialEndNotice, openSystemSettings } from '@/lib/notify';
 import { AppPicker } from '@/components/blocking/AppPicker';
 import { useT } from '@/lib/i18n';
-import { formatClock } from '@/lib/format';
+import { formatClock, formatDuration } from '@/lib/format';
 import { LOCALE_CODES, LOCALE_ENDONYMS, type LocaleCode } from '@/lib/locales';
 import {
   canUseAudio,
@@ -51,7 +51,8 @@ import {
   FARE_EXERCISES,
   FARE_MINUTES_MIN,
   FARE_MINUTES_MAX,
-  FARE_MINUTES_STEP,
+  FARE_MINUTE_STOPS,
+  fareStopIndex,
   FREE_FARE_EXERCISES,
   FREE_FARE_MINUTES,
   FREE_LEVELS,
@@ -616,28 +617,31 @@ export default function Settings() {
               {t('settings.fareMin')}
             </Text>
             {canCustomizeLock() ? (
+              // The slider walks the same uneven stops as the onboarding dial
+              // (5-minute clicks to an hour, 15-minute clicks to two): it moves an
+              // index, and the stop is what gets stored.
               <FareSlider
-                value={state.unlockMinutes}
-                min={FARE_MINUTES_MIN}
-                max={FARE_MINUTES_MAX}
-                step={FARE_MINUTES_STEP}
-                onChange={(n) => updateProfile({ unlockMinutes: n })}
-                format={(n) => t('settings.fareMinValue', { min: n })}
-                minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
-                maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
+                value={fareStopIndex(state.unlockMinutes)}
+                min={0}
+                max={FARE_MINUTE_STOPS.length - 1}
+                step={1}
+                onChange={(i) => updateProfile({ unlockMinutes: FARE_MINUTE_STOPS[i]! })}
+                format={(i) => formatDuration(FARE_MINUTE_STOPS[i]!)}
+                minLabel={formatDuration(FARE_MINUTES_MIN)}
+                maxLabel={formatDuration(FARE_MINUTES_MAX)}
               />
             ) : (
               <View style={styles.chipRow}>
                 {FREE_FARE_MINUTES.map((n) => (
                   <Chip
                     key={n}
-                    label={t('settings.fareMinValue', { min: n })}
+                    label={formatDuration(n)}
                     selected={effectiveUnlockMinutes() === n}
                     onPress={() => updateProfile({ unlockMinutes: n })}
                   />
                 ))}
                 <Chip
-                  label={t('settings.fareAny', { min: FARE_MINUTES_MIN, max: FARE_MINUTES_MAX })}
+                  label={t('settings.fareAny', { min: formatDuration(FARE_MINUTES_MIN), max: formatDuration(FARE_MINUTES_MAX) })}
                   selected={false}
                   locked
                   onPress={() => openPaywall('settings_fare')}

@@ -67,6 +67,9 @@ function formatMs(ms: number): string {
   const total = Math.ceil(ms / 1000);
   const m = Math.floor(total / 60);
   const s = total % 60;
+  // Up to an hour it reads 60:00 as before; longer passes (up to 2 h since
+  // 2026-09-30) read 1:30:00, not 90:00.
+  if (m > 60) return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 

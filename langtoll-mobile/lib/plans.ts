@@ -130,12 +130,26 @@ export const FREE_FARE_MINUTES: readonly number[] = [15, 30];
  */
 export const FARE_EXERCISES = [3, 5, 8] as const;
 
-// Minutes are dragged, not picked from chips, so they are a RANGE rather than a
-// list — every 5-minute stop from 10 to 60. FREE_UNLOCK_MINUTES (30) sits on the
-// grid, as any default must, or a free user could never return to it.
-export const FARE_MINUTES_MIN = 10;
-export const FARE_MINUTES_MAX = 60;
-export const FARE_MINUTES_STEP = 5;
+// Minutes are dialled, not picked from chips: 5-minute stops from 10 to 60, then
+// 15-minute stops to 2 h. The ceiling went from 60 minutes to 2 hours on 2026-09-30
+// (founder: an hour can feel too little; 6 h was considered and dropped); the fine
+// steps stay at the low end, where a lock still bites. FREE_UNLOCK_MINUTES (30)
+// sits on the grid, as any default must.
+export const FARE_MINUTE_STOPS: readonly number[] = [
+  ...Array.from({ length: 11 }, (_, i) => 10 + i * 5), // 10 … 60
+  75, 90, 105, 120,
+];
+export const FARE_MINUTES_MIN = FARE_MINUTE_STOPS[0]!;
+export const FARE_MINUTES_MAX = FARE_MINUTE_STOPS[FARE_MINUTE_STOPS.length - 1]!;
+
+/** The stop index nearest to `minutes` (a stored value from before the new stops snaps). */
+export function fareStopIndex(minutes: number): number {
+  let best = 0;
+  FARE_MINUTE_STOPS.forEach((m, i) => {
+    if (Math.abs(m - minutes) < Math.abs(FARE_MINUTE_STOPS[best]! - minutes)) best = i;
+  });
+  return best;
+}
 
 // ── how much you can block (the primary lever) ───────────────────────────────
 // Free locks a single app. Plus unlocks unlimited apps, whole categories, and websites.

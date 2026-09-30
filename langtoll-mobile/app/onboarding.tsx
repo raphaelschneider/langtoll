@@ -54,9 +54,7 @@ import { refreshGoalPack } from '@/lib/ai/topics';
 import {
   SPEAKER_FORM_EXAMPLES,
   FARE_EXERCISES,
-  FARE_MINUTES_MIN,
-  FARE_MINUTES_MAX,
-  FARE_MINUTES_STEP,
+  FARE_MINUTE_STOPS,
   FREE_FARE_EXERCISES,
   FREE_FARE_MINUTES,
   FREE_LEVELS,
@@ -66,7 +64,8 @@ import {
   expressWillApply,
   expressEndsWeekday,
 } from '@/lib/plans';
-import { FareSlider } from '@/components/ui/FareSlider';
+import { FareDial } from '@/components/ui/FareDial';
+import { formatDuration } from '@/lib/format';
 import { DifficultyScale } from '@/components/ui/DifficultyScale';
 import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
@@ -834,15 +833,12 @@ export default function Onboarding() {
                 <Text variant="overline" color="inkFaint" style={{ marginTop: space.lg }}>
                   {t('ob.fareMin')}
                 </Text>
-                <FareSlider
+                <FareDial
                   value={fareMin}
-                  min={FARE_MINUTES_MIN}
-                  max={FARE_MINUTES_MAX}
-                  step={FARE_MINUTES_STEP}
+                  stops={FARE_MINUTE_STOPS}
                   onChange={setFareMin}
-                  format={(n) => t('settings.fareMinValue', { min: n })}
-                  minLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MIN })}
-                  maxLabel={t('settings.fareMinValue', { min: FARE_MINUTES_MAX })}
+                  format={formatDuration}
+                  caption={t('ob.fareDialCaption')}
                 />
                 {/* Said at the moment of choice, not discovered on day 8: the full
                     range is the trial's, and this is what free keeps. */}
