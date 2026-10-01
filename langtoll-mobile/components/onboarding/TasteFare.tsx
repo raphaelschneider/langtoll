@@ -70,9 +70,11 @@ export function TasteFare({
 
   const ex = exercises[idx];
   const feedback = picked !== null;
-  // Tolly watches every answer and is never sad here: a wrong guess on a word they
-  // have never seen is how it works, not a failed exam right before the paywall.
-  const mood: TollyMood = done ? 'celebrate' : !feedback ? 'stern' : 'happy';
+  // Tolly reacts to the answer, as he does in a real fare. He smiled at wrong
+  // answers for a day (2026-10-01) and the founder could not tell whether they had
+  // been right: "Tolly is smiling regardless, so no."
+  const wasRight = feedback && picked === ex?.answer;
+  const mood: TollyMood = done ? 'celebrate' : !feedback ? 'stern' : wasRight ? 'happy' : 'sad';
   const shownAt = useRef(Date.now());
   useEffect(() => {
     shownAt.current = Date.now();
@@ -80,16 +82,21 @@ export function TasteFare({
 
   useEffect(() => {
     if (!feedback) return;
-    // Long enough to read the tick, short enough that three fit in forty seconds.
-    const id = setTimeout(() => {
-      if (idx + 1 >= exercises.length) {
-        setDone(true);
-        onDone();
-      } else {
-        setIdx(idx + 1);
-        setPicked(null);
-      }
-    }, 900);
+    // A tick needs a glance; a miss needs time to read the red and the right
+    // answer beside it. At 0.9 s for both, a wrong round was gone before it
+    // registered (2026-10-01: "I barely can see if I'm right").
+    const id = setTimeout(
+      () => {
+        if (idx + 1 >= exercises.length) {
+          setDone(true);
+          onDone();
+        } else {
+          setIdx(idx + 1);
+          setPicked(null);
+        }
+      },
+      wasRight ? 900 : 2200,
+    );
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedback]);
@@ -107,8 +114,7 @@ export function TasteFare({
     // One event per answer: which question, right or not, how long it took. The step
     // event alone could not say whether people left at the first question or the last.
     track('taste_answer', { n: idx + 1, correct: ok, ms: Date.now() - shownAt.current, type: ex.type });
-    // A light tap either way: the error buzz made a guess feel like a mistake.
-    Haptics.notificationAsync(ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
+    Haptics.notificationAsync(ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error);
     if (ok) setCorrect((c) => c + 1);
     setPicked(opt);
   }
@@ -177,9 +183,11 @@ export function TasteFare({
         {ex.options!.map((opt, i) => {
           const isPicked = feedback && picked === opt;
           const isAnswer = feedback && opt === ex.answer;
-          // The right answer lights up; a wrong pick just dims, no red.
-          const bg = isAnswer ? theme.accent : isPicked ? theme.fillStrong : theme.surface;
-          const fg = isAnswer ? theme.onAccent : isPicked ? theme.inkSoft : theme.ink;
+          // The right answer lights up lime; a wrong pick goes stamp-red with a
+          // cross, the same marking as a real fare, so right and wrong read at a
+          // glance (a dimmed grey wrong pick was invisible on a phone).
+          const bg = isAnswer ? theme.accent : isPicked ? theme.danger : theme.surface;
+          const fg = isAnswer ? theme.onAccent : isPicked ? '#FFFFFF' : theme.ink;
           const bystander = feedback && !isAnswer && !isPicked;
           return (
             <Entrance key={`${ex.key}-${opt}-${i}`} delay={40 * i} from={8}>
