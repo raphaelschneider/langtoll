@@ -15,6 +15,7 @@ import { openPaywall } from '@/lib/paywall';
 import { Text } from '@/components/ui/Text';
 import { Tolly } from '@/components/ui/Tolly';
 import { Button } from '@/components/ui/Button';
+import { planDateLine } from '@/components/paywall/PlusOffer';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
@@ -457,7 +458,13 @@ export default function Settings() {
                   {t('settings.planPlus')}
                 </Text>
               </View>
-            ) : (
+            ) : null}
+            {plus && planDateLine(t) ? (
+              <Text variant="callout" color="inkSoft" style={{ marginTop: space.xs }}>
+                {planDateLine(t)}
+              </Text>
+            ) : null}
+            {plus ? null : (
               <>
                 <Text variant="callout" color="inkSoft" style={{ marginBottom: space.md }}>
                   {t('settings.planFree')}

@@ -52,6 +52,34 @@ function HowRow({ icon, title }: { icon: any; title: string }) {
   );
 }
 
+/**
+ * The one line that says what the subscription is doing: "Free trial until…",
+ * "Renews on…" or "Ends on…", from the entitlement shape RevenueCat mirrored
+ * into the store. Shared by the already-Plus wall and the Settings plan row, so a
+ * tester (or a customer) can read on the device why there is nothing to buy.
+ */
+export function planDateLine(t: (k: StringKey, v?: Record<string, string | number>) => string): string | null {
+  const s = getState();
+  if (!isPlus(s) || !s.plusExpiresAt) return null;
+  const d = new Date(s.plusExpiresAt);
+  if (Number.isNaN(d.getTime())) return null;
+  const date = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  if (s.plusIsTrial) return t('plan.trialUntil', { date });
+  if (s.plusWillRenew === false) return t('plan.ends', { date });
+  return t('plan.renews', { date });
+}
+
+function PlanDateLine() {
+  const t = useT();
+  useAppState();
+  const line = planDateLine(t);
+  return line ? (
+    <Text variant="callout" color="inkSoft" center>
+      {line}
+    </Text>
+  ) : null;
+}
+
 /** Card order: the offer first. */
 const ORDER: Record<Period, number> = { yearly: 0, monthly: 1, weekly: 2 };
 
@@ -114,7 +142,7 @@ export function PlusOffer({
   useEffect(() => {
     // Tagged with the gate that opened it — the number that says which gate
     // converts. Purchases carry the same tag so the two can be joined.
-    track('paywall_viewed', { source });
+    track('paywall_viewed', { source, ...(isPlus() ? { plus: true } : {}) });
     getPackages().then((pkgs) => {
       setPackages(pkgs);
       if (pkgs.length && !pkgs.some((p) => p.period === 'yearly')) {
@@ -137,8 +165,16 @@ export function PlusOffer({
   // the store; the wall must open on its own — a paid user who is told to pay
   // again is the worst outcome a hard paywall can produce.
   const plus = isPlus(useAppState());
+  // Plus that is ALREADY active when the wall opens is a different case: the
+  // wall used to call onDone() before its first frame, so a reinstall on an
+  // Apple ID with a live subscription (a tester's sandbox one included) went
+  // taste → lock with no paywall and nothing on screen saying why (founder,
+  // 2026-10-01: "it just comes without any paywall regardless"). Now it says so
+  // and waits for a tap; only Plus that ARRIVES while the wall is up advances
+  // on its own.
+  const [plusAtOpen] = useState(plus);
   useEffect(() => {
-    if (plus) onDone();
+    if (plus && !plusAtOpen) onDone();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plus]);
 
@@ -186,6 +222,22 @@ export function PlusOffer({
   // could be selected and the buy button did nothing. If the CTA ever needs to be
   // pinned again, the safe shape is a footer OUTSIDE this component, never a
   // sibling of a flexing scroll view.
+  if (plusAtOpen && plus) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', gap: space.md }}>
+        {header ? <View style={{ marginBottom: space.sm }}>{header}</View> : null}
+        <Text variant="title" center>
+          {t('plus.alreadyTitle')}
+        </Text>
+        <Text variant="body" color="inkSoft" center>
+          {t('plus.alreadyBody')}
+        </Text>
+        <PlanDateLine />
+        <Button label={t('plus.continue')} icon="arrow-forward" glow full onPress={onDone} style={{ marginTop: space.md }} />
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={{ flex: 1 }}
