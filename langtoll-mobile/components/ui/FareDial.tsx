@@ -75,6 +75,11 @@ export function FareDial({
 
   const pan = useRef(
     PanResponder.create({
+      // Capture phase: the Skia canvas underneath is a native view that would
+      // otherwise take the touch first — on a real phone the dial did not turn at
+      // all (TestFlight 49, 2026-10-01).
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponderCapture: () => true,
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       // A dial inside a ScrollView must keep the gesture once it has it.
@@ -110,6 +115,7 @@ export function FareDial({
       ref={ref}
       {...pan.panHandlers}
       style={{ width: size, height: size, alignSelf: 'center' }}
+      collapsable={false}
       accessible
       accessibilityRole="adjustable"
       accessibilityValue={{ text: format(value) }}
@@ -120,7 +126,7 @@ export function FareDial({
         if (next !== index) onChange(stops[next]!);
       }}
     >
-      <Canvas style={StyleSheet.absoluteFill}>
+      <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
         <Path path={arc(START, START + SWEEP)} style="stroke" strokeWidth={stroke} strokeCap="round" color={theme.fillStrong} />
         <Path path={arc(START, angleOf(index))} style="stroke" strokeWidth={stroke} strokeCap="round" color={theme.accent} />
         {ticks.map((tk, i) => {
