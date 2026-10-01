@@ -94,6 +94,7 @@ export const en = {
 
   // onboarding
   'ob.hookTitle': 'Turn your doomscroll into {lang}.',
+  'ob.hookFluency': 'Turn your doomscroll into fluency.',
   'ob.hookSub': "Streaks didn't stick. Now endless scrolls pay a fare: a few quick exercises, and your apps open again.",
   'ob.hookCta': "I'm in",
   'ob.howTitle': 'The deal is simple.',

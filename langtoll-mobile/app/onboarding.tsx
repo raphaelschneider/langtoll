@@ -11,11 +11,9 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  AccessibilityInfo,
   AppState,
   ScrollView,
 } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -136,104 +134,6 @@ const DAYPARTS: { key: Daypart; label: `ob.when${'Morning' | 'Midday' | 'Evening
   { key: 'midday', label: 'ob.whenMidday', hour: 12 },
   { key: 'evening', label: 'ob.whenEvening', hour: 18 },
 ];
-
-// A full cycle should finish inside the time someone spends reading the hook.
-// At six packs, 1500ms lands the whole set in ~9s. The fade tightens with it so
-// the word still holds ~1s fully settled rather than being in motion half the
-// time.
-const HOOK_ROTATE_MS = 1500;
-const HOOK_FADE_MS = 260;
-
-// The hook is step 0 — the user hasn't picked a language yet, so the headline
-// rotates through what we actually teach, same beat as the web landing hero.
-// Driven off availableLanguages() (the content registry), so a new pack joins
-// the rotation on its own and we never advertise a language we can't teach.
-//
-// Only the language word cross-fades; the rest of the sentence holds still.
-// We get the prefix/suffix by interpolating a sentinel into the ALREADY
-// TRANSLATED string and splitting on it, so each locale keeps its own word
-// order for free — English breaks as "…teach you |German|.", German as
-// "…bringt dir jetzt |Deutsch| bei." No per-locale layout knowledge needed.
-const LANG_SLOT = '\u0000';
-function RotatingHook() {
-  const t = useT();
-  // Same filter as the picker two steps later: never promise to teach someone
-  // the language their phone is already in.
-  const langs = learnableLanguages(resolvedLocale());
-  // Start somewhere random so the language a given user sees first isn't always
-  // whichever pack happens to sit first in the registry. Someone who taps
-  // through in four seconds only ever sees two or three of them, and this is
-  // what spreads that exposure across the catalogue instead of favouring one.
-  const [i, setI] = useState(() => Math.floor(Math.random() * Math.max(1, langs.length)));
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const opacity = useSharedValue(1);
-
-  useEffect(() => {
-    let alive = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((on) => alive && setReduceMotion(on));
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => {
-      alive = false;
-      sub.remove();
-    };
-  }, []);
-
-  const advance = useCallback(() => {
-    setI((v) => (v + 1) % langs.length);
-    opacity.value = withTiming(1, { duration: HOOK_FADE_MS });
-  }, [langs.length, opacity]);
-
-  useEffect(() => {
-    // Nothing to rotate through until a second pack ships — don't run a timer.
-    if (langs.length < 2) return;
-    const id = setInterval(() => {
-      if (reduceMotion) {
-        setI((v) => (v + 1) % langs.length);
-        return;
-      }
-      opacity.value = withTiming(0, { duration: HOOK_FADE_MS }, (done) => {
-        if (done) runOnJS(advance)();
-      });
-    }, HOOK_ROTATE_MS);
-    return () => clearInterval(id);
-  }, [langs.length, reduceMotion, advance, opacity]);
-
-  const fade = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  // Language names are UI labels ("Español"), capitalized; mid-sentence Spanish,
-  // French, Italian and Portuguese write them lowercase ("en español"). German keeps
-  // the capital, English its proper noun.
-  const midSentence = (name: string) => {
-    const loc = resolvedLocale();
-    return ['es', 'fr', 'it', 'pt'].includes(loc) ? name.toLocaleLowerCase(loc) : name;
-  };
-  const word = midSentence(t(`lang.${langs[i] ?? 'de'}` as StringKey));
-  // Split the translated sentence around the slot the language sits in. A locale
-  // that drops the placeholder still renders: suffix falls back to empty and the
-  // word simply trails the line rather than throwing.
-  const [prefix, suffix = ''] = t('ob.hookTitle', { lang: LANG_SLOT }).split(LANG_SLOT);
-
-  // Language names differ in length, so the sentence can gain a line as it
-  // rotates and shove the CTA down mid-fade. An invisible copy built from the
-  // longest name holds the box at its worst case; the live line sits on top.
-  const longest = langs
-    .map((l) => midSentence(t(`lang.${l}` as StringKey)))
-    .reduce((a, b) => (b.length > a.length ? b : a), '');
-
-  return (
-    <View>
-      <Text variant="hero" style={{ marginTop: space.md, opacity: 0 }} accessibilityElementsHidden>
-        {t('ob.hookTitle', { lang: longest })}
-      </Text>
-      <View style={StyleSheet.absoluteFill}>
-        <Text variant="hero" style={{ marginTop: space.md }} accessibilityLabel={prefix + word + suffix}>
-          {prefix}
-          <Animated.Text style={fade}>{word}</Animated.Text>
-          {suffix}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 // ── shared bits ────────────────────────────────────────────────────────────
 
@@ -629,7 +529,13 @@ export default function Onboarding() {
                 <Text variant="overline" color="accent">
                   LangToll
                 </Text>
-                <RotatingHook />
+                {/* One promise for everyone. The headline used to rotate through the
+                    languages ("…into Spanish." → "…into German."), and whoever caught
+                    the wrong one first read it as "this app is for Spanish" and left
+                    (8 of 62 installs quit on this screen; founder, 2026-10-01). */}
+                <Text variant="hero" style={{ marginTop: space.md }}>
+                  {t('ob.hookFluency')}
+                </Text>
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
                   {t('ob.hookSub')}
                 </Text>

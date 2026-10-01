@@ -87,6 +87,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'session.back': 'Zurück zum Handy',
 
   'ob.hookTitle': 'Dein Doomscrolling bringt dir jetzt {lang} bei.',
+  'ob.hookFluency': 'Dein Doomscrolling bringt dir jetzt eine neue Sprache bei.',
   'ob.hookSub': 'Mit Streaks hat es nie geklappt? Hier kostet Scrollen einen Fahrpreis: ein paar kurze Übungen, dann sind deine Apps wieder frei.',
   'ob.hookCta': 'Bin dabei',
   'ob.howTitle': 'Der Deal ist einfach.',

@@ -87,6 +87,7 @@ export const es: Partial<Record<StringKey, string>> = {
   'session.back': 'Volver a mi móvil',
 
   'ob.hookTitle': 'Que tu scroll infinito te enseñe {lang}.',
+  'ob.hookFluency': 'Que tu scroll infinito te haga hablar otro idioma.',
   'ob.hookSub': '¿Nunca te duró la racha? Aquí, scrollear tiene tarifa: unos ejercicios rápidos y tus apps vuelven a abrirse.',
   'ob.hookCta': 'Me apunto',
   'ob.howTitle': 'El trato es simple.',
