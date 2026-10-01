@@ -991,6 +991,7 @@ export default function Onboarding() {
               <Entrance key="taste" style={{ flex: 1 }}>
                 <TasteFare
                   pack={tastePack}
+                  count={fareEx}
                   onDone={() => setTasteDone(true)}
                   pass={{
                     unlockMinutes: fareMin,

@@ -22,7 +22,9 @@ import { track } from '@/lib/telemetry';
 import { buildSession, type Exercise } from '@/lib/trainer/engine';
 import type { LanguagePack } from '@/content/german/types';
 
-const COUNT = 3;
+/** The taste is the fare they just set (3, 5 or 8 exercises), so the first fare
+ *  they pay is the one they will pay every day (founder, TestFlight 50). */
+const DEFAULT_COUNT = 3;
 
 /**
  * Three "tap the meaning" exercises from the pack: the foreign word, three meanings
@@ -31,22 +33,25 @@ const COUNT = 3;
  * too many people stopped on this screen once it shipped (2026-09-30). The reverse
  * direction is only a fallback if a pack is short of the easy kind.
  */
-function pickTaste(pack: LanguagePack, seed: number): Exercise[] {
+function pickTaste(pack: LanguagePack, seed: number, count: number): Exercise[] {
   // A generous plan, filtered down: buildSession seats sentences too.
-  const plan = buildSession(pack, [], COUNT * 8, seed, { audio: false, fullCurriculum: false });
+  const plan = buildSession(pack, [], count * 8, seed, { audio: false, fullCurriculum: false });
   const withOptions = plan.exercises.filter((e) => e.options?.length);
   const meaning = withOptions.filter((e) => e.type === 'mc_de_en');
   const word = withOptions.filter((e) => e.type === 'mc_en_de');
-  return [...meaning, ...word].slice(0, COUNT);
+  return [...meaning, ...word].slice(0, count);
 }
 
 export function TasteFare({
   pack,
+  count = DEFAULT_COUNT,
   onDone,
   pass,
 }: {
   pack: LanguagePack;
-  /** Fired once, when the third answer has been shown. */
+  /** How many exercises: the fare they chose. */
+  count?: number;
+  /** Fired once, when the last answer has been shown. */
   onDone: () => void;
   /** The pass this fare would issue, from the learner's own answers: the same
    *  printed ticket and PAID stamp a real session ends on, so the reward is seen
@@ -56,7 +61,7 @@ export function TasteFare({
   const theme = useTheme();
   const t = useT();
   const seed = useRef(Math.floor(Math.random() * 2 ** 31)).current;
-  const exercises = useMemo(() => pickTaste(pack, seed), [pack, seed]);
+  const exercises = useMemo(() => pickTaste(pack, seed, count), [pack, seed, count]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [correct, setCorrect] = useState(0);
