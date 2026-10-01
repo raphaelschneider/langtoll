@@ -561,9 +561,29 @@ async function SupportTab(rawCode?: string) {
         "SELECT event, data, DATE_FORMAT(created_at, '%b %e, %H:%i') AS at FROM app_events WHERE device_id = ? ORDER BY id DESC LIMIT 60",
         [deviceId]
       );
-      const rcUser = (Array.isArray(subs) && (subs.find((s: Record<string, unknown>) => s.rc_user) as Record<string, unknown> | undefined)?.rc_user) || null;
+      // The RevenueCat id: from a recorded purchase first, else from the newest event
+      // that carries one. Builds from 1.0.4 send rc_identity on every launch, so any
+      // install can be looked up, bought on this device or not (support case 2026-10-01).
+      const rcFromSubs = (Array.isArray(subs) && (subs.find((s: Record<string, unknown>) => s.rc_user) as Record<string, unknown> | undefined)?.rc_user) || null;
+      let rcFromEvents: string | null = null;
+      if (!rcFromSubs) {
+        const rows = (await query(
+          "SELECT data FROM app_events WHERE device_id = ? AND event IN ('rc_identity','subscribed','restored','unsubscribed') ORDER BY id DESC LIMIT 20",
+          [deviceId],
+        )) as { data: unknown }[];
+        for (const r of rows) {
+          const d = (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) as { rcUser?: unknown } | null;
+          if (d && typeof d.rcUser === 'string' && d.rcUser) {
+            rcFromEvents = d.rcUser;
+            break;
+          }
+        }
+      }
+      const rcUser = rcFromSubs || rcFromEvents;
 
-      let rcLive: string = rcUser ? 'RC check failed' : 'no RevenueCat id on file (purchase predates rc_user capture, or no purchase)';
+      let rcLive: string = rcUser
+        ? 'RC check failed'
+        : 'no RevenueCat id on file: no purchase on this install, and its build predates rc_identity (1.0.4). A reinstall mints a new device id; the paying install may be an older one.';
       if (rcUser && process.env.REVENUECAT_SECRET_KEY) {
         try {
           const res = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(String(rcUser))}`, {

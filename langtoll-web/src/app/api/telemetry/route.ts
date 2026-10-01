@@ -31,6 +31,15 @@ const KNOWN_EVENTS = new Set([
   'restored',
   'subscribed',
   'unsubscribed',
+  // Added 2026-09-28 … 10-01. Until this list caught up, the server dropped them all:
+  // the app had been sending listen_fallback_used for weeks.
+  'listen_fallback_used',
+  'taste_answer',
+  'notify_permission',
+  'purchase_cancel_reason',
+  'lock_auth',
+  'lock_apps_picked',
+  'rc_identity',
 ]);
 
 interface TelemetryBody {
