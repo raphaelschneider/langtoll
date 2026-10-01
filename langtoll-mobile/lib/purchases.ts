@@ -327,6 +327,34 @@ export function offeringsDiagnostic(): string | null {
   return offeringsDiag;
 }
 
+/**
+ * A product's intro offer says nothing about THIS person: Apple grants a free trial
+ * once per Apple ID per subscription group, so a reinstall or a second account on the
+ * same Apple ID is told "7 days free" by the paywall and then shown the full price on
+ * Apple's sheet — the exact moment people back out. Ask the store, and sell the
+ * no-trial version to anyone it says is ineligible. Unknown (no answer yet, or a
+ * storefront that cannot say) keeps the offer as advertised. Best-effort: a failure
+ * here must never hide the trial from someone entitled to it (pre-freeze audit,
+ * 2026-10-01).
+ */
+async function dropUsedTrials(pkgs: PlusPackage[]): Promise<void> {
+  try {
+    const ids = pkgs.filter((p) => p.hasTrial).map((p) => p.raw?.product?.identifier).filter(Boolean) as string[];
+    if (!ids.length) return;
+    const result = await rc().checkTrialOrIntroductoryPriceEligibility(ids);
+    const INELIGIBLE = nativeModule()?.INTRO_ELIGIBILITY_STATUS?.INTRO_ELIGIBILITY_STATUS_INELIGIBLE ?? 1;
+    for (const p of pkgs) {
+      const id = p.raw?.product?.identifier;
+      if (id && result?.[id]?.status === INELIGIBLE) {
+        p.hasTrial = false;
+        p.trialDays = 0;
+      }
+    }
+  } catch {
+    // leave the store's own offer in place
+  }
+}
+
 /** The purchasable packages for the paywall — live from the store, or the mock. */
 export async function getPackages(): Promise<PlusPackage[]> {
   if (purchasesEnabled()) {
@@ -370,6 +398,7 @@ export async function getPackages(): Promise<PlusPackage[]> {
         .filter(Boolean) as PlusPackage[];
       if (mapped.length) {
         offeringsDiag = null; // live products in hand — nothing to report
+        await dropUsedTrials(mapped);
         return sortPackages(mapped);
       }
       if (unmatched.length) {
