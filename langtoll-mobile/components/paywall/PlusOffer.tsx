@@ -454,7 +454,9 @@ export function PlusOffer({
         // and price stay in the line underneath, where they always were.
         label={trial ? t('plus.startSpeaking', { lang: courseName }) : t('plus.subscribe')}
         fit
-        onPress={buy}
+        // Never pass the handler itself: PressableScale calls it with the touch event,
+        // and buy(event) would try to purchase the event (builds 46/47, 2026-10-01).
+        onPress={() => void buy()}
         loading={busy}
         disabled={!current}
         full

@@ -76,6 +76,8 @@ import { LOCALE_ENDONYMS } from '@/lib/locales';
 // installs got no further than the name field, and 8 of those walked back to the
 // start and left (founder call to move it). Keep in sync with ONBOARDING_STEPS in
 // langtoll-web/src/app/(site)/langtoll-adm/funnel.ts (it maps old builds' order too).
+/** Bumped when STEPS is reordered; saved into the draft so a resume knows which order it came from. */
+const STEP_ORDER = 2;
 const STEPS = [
   'hook',
   'how',
@@ -108,9 +110,13 @@ function stepsFor(language: Language): readonly Step[] {
 // Where a relaunch picks up. Mid-loader goes to the summary it was loading, and
 // the lock step is only for someone who has paid: a draft that says 'lock'
 // without Plus (a lapse, a refund) goes back to the wall.
-function resumeIndex(saved: string, steps: readonly Step[]): number {
-  let s = saved as Step;
+function resumeIndex(draft: { step: string; order?: number }, steps: readonly Step[]): number {
+  let s = draft.step as Step;
   if (s === 'printing') s = 'summary';
+  // A draft saved under the old order (name third, before 1.0.4) that stopped on
+  // the name field has not answered language, difficulty or apps yet; the moved
+  // 'name' now sits after them, so resume at 'language' rather than skip them.
+  if (s === 'name' && draft.order !== STEP_ORDER) s = 'language';
   if (s === 'lock' && !isPlus()) s = 'paywall';
   const i = steps.indexOf(s);
   return i >= 0 ? i : 0;
@@ -340,7 +346,7 @@ export default function Onboarding() {
       const i = STEPS.indexOf(jump as Step);
       if (i >= 0) return i;
     }
-    return draft ? resumeIndex(draft.step, stepsFor(draft.language)) : 0;
+    return draft ? resumeIndex(draft, stepsFor(draft.language)) : 0;
   });
 
   // answers
@@ -397,7 +403,7 @@ export default function Onboarding() {
     if (finishedRef.current) return;
     const id = setTimeout(() => {
       if (finishedRef.current) return;
-      saveOnboardingDraft({ step, name, language, difficulty, apps, goal, forms, daypart, fareEx, fareMin });
+      saveOnboardingDraft({ step, name, language, difficulty, apps, goal, forms, daypart, fareEx, fareMin, order: STEP_ORDER });
     }, 250);
     return () => clearTimeout(id);
   }, [step, name, language, difficulty, apps, goal, forms, daypart, fareEx, fareMin]);

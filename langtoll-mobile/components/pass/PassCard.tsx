@@ -209,7 +209,7 @@ export function PassCard({
           {/* body */}
           {active ? (
             <View style={{ marginTop: space.lg }}>
-              <Text variant="metric" style={{ fontSize: 52, lineHeight: 56, color: activeColor }}>
+              <Text variant="metric" style={{ fontSize: 52, lineHeight: 56, color: activeColor }} numberOfLines={1} adjustsFontSizeToFit>
                 {formatMs(remainingMs)}
               </Text>
               <Text variant="callout" color="inkSoft" style={{ marginTop: 2 }}>

@@ -41,6 +41,9 @@ export interface OnboardingDraft {
   daypart: string | null;
   fareEx: number;
   fareMin: number;
+  /** Step-order version the draft was saved under (2 = name after apps, 1.0.4+).
+   *  Absent on drafts from 1.0.3 and before. */
+  order?: number;
 }
 
 export interface AppState {

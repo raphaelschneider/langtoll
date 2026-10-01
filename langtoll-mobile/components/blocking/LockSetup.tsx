@@ -69,8 +69,6 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
       // never pick an app when that took another tap (conversion pass 2026-09-29).
       setPicking(true);
       configureShieldAppearance();
-      // The shield button needs this to do anything at all.
-      void requestNotificationPermission();
     }
     setBusy(false);
   }
@@ -145,6 +143,11 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
           familyActivitySelectionId={selectionId()}
           onDismissRequest={() => {
             setPicking(false);
+            // The shield button needs notifications to do anything at all. Asked here,
+            // after the picker has closed: asked together with it, Apple's alert and the
+            // picker sheet fought for the screen. Usually already answered on the "when"
+            // screen, in which case this returns at once with no dialog.
+            void requestNotificationPermission();
             const has = hasSelection();
             const counts = selectionCounts();
             track('lock_apps_picked', {
