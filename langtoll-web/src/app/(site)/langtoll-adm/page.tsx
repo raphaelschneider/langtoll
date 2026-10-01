@@ -558,7 +558,9 @@ async function SupportTab(rawCode?: string) {
       // The install's whole story, event by event — the view that answers "what is this person
       // actually doing?" without guessing from aggregates. Server-rendered; no extra endpoint.
       const timeline = await query(
-        "SELECT event, data, DATE_FORMAT(created_at, '%b %e, %H:%i') AS at FROM app_events WHERE device_id = ? ORDER BY id DESC LIMIT 60",
+        // rc_identity fires on every launch (1.0.4+) and is read separately above; in
+        // the timeline it would crowd out the sixty rows that tell the story.
+        "SELECT event, data, DATE_FORMAT(created_at, '%b %e, %H:%i') AS at FROM app_events WHERE device_id = ? AND event <> 'rc_identity' ORDER BY id DESC LIMIT 60",
         [deviceId]
       );
       // The RevenueCat id: from a recorded purchase first, else from the newest event
