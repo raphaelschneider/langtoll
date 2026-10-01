@@ -61,6 +61,9 @@ export type TelemetryEvent =
   | 'purchase_failed'
   | 'purchase_unavailable'
   | 'restored'
+  // Once per launch: this install's RevenueCat app user id, so the admin can find
+  // the customer at RevenueCat for any install, bought here or not.
+  | 'rc_identity'
   | 'subscribed'
   | 'unsubscribed';
 

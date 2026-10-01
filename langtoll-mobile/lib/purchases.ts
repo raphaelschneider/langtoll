@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import { applyEntitlement, type EntitlementMeta } from './store';
 import { scheduleTrialEndNotice } from './notify';
 import { track } from './telemetry';
+import { initDeviceId, supportCode } from './device';
 import { isHydrated, getState } from './store';
 
 // Every entitlement write goes through here so the store and the trial-end
@@ -272,8 +273,31 @@ export async function configurePurchases(): Promise<void> {
     Purchases.enableAdServicesAttributionTokenCollection?.().catch(() => {});
     Purchases.addCustomerInfoUpdateListener((info: any) => applyPlan(isPlusActive(info), entitlementMeta(info), planReport(info)));
     await syncEntitlement();
+    void identifyCustomer();
   } catch {
     // bad key / pod not linked — stay on mock; rebuild to enable
+  }
+}
+
+/**
+ * Ties the RevenueCat customer to our install, both ways, on every launch:
+ * - RevenueCat gets the support code (as display name and attribute) and the full
+ *   device id, so a support email's "5A24-084E" finds the customer in RevenueCat.
+ * - The admin gets the RevenueCat id (rc_identity), for every install, not only
+ *   ones that bought on this device.
+ * A customer wrote on 2026-10-01 asking for a refund with a support code that had
+ * no purchase on file, and there was no way to find them in RevenueCat.
+ */
+async function identifyCustomer(): Promise<void> {
+  try {
+    const deviceId = await initDeviceId();
+    const code = supportCode();
+    await rc().setAttributes({ langtoll_support_code: code, langtoll_device_id: deviceId });
+    await rc().setDisplayName?.(code);
+    const rcUser = await rc().getAppUserID();
+    if (typeof rcUser === 'string' && rcUser) track('rc_identity', { rcUser });
+  } catch {
+    // best-effort: identity must never block purchases or launch
   }
 }
 
