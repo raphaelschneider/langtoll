@@ -327,9 +327,12 @@ export function PlusOffer({
                   {/* Twelve months of the monthly plan, which is what yearly replaces —
                       beside the price, not above it, where the trial flag sits. */}
                   <View style={styles.priceRow}>
+                    {/* Twelve months of monthly, as a plain comparison, never struck
+                        through: a struck price reads as a former price, and Apple
+                        rejects comparison prices that were never charged (3.1.2). */}
                     {struck && (
-                      <Text variant="callout" color="inkFaint" style={{ textDecorationLine: 'line-through' }}>
-                        {struck}
+                      <Text variant="caption" color="inkFaint" style={{ fontFamily: font.body, letterSpacing: 0 }}>
+                        {t('plus.vsMonthly', { price: struck })}
                       </Text>
                     )}
                     <Text variant="bodyMedium" style={{ fontFamily: font.semibold, fontSize: 19, lineHeight: 24 }}>
