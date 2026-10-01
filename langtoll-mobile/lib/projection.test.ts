@@ -131,3 +131,9 @@ describe('projection — the other side of the mirror', () => {
     expect(p.words30).toBeGreaterThanOrEqual(10);
   });
 });
+
+it('rounds fares per day up: 3h 30m at 2h per unlock is two fares, not one', () => {
+  expect(projection(210, 5, 120).faresPerDay).toBe(2);
+  expect(projection(210, 5, 30).faresPerDay).toBe(7);
+  expect(projection(120, 5, 120).faresPerDay).toBe(1);
+});

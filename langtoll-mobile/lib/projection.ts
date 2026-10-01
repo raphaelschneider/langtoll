@@ -108,7 +108,10 @@ function levelIdxAfterWords(words: number): number {
  * reads as a broken screen.
  */
 export function projection(dailyMinutes: number, fareEx: number, fareMin: number): Projection {
-  const faresPerDay = Math.max(1, Math.floor(dailyMinutes / Math.max(1, fareMin)));
+  // Rounded UP: 3 h 30 of apps at 2 h per unlock is two fares (the second one is
+  // due at the two-hour mark), not one. Floor read "one fare a day" at 2 h
+  // (founder, TestFlight 50, 2026-10-01).
+  const faresPerDay = Math.max(1, Math.ceil(dailyMinutes / Math.max(1, fareMin)));
   const exercisesPerDay = faresPerDay * Math.max(1, fareEx);
   const practiceMinutes = Math.max(1, Math.round((exercisesPerDay * SECONDS_PER_EXERCISE) / 60));
   const wordsPerDay = exercisesPerDay * NEW_WORDS_PER_EXERCISE;
