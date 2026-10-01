@@ -165,6 +165,9 @@ export interface AppState {
   lockPausedUntil: number | null;
   /** Unfinished onboarding, see OnboardingDraft. Null once onboarded. */
   onboardingDraft: OnboardingDraft | null;
+  /** The plusExpiresAt we last asked "why did you turn off renewal?" for, so the
+   *  question comes once per cancellation, not on every open. */
+  renewalAskedFor?: string | null;
 }
 
 const initialState: AppState = {
@@ -412,6 +415,10 @@ export function bumpRecap(words: number, minutes: number): void {
     recapWords: state.recapWords + words,
     recapMinutes: state.recapMinutes + minutes,
   });
+}
+
+export function markRenewalAsked(expiresAt: string): void {
+  setState({ renewalAskedFor: expiresAt });
 }
 
 export function dismissRecap(weekStart: string): void {

@@ -64,6 +64,8 @@ export type TelemetryEvent =
   // Once per launch: this install's RevenueCat app user id, so the admin can find
   // the customer at RevenueCat for any install, bought here or not.
   | 'rc_identity'
+  // A Plus subscriber who turned off renewal, asked once on the next open: reason.
+  | 'renewal_off_reason'
   | 'subscribed'
   | 'unsubscribed';
 

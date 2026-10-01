@@ -40,6 +40,7 @@ const KNOWN_EVENTS = new Set([
   'lock_auth',
   'lock_apps_picked',
   'rc_identity',
+  'renewal_off_reason',
 ]);
 
 interface TelemetryBody {
