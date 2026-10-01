@@ -1128,6 +1128,10 @@ export default function Onboarding() {
               contentContainerStyle={[styles.bodyScroll, band(L), centreStep && centreStyle]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              // The fare dial is turned by dragging; on a real phone the page scrolled
+              // along with the finger (TestFlight 50, 2026-10-01). The step fits one
+              // screen, so it simply does not scroll.
+              scrollEnabled={step !== 'fare'}
             >
               {stepBody}
               {L.regular ? <View style={{ marginTop: space.xxl }}>{footerCta}</View> : null}
