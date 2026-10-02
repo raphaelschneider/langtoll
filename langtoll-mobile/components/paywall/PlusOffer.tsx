@@ -43,7 +43,7 @@ function HowRow({ icon, title }: { icon: any; title: string }) {
       <View
         style={[styles.featureIcon, { backgroundColor: withAlpha(theme.accent, 0.10), borderColor: withAlpha(theme.accent, 0.3) }]}
       >
-        <Ionicons name={icon} size={19} color={theme.accent} />
+        <Ionicons name={icon} size={17} color={theme.accent} />
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="bodyMedium">{title}</Text>
@@ -79,6 +79,9 @@ function PlanDateLine() {
     </Text>
   ) : null;
 }
+
+/** Every Plus benefit as a short tick line, in the order of PLUS_FEATURES. */
+const BENEFITS: StringKey[] = ['plus.b1', 'plus.b6', 'plus.b8', 'plus.b7', 'plus.b4', 'plus.b2', 'plus.f3Title', 'plus.f5Title'];
 
 /** Card order: the offer first. */
 const ORDER: Record<Period, number> = { yearly: 0, monthly: 1, weekly: 2 };
@@ -257,11 +260,28 @@ export function PlusOffer({
       {/* One burst when the wall opens: this is the moment the app asks, so it
           should feel like an arrival, not a checkout. */}
       <Confetti colors={[theme.accent, theme.amber, theme.accentSoft, theme.pine]} />
-      {header ? <View style={{ marginBottom: space.lg }}>{header}</View> : null}
-      <View style={{ gap: space.sm }}>
+      {header ? <View style={{ marginBottom: space.md }}>{header}</View> : null}
+      <View style={{ gap: space.xs }}>
         {plan
           ? plan.map((r) => <HowRow key={r.title} icon={r.icon} title={r.title} />)
           : PLUS_FEATURES.slice(0, 3).map((f) => <HowRow key={f.title} icon={f.icon} title={t(f.title)} />)}
+      </View>
+      {/* The whole of Plus, in one glance: the plan rows above say what THEY built,
+          this says what the trial opens on top (founder, 2026-10-02: "why are you
+          not talking about all the benefits"). Two columns of ticks, not eight
+          icon rows — the cards and the button must stay close. */}
+      <Text variant="overline" color="inkSoft" style={{ marginTop: space.sm + 2 }}>
+        {t('plus.everything')}
+      </Text>
+      <View style={styles.benefits}>
+        {BENEFITS.map((k) => (
+          <View key={k} style={styles.benefit}>
+            <Ionicons name="checkmark-circle" size={14} color={theme.accent} />
+            <Text variant="callout" numberOfLines={1} style={{ flex: 1, fontSize: 13, lineHeight: 18 }}>
+              {t(k)}
+            </Text>
+          </View>
+        ))}
       </View>
 
       {/* package cards */}
@@ -603,11 +623,13 @@ const GIFT_INK = '#2A1D05';
 const FOOTER = { fontFamily: font.body, letterSpacing: 0 } as const;
 
 const styles = StyleSheet.create({
-  timeline: { flexDirection: 'row', marginTop: space.lg, gap: space.xs },
+  timeline: { flexDirection: 'row', marginTop: space.md, gap: space.xs },
   tlStep: { flex: 1, alignItems: 'center' },
   tlDot: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
   tlRail: { position: 'absolute', top: 13, left: '17%', right: '17%', height: 2 },
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  benefits: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs + 2, rowGap: 4 },
+  benefit: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 5, paddingRight: space.sm },
   sheetScrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: {
     borderTopLeftRadius: radius.lg,
@@ -619,9 +641,9 @@ const styles = StyleSheet.create({
   reason: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.md },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   featureIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
