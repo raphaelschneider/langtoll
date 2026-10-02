@@ -1124,7 +1124,9 @@ export default function Onboarding() {
               what lets the body centre when it fits and scroll when it does
               not, in EITHER orientation, with no height guard. */}
           {step === 'paywall' ? (
-            <View style={[styles.body, band(L)]}>{stepBody}</View>
+            // Less headroom than the other steps: the wall is the one screen that
+            // must fit whole, legal links included (2026-10-02, "make this fit").
+            <View style={[styles.body, band(L), { paddingTop: space.md }]}>{stepBody}</View>
           ) : (
             <ScrollView
               ref={goalScrollRef}

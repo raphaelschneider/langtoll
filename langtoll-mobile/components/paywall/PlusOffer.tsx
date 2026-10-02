@@ -267,7 +267,7 @@ export function PlusOffer({
       <Confetti colors={[theme.accent, theme.amber, theme.accentSoft, theme.pine]} />
       {header ? <View style={{ marginBottom: space.md }}>{header}</View> : null}
       {pitch ? (
-        <Text variant="body" color="inkSoft">
+        <Text variant="callout" color="inkSoft">
           {pitch}
         </Text>
       ) : (
@@ -409,22 +409,22 @@ export function PlusOffer({
                 <View style={{ alignItems: 'flex-end' }}>
                   {/* Twelve months of the monthly plan, which is what yearly replaces —
                       beside the price, not above it, where the trial flag sits. */}
-                  <View style={styles.priceRow}>
-                    {/* Twelve months of monthly, as a plain comparison, never struck
-                        through: a struck price reads as a former price, and Apple
-                        rejects comparison prices that were never charged (3.1.2). */}
-                    {struck && (
-                      <Text variant="caption" color="inkFaint" style={{ fontFamily: font.body, letterSpacing: 0 }}>
-                        {t('plus.vsMonthly', { price: struck })}
-                      </Text>
-                    )}
-                    <Text variant="bodyMedium" style={{ fontFamily: font.semibold, fontSize: 19, lineHeight: 24 }}>
-                      {p.priceString}
-                    </Text>
-                  </View>
+                  <Text variant="bodyMedium" style={{ fontFamily: font.semibold, fontSize: 19, lineHeight: 24 }}>
+                    {p.priceString}
+                  </Text>
                   <Text variant="caption" color="inkFaint" style={{ fontFamily: font.body, letterSpacing: 0 }}>
                     {t(subKey)}
                   </Text>
+                  {/* Twelve months of monthly, as a plain comparison, never struck
+                      through: a struck price reads as a former price, and Apple
+                      rejects comparison prices that were never charged (3.1.2).
+                      Under the price, not beside it: beside, it squeezed the weekly
+                      line on the left onto two lines (2026-10-02, "make this fit"). */}
+                  {struck && (
+                    <Text variant="caption" color="inkFaint" style={{ fontFamily: font.body, letterSpacing: 0 }}>
+                      {t('plus.vsMonthly', { price: struck })}
+                    </Text>
+                  )}
                 </View>
               </PressableScale>
             );
@@ -634,12 +634,12 @@ const GIFT_INK = '#2A1D05';
 const FOOTER = { fontFamily: font.body, letterSpacing: 0 } as const;
 
 const styles = StyleSheet.create({
-  timeline: { flexDirection: 'row', marginTop: space.md, gap: space.xs },
+  timeline: { flexDirection: 'row', marginTop: space.sm + 2, gap: space.xs },
   tlStep: { flex: 1, alignItems: 'center' },
   tlDot: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
   tlRail: { position: 'absolute', top: 13, left: '17%', right: '17%', height: 2 },
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  benefits: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs + 2, rowGap: 4 },
+  benefits: { flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs + 2, rowGap: 3 },
   benefit: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 5, paddingRight: space.sm },
   sheetScrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: {
