@@ -1017,16 +1017,19 @@ export default function Onboarding() {
                   language={language}
                   // Their plan, not a feature list: the apps they chose, the fare they
                   // set, the course and level. The wall reads "activate what you built".
-                  plan={[
-                    {
-                      icon: 'lock-closed',
-                      title: apps.length
-                        ? t('ob.planApps', { list: `${apps.slice(0, 3).join(', ')}${apps.length > 3 ? '…' : ''}` })
-                        : t('ob.sumAppsNone'),
-                    },
-                    { icon: 'flash', title: t('ob.sumFare', { ex: fareEx, min: fareMin }) },
-                    { icon: 'school', title: t('ob.planCourse', { lang, level: derivedLevel }) },
-                  ]}
+                  pitch={t(apps.length ? 'ob.planPitch' : 'ob.planPitchNoApps', {
+                    // "TikTok, Instagram and YouTube": a sentence, not a list.
+                    apps:
+                      apps.length > 3
+                        ? `${apps.slice(0, 3).join(', ')}…`
+                        : apps.length > 1
+                          ? `${apps.slice(0, -1).join(', ')} ${t('common.and')} ${apps[apps.length - 1]}`
+                          : apps[0]!,
+                    ex: fareEx,
+                    min: formatDuration(fareMin),
+                    lang,
+                    level: derivedLevel,
+                  })}
                   header={
                     <>
                       {/* Tolly celebrates beside the ask, as on the /paywall route: the

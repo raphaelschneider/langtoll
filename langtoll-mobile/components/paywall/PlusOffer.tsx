@@ -89,6 +89,7 @@ const ORDER: Record<Period, number> = { yearly: 0, monthly: 1, weekly: 2 };
 export function PlusOffer({
   onDone,
   plan,
+  pitch,
   language,
   onStoreUnavailable,
   source,
@@ -100,6 +101,10 @@ export function PlusOffer({
    *  already feels like theirs rather than a feature list for a free tier they never
    *  saw (2026-09-29, conversion pass). */
   plan?: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string }[];
+  /** One short paragraph in place of the rows: the learner's own plan told back to them
+   *  as encouragement (founder, 2026-10-02: "a short paragraph instead of so much
+   *  spacing with 3 features"). Onboarding passes this; takes precedence over `plan`. */
+  pitch?: string;
   /** The course being sold, for the outcome-led button ("Start speaking Italian free").
    *  Onboarding passes the language just chosen (the profile isn't written until the
    *  end); elsewhere it falls back to the profile's course. */
@@ -261,11 +266,17 @@ export function PlusOffer({
           should feel like an arrival, not a checkout. */}
       <Confetti colors={[theme.accent, theme.amber, theme.accentSoft, theme.pine]} />
       {header ? <View style={{ marginBottom: space.md }}>{header}</View> : null}
-      <View style={{ gap: space.xs }}>
-        {plan
-          ? plan.map((r) => <HowRow key={r.title} icon={r.icon} title={r.title} />)
-          : PLUS_FEATURES.slice(0, 3).map((f) => <HowRow key={f.title} icon={f.icon} title={t(f.title)} />)}
-      </View>
+      {pitch ? (
+        <Text variant="body" color="inkSoft">
+          {pitch}
+        </Text>
+      ) : (
+        <View style={{ gap: space.xs }}>
+          {plan
+            ? plan.map((r) => <HowRow key={r.title} icon={r.icon} title={r.title} />)
+            : PLUS_FEATURES.slice(0, 3).map((f) => <HowRow key={f.title} icon={f.icon} title={t(f.title)} />)}
+        </View>
+      )}
       {/* The whole of Plus, in one glance: the plan rows above say what THEY built,
           this says what the trial opens on top (founder, 2026-10-02: "why are you
           not talking about all the benefits"). Two columns of ticks, not eight
