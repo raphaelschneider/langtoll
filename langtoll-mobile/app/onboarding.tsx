@@ -507,7 +507,7 @@ export default function Onboarding() {
                   <ShieldPreview
                     word={previewWord.word}
                     translation={previewWord.translation}
-                    width={Math.max(140, Math.min(210, Math.floor((hookSlotH - 8) / PHONE_ASPECT)))}
+                    width={Math.max(140, Math.min(210, Math.floor((hookSlotH - 40) / PHONE_ASPECT)))}
                   />
                 </View>
               </Entrance>
