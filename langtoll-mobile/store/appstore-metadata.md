@@ -41,25 +41,41 @@ Text for anything seasonal ("New: five languages", a launch offer).
 
 ## English (primary — en-US)
 
-**Name** (≤30)
-```
-LangToll: Learn Languages
-```
+Decided 2026-10-04 from Astro data (US storefront, Apple Ads popularity, Astro
+difficulty; Astro's own thresholds: popularity above 25, difficulty below 75).
+LangToll ranked outside the top 1000 for all 36 terms checked, including the ones
+the previous fields formed, so the fields now point at terms a new app can reach:
 
-**Subtitle** (≤30) — decided 2026-09-25: the lock plus the vocabulary keyword;
-"screen time" stays in the keyword field, so neither word repeats.
-```
-App lock paid in vocabulary
-```
+| term | pop | diff | where it comes from |
+|---|---|---|---|
+| focus app | 32 | 59 | name + subtitle; the only Apple Ads keyword that has produced a trial |
+| screen time | 48 | 62 | name |
+| app blocker | 49 | 61 | subtitle |
+| learn spanish / german / french / italian / portuguese | 56 / 9 / 6 / 9 / 7 | 74 / 57 / 64 / 62 / 47 | subtitle "learn" + the language in the field |
+| german / french / italian vocabulary | 21 / 21 / 9 | 15 / 21 / 19 | subtitle "vocabulary" + the language in the field |
+| french learning | 32 | 55 | field |
+| dopamine detox, instagram blocker, tiktok blocker, doomscrolling | 20 / 9 / 5 / 5 | 15 / 39 / 37 / 46 | field |
 
-**Keywords** (≤100) — no word repeats anything above. With the name and the
-subtitle these form the phrases the ads buy: *learn german*, *german vocabulary*,
-*app lock*, *app blocker*, *block apps*, *screen time*, *screen time lock*,
-*focus app*, *vocabulary practice*, *learn words*. Each localization carries its
-storefront's own language too (expats on the German store search *deutsch lernen*).
+Out, with the numbers that killed them: *learn languages* 37/81, *language
+learning* 63/81, *spanish learning app* 59/78, bare *vocabulary* 63/75 (English
+word-builders own it; the pairs above are the foreign-language searches).
+No language is named in a visible field: naming one made learners of the others
+read the app as not for them (hook lesson, 2026-10-01).
+
+**Name** (≤30, 29 used)
 ```
-german,spanish,french,italian,portuguese,screen,time,block,blocker,focus,habit,practice,words,study
+LangToll: Focus & Screen Time
 ```
+**Subtitle** (≤30, 29 used)
+```
+App blocker, learn vocabulary
+```
+**Keywords** (≤100, 95 used) — no word repeats anything above.
+```
+german,french,italian,spanish,portuguese,dopamine,detox,learning,doomscrolling,instagram,tiktok
+```
+Previous fields (launch, 2026-09-25), for the record: `LangToll: Learn Languages` /
+`App lock paid in vocabulary` / `german,spanish,french,italian,portuguese,screen,time,block,blocker,focus,habit,practice,words,study`.
 
 **Promotional text** (≤170, editable any time without review)
 ```
