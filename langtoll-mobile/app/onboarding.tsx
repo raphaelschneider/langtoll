@@ -69,56 +69,7 @@ import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 import { LOCALE_ENDONYMS } from '@/lib/locales';
 
-// The name is asked just before the mirror, the first screen that uses it. It was
-// third, before anything about the learner: in the 30 days to 2026-09-28, 10 of 62
-// installs got no further than the name field, and 8 of those walked back to the
-// start and left (founder call to move it). Keep in sync with ONBOARDING_STEPS in
-// langtoll-web/src/app/(site)/langtoll-adm/funnel.ts (it maps old builds' order too).
-/** Bumped when STEPS is reordered; saved into the draft so a resume knows which order it came from. */
-const STEP_ORDER = 2;
-const STEPS = [
-  'hook',
-  'how',
-  'language',
-  'difficulty',
-  'apps',
-  'name',
-  'mirror',
-  'when',
-  'fare',
-  'goal',
-  'tease',
-  'future',
-  'forms',
-  'printing',
-  'summary',
-  'taste',
-  'paywall',
-  'lock',
-] as const;
-type Step = (typeof STEPS)[number];
-
-// The step list adapts to the chosen language: the speaker-forms question
-// only exists where the language HAS speaker-gendered forms — a German
-// learner once got a Portuguese grammar lesson here.
-function stepsFor(language: Language): readonly Step[] {
-  return SPEAKER_FORM_EXAMPLES[language ?? 'de'] ? STEPS : STEPS.filter((x) => x !== 'forms');
-}
-
-// Where a relaunch picks up. Mid-loader goes to the summary it was loading, and
-// the lock step is only for someone who has paid: a draft that says 'lock'
-// without Plus (a lapse, a refund) goes back to the wall.
-function resumeIndex(draft: { step: string; order?: number }, steps: readonly Step[]): number {
-  let s = draft.step as Step;
-  if (s === 'printing') s = 'summary';
-  // A draft saved under the old order (name third, before 1.0.4) that stopped on
-  // the name field has not answered language, difficulty or apps yet; the moved
-  // 'name' now sits after them, so resume at 'language' rather than skip them.
-  if (s === 'name' && draft.order !== STEP_ORDER) s = 'language';
-  if (s === 'lock' && !isPlus()) s = 'paywall';
-  const i = steps.indexOf(s);
-  return i >= 0 ? i : 0;
-}
+import { STEPS, STEP_ORDER, stepsFor, resumeIndex, type Step } from '@/lib/onboarding-steps';
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
 
@@ -246,7 +197,7 @@ export default function Onboarding() {
       const i = STEPS.indexOf(jump as Step);
       if (i >= 0) return i;
     }
-    return draft ? resumeIndex(draft, stepsFor(draft.language)) : 0;
+    return draft ? resumeIndex(draft, stepsFor(draft.language), isPlus()) : 0;
   });
 
   // answers
