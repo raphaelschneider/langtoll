@@ -339,26 +339,18 @@ export default function Onboarding() {
   // 18 steps barely moved at the start (Villar et al. 2013; conversion pass 2026-09-29).
   const progress = Math.pow(stepIdx / (steps.length - 1), 0.6);
 
-  const askingRef = useRef(false);
   function next() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     // Leaving "when" with a time picked is the moment to ask for notifications: they
     // have just said when they want the nudge, so Apple's prompt reads as the obvious
     // next step. It is also the only way to reach someone who later leaves the
     // paywall (founder call, 2026-09-28). Skip = no time = no prompt.
-    if (step === 'when' && daypart) {
-      if (askingRef.current) return; // a second tap while Apple's dialog is up
-      askingRef.current = true;
-      // Apple's dialog must appear on THIS screen, then move on. Firing it and
-      // advancing at once put the prompt over the fare screen, where it made no
-      // sense (founder, TestFlight 1.0.4, 2026-09-30).
-      void requestNotificationPermission().then((granted) => {
-        track('notify_permission', { where: 'when', granted });
-        askingRef.current = false;
-        setStepIdx((i) => Math.min(i + 1, steps.length - 1));
-      });
-      return;
-    }
+    // No permission prompt here. Notifications are asked ONCE, on the lock step
+    // after the app picker closes, where the screen has just explained what they
+    // are for (the shield's button). Asked on "when", nobody knew why the app
+    // wanted them (founder, 2026-10-04: "I wouldn't allow it at that step").
+    // Cost accepted: a person who leaves on the paywall has not granted them
+    // yet, so the come-back notes only reach those who did later in Settings.
     setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   }
 

@@ -143,11 +143,11 @@ export function LockSetup({ apps, onReady }: { apps: string[]; onReady: (ready: 
           familyActivitySelectionId={selectionId()}
           onDismissRequest={() => {
             setPicking(false);
-            // The shield button needs notifications to do anything at all. Asked here,
-            // after the picker has closed: asked together with it, Apple's alert and the
-            // picker sheet fought for the screen. Usually already answered on the "when"
-            // screen, in which case this returns at once with no dialog.
-            void requestNotificationPermission();
+            // The shield button needs notifications to do anything at all. This is
+            // the ONE place the app asks, after the picker has closed (asked together
+            // with it, Apple's alert and the picker sheet fought for the screen), on
+            // the screen that has just said what they are for.
+            void requestNotificationPermission().then((granted) => track('notify_permission', { where: 'lock', granted }));
             const has = hasSelection();
             const counts = selectionCounts();
             track('lock_apps_picked', {
