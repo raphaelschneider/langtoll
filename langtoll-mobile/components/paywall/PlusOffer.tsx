@@ -288,7 +288,7 @@ export function PlusOffer({
         {BENEFITS.map((k) => (
           <View key={k} style={styles.benefit}>
             <Ionicons name="checkmark-circle" size={14} color={theme.accent} />
-            <Text variant="callout" numberOfLines={1} style={{ flex: 1, fontSize: 13, lineHeight: 18 }}>
+            <Text variant="callout" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={{ flex: 1, fontSize: 13, lineHeight: 18 }}>
               {t(k)}
             </Text>
           </View>
