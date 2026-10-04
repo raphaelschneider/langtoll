@@ -77,9 +77,9 @@ german,french,italian,spanish,portuguese,dopamine,detox,learning,doomscrolling,i
 Previous fields (launch, 2026-09-25), for the record: `LangToll: Learn Languages` /
 `App lock paid in vocabulary` / `german,spanish,french,italian,portuguese,screen,time,block,blocker,focus,habit,practice,words,study`.
 
-**Promotional text** (≤170, editable any time without review)
+**Promotional text** (≤170, editable any time without review) — 1.0.5, 2026-10-04: the hook's line, no fixed fare numbers, no single language named
 ```
-Six languages, one rule: the apps that eat your evenings stay locked until you practice.
+You'll scroll anyway. Make it teach you a language: the apps that eat your evenings stay locked until you've learned a few words. Six languages, 7 days free.
 ```
 
 **Description** (≤4000) — sells the transformation, not the feature list
@@ -153,7 +153,7 @@ one, so the subtitle must not imply "learn German" to a German reader.
 - Name: `LangToll: Sprachen lernen` (25)
 - Subtitle: `App-Sperre gegen Vokabeln` (25)
 - Keywords: `spanisch,franzoesisch,italienisch,englisch,portugiesisch,deutsch,bildschirmzeit,fokus,wörter`
-- Promotional text: `Sechs Sprachen, eine Regel: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du übst.` (93)
+- Promotional text: `Du scrollst sowieso. Dann lern dabei eine Sprache: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du ein paar Wörter kannst. Sechs Sprachen, 7 Tage gratis.` (166)
 
 Astro, 2026-10-04, for the record only: LangToll ranks here (sprachen lernen #139 at
 65/70, italienisch lernen #186, portugiesisch lernen #117, italienisch vokabeln #90).
