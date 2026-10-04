@@ -494,9 +494,6 @@ export default function Onboarding() {
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.md }}>
                   {t('ob.hookSub')}
                 </Text>
-                <Text variant="callout" color="inkFaint" style={{ marginTop: space.xs, fontSize: 13 }}>
-                  {t('ob.hookTrust', { days: TRIAL_DAYS })}
-                </Text>
                 {/* The mechanic, shown: a phone with the shield up and a word on the
                     island. Replaces Tolly's portrait, which said nothing about what
                     the app does (founder, 2026-10-04). */}

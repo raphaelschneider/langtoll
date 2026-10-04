@@ -95,7 +95,6 @@ export const en = {
   // onboarding
   'ob.hookHeadline': 'You\'ll scroll anyway. Make it teach you a language.',
   'ob.hookSub': 'Lock the apps that eat your evenings. A few quick words open them again.',
-  'ob.hookTrust': '{days} days free',
   'ob.hookCta': 'Show me how',
   'ob.howTitle': 'The deal is simple.',
   'ob.how1': 'Your feeds get a lock',

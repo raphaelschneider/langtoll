@@ -87,7 +87,6 @@ export const fr: Partial<Record<StringKey, string>> = {
   'session.back': 'Retour à mon téléphone',
   'ob.hookHeadline': 'Tu vas scroller de toute façon. Autant apprendre une langue au passage.',
   'ob.hookSub': 'Verrouille les apps qui dévorent tes soirées. Quelques mots vite faits les rouvrent.',
-  'ob.hookTrust': '{days} jours gratuits',
   'ob.hookCta': 'Montre-moi comment',
   'ob.howTitle': 'Le deal est simple.',
   'ob.how1': 'Tes feeds passent sous clé',
