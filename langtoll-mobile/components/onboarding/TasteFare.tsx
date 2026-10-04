@@ -19,6 +19,7 @@ import { PassIssue } from '@/components/pass/PassIssue';
 import { useTheme, space, radius } from '@/design/theme';
 import { useT } from '@/lib/i18n';
 import { track } from '@/lib/telemetry';
+import { speakTaste, stopSpeaking } from '@/lib/tts';
 import { buildSession, type Exercise } from '@/lib/trainer/engine';
 import type { LanguagePack } from '@/content/german/types';
 
@@ -78,7 +79,17 @@ export function TasteFare({
   const shownAt = useRef(Date.now());
   useEffect(() => {
     shownAt.current = Date.now();
+    // Hear the word as it appears when it is in the target language; the
+    // English-prompt kind is spoken when the answer lands (below).
+    if (ex?.audio && ex.type !== 'mc_en_de') speakTaste(ex.audio, pack);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx]);
+  useEffect(() => {
+    if (feedback && ex?.audio && ex.type === 'mc_en_de') speakTaste(ex.audio, pack);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feedback]);
+  // Leaving the step silences it, whatever was mid-word.
+  useEffect(() => () => stopSpeaking(), []);
 
   useEffect(() => {
     if (!feedback) return;

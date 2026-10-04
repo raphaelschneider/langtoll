@@ -17,6 +17,7 @@ import * as Speech from 'expo-speech';
 import { setAudioModeAsync, setIsAudioActiveAsync } from 'expo-audio';
 import { getState, updateProfile } from '@/lib/store';
 import { activePack } from '@/lib/pack';
+import type { Language } from '@/content/german/types';
 import { canUseAudio } from '@/lib/plans';
 import { playPrerendered, prerenderedPlaying, stopPrerendered } from '@/lib/audio-pack';
 import {
@@ -252,6 +253,24 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
   // able to bypass the entitlement with it.
   if (!canUseAudio()) return;
   if (!opts?.force && !voiceEnabled()) return;
+  const pack = activePack();
+  speakIn(text, pack.speechLocale, pack.language, opts);
+}
+
+/**
+ * The onboarding's first fare, spoken. Two things make it its own entry point:
+ * the profile is not written yet, so the language comes from the onboarding's
+ * pick rather than activePack(); and there is no plan gate, because the voice
+ * is exactly what the trial two screens later sells, and a silent sampler sold
+ * nothing (founder, 2026-10-04: "why are we not having any audio in the
+ * onboarding exercise?"). The mute toggle is still respected.
+ */
+export function speakTaste(text: string, pack: { speechLocale: string; language: Language }): void {
+  if (!voiceEnabled()) return;
+  speakIn(text, pack.speechLocale, pack.language);
+}
+
+function speakIn(text: string, locale: string, language: Language, opts?: { force?: boolean; rate?: number }): void {
   // New speech preempts old IMMEDIATELY and across engines: without this, a
   // long pre-rendered sentence kept playing under the next exercise's TTS —
   // playPrerendered only ever stopped the previous FILE, and the TTS path
@@ -273,6 +292,7 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
           // Slow/Fast scale around it.
           rate: ((getState().voiceRate ?? SPEECH_RATE) / SPEECH_RATE) * FILE_RATE_NORMAL,
           stillCurrent: () => speechEpoch === epoch,
+          language,
         })
       )
         return;
@@ -280,13 +300,12 @@ export function speakTarget(text: string, opts?: { force?: boolean; rate?: numbe
       // disk/playback hiccup — the voice below covers it
     }
     if (speechEpoch !== epoch) return; // stopped or superseded while checking
-    speakViaTts(text, opts);
+    speakViaTts(text, locale, opts);
   })();
 }
 
-function speakViaTts(text: string, opts?: { force?: boolean; rate?: number }): void {
+function speakViaTts(text: string, locale: string, opts?: { force?: boolean; rate?: number }): void {
   try {
-    const locale = activePack().speechLocale;
     const { identifier, missing } = pickVoice(locale);
     // Wrong-accent playback teaches the wrong thing; silence is the safer bug.
     if (missing) return;

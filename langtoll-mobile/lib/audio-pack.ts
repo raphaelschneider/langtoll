@@ -24,6 +24,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { activePack } from '@/lib/pack';
+import type { Language } from '@/content/german/types';
 
 const BASE_URL = process.env.EXPO_PUBLIC_AUDIO_URL ?? 'https://langtoll.app/audio-packs';
 // JIT endpoint for AI-generated pack items — texts that didn't exist when the
@@ -122,9 +123,9 @@ let downloading = 0;
  */
 export async function playPrerendered(
   text: string,
-  opts?: { rate?: number; stillCurrent?: () => boolean }
+  opts?: { rate?: number; stillCurrent?: () => boolean; language?: Language }
 ): Promise<boolean> {
-  const lang = activePack().language;
+  const lang = opts?.language ?? activePack().language;
   const path = fileFor(lang, text);
 
   let exists = cachedInfo.get(path);
