@@ -44,11 +44,11 @@ import { audioNetworkFailed, ensureAudio } from '@/lib/audio-pack';
 import { maybeAskForReview } from '@/lib/review';
 import { clearDeliveredNotifications, scheduleWeeklyRecap } from '@/lib/notify';
 import { distinctWords } from '@/lib/recap';
+import { useT, type StringKey } from '@/lib/i18n';
 
 // Same signal as the rest of the dev tooling; a production build cannot set it.
 const DEV_TOOLS = process.env.EXPO_PUBLIC_DEV_TOOLS === '1';
 const COLLECT_BONUS_MIN = 5; // extra phone-time minutes earned per word mastered in a session
-import { useT, type StringKey } from '@/lib/i18n';
 
 type Phase = 'answer' | 'feedback' | 'done';
 const noop = () => {};
@@ -467,7 +467,11 @@ export default function Session() {
               two placed words. The slot is resolved by the line itself against
               a fresh window measurement at release. */}
           <OrderBank
-            onHold={setChipHeld}
+            onHold={(held) => {
+              setChipHeld(held);
+              if (!held) orderLineRef.current?.clearHover();
+            }}
+            onMove={(_i, pageX, pageY, width) => orderLineRef.current?.hoverAt(pageX, pageY, width)}
             words={ex.options!}
             used={orderPicked}
             interactive={phase === 'answer'}
@@ -836,14 +840,10 @@ export default function Session() {
                   <OrderBuilder words={ex.options!} interactive={false} onRemoveAt={noop} onReorder={noop} onHold={noop} />
                 </View>
                 <View style={styles.orderLive}>
-                {orderPicked.length === 0 ? (
-                  <Text variant="body" color="inkFaint">
-                    …
-                  </Text>
-                ) : (
-                  // Placed words: tap sends a word back, DRAG reorders it in
-                  // place — changing your mind about the order no longer means
-                  // dismantling the sentence.
+                {/* Always the line, even empty (it draws its own "…"): a bank word
+                    dragged over an empty line must find it to open a gap. Placed
+                    words: tap sends a word back, DRAG reorders it in place. */}
+                {(
                   <OrderBuilder
                     ref={orderLineRef}
                     onHold={setChipHeld}

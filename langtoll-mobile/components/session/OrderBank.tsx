@@ -11,7 +11,7 @@
 // on that path clips, and the bank is drawn after the scroll view, so the
 // chip floats over it; the drop itself is resolved by the session against a
 // fresh window measurement of the line.
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, StyleSheet, Animated as RNAnimated } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useTheme, space, radius } from '@/design/theme';
@@ -26,6 +26,7 @@ function BankChip({
   onTap,
   onDrop,
   onHold,
+  onMove,
 }: {
   label: string;
   index: number;
@@ -34,18 +35,21 @@ function BankChip({
   onTap: (index: number) => void;
   onDrop: (index: number, pageX: number, pageY: number) => void;
   onHold?: (held: boolean) => void;
+  onMove?: (index: number, pageX: number, pageY: number, width: number) => void;
 }) {
   const theme = useTheme();
+  const width = useRef(60);
   const { panHandlers, pan, dragging } = useChipDrag({
     index,
     interactive: interactive && !used,
     onTap,
     onDrop,
     onHold,
+    onMove: (i, x, y) => onMove?.(i, x, y, width.current),
   });
 
   return (
-    <View style={dragging ? styles.lifted : undefined}>
+    <View style={dragging ? styles.lifted : undefined} onLayout={(e) => (width.current = e.nativeEvent.layout.width)}>
       <RNAnimated.View
         {...panHandlers}
         accessible
@@ -54,10 +58,17 @@ function BankChip({
         accessibilityState={{ disabled: !interactive || used }}
         style={[
           styles.chip,
+          // A word that has gone up to the line leaves its SLOT behind: an empty
+          // tile of the same size, so the bank never reflows and the word has a
+          // place to come back to (Duolingo's bank; founder, 2026-10-04). The
+          // label stays in the layout, invisible, to hold the width.
+          used
+            ? { backgroundColor: withAlpha(theme.ink, 0.06), borderColor: 'transparent' }
+            : {
+                backgroundColor: dragging ? withAlpha(theme.accent, 0.2) : theme.surface,
+                borderColor: dragging ? withAlpha(theme.accent, 0.9) : theme.line,
+              },
           {
-            backgroundColor: dragging ? withAlpha(theme.accent, 0.2) : theme.surface,
-            borderColor: dragging ? withAlpha(theme.accent, 0.9) : theme.line,
-            opacity: used ? 0.25 : 1,
             transform: [
               { translateX: pan.x },
               { translateY: pan.y },
@@ -66,7 +77,9 @@ function BankChip({
           },
         ]}
       >
-        <Text variant="bodyMedium">{label}</Text>
+        <Text variant="bodyMedium" style={used ? { opacity: 0 } : undefined}>
+          {label}
+        </Text>
       </RNAnimated.View>
     </View>
   );
@@ -79,9 +92,10 @@ export function OrderBank({
   onTap,
   onDrop,
   onHold,
+  onMove,
 }: {
   words: string[];
-  /** Indices already placed in the sentence — shown dimmed, not draggable. */
+  /** Indices already placed in the sentence — shown as empty slots, not draggable. */
   used: number[];
   interactive: boolean;
   onTap: (index: number) => void;
@@ -89,6 +103,8 @@ export function OrderBank({
   onDrop: (index: number, pageX: number, pageY: number) => void;
   /** A chip is under the finger — see useChipDrag. */
   onHold?: (held: boolean) => void;
+  /** The finger while dragging, with the chip's width — the line opens a gap there. */
+  onMove?: (index: number, pageX: number, pageY: number, width: number) => void;
 }) {
   return (
     <View style={styles.wrap}>
@@ -102,6 +118,7 @@ export function OrderBank({
           onTap={onTap}
           onDrop={onDrop}
           onHold={onHold}
+          onMove={onMove}
         />
       ))}
     </View>

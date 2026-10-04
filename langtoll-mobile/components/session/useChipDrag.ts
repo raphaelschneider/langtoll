@@ -16,12 +16,20 @@ export function useChipDrag({
   onTap,
   onDrop,
   onHold,
+  onMove,
 }: {
   index: number;
   interactive: boolean;
   onTap: (index: number) => void;
   /** pageX/pageY of the finger at release — the parent resolves the target. */
   onDrop: (index: number, pageX: number, pageY: number) => void;
+  /**
+   * pageX/pageY of the finger while it drags — the line opens a gap where the
+   * word would land, Duolingo-style, instead of only reflowing after the drop
+   * (founder, 2026-10-04: "the pills should make space for what is being
+   * dragged in and out").
+   */
+  onMove?: (index: number, pageX: number, pageY: number) => void;
   /**
    * True from touch-down to release. The session turns its ScrollView's
    * scrolling off for that span: refusing termination only fends off other JS
@@ -34,8 +42,8 @@ export function useChipDrag({
   const [dragging, setDragging] = useState(false);
 
   // Refs so the once-created responder never closes over stale props.
-  const live = useRef({ index, interactive, onTap, onDrop, onHold, moved: false });
-  live.current = { ...live.current, index, interactive, onTap, onDrop, onHold };
+  const live = useRef({ index, interactive, onTap, onDrop, onHold, onMove, moved: false });
+  live.current = { ...live.current, index, interactive, onTap, onDrop, onHold, onMove };
 
   const responder = useRef(
     PanResponder.create({
@@ -56,6 +64,7 @@ export function useChipDrag({
             Haptics.selectionAsync();
           }
           pan.setValue({ x: g.dx, y: g.dy });
+          live.current.onMove?.(live.current.index, g.moveX, g.moveY);
         }
       },
       onPanResponderRelease: (_e, g) => {

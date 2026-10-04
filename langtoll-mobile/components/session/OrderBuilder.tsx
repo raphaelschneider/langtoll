@@ -13,9 +13,9 @@
 // to the touched child), and never trust a cached page origin (stale after
 // scrolls) — every drop is resolved against a measureInWindow taken at
 // RELEASE time.
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { View, StyleSheet, Animated as RNAnimated } from 'react-native';
-import Animated, { LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Text } from '@/components/ui/Text';
 import { useTheme, space, radius } from '@/design/theme';
@@ -41,6 +41,7 @@ function DraggableChip({
   onTap,
   onDrop,
   onHold,
+  onMove,
   registerRect,
 }: {
   label: string;
@@ -49,14 +50,17 @@ function DraggableChip({
   onTap: (index: number) => void;
   onDrop: (index: number, pageX: number, pageY: number) => void;
   onHold?: (held: boolean) => void;
+  onMove?: (index: number, pageX: number, pageY: number) => void;
   registerRect: (index: number, rect: Rect) => void;
 }) {
   const theme = useTheme();
-  const { panHandlers, pan, dragging } = useChipDrag({ index, interactive, onTap, onDrop, onHold });
+  const { panHandlers, pan, dragging } = useChipDrag({ index, interactive, onTap, onDrop, onHold, onMove });
 
   return (
     <Animated.View
       layout={LinearTransition.duration(160)}
+      entering={FadeIn.duration(140)}
+      exiting={FadeOut.duration(90)}
       onLayout={(e) =>
         registerRect(index, {
           x: e.nativeEvent.layout.x,
@@ -97,6 +101,21 @@ export interface OrderBuilderHandle {
    * fresh at call time.
    */
   slotAt: (pageX: number, pageY: number, cb: (slot: number | null) => void) => void;
+  /**
+   * A word from OUTSIDE (the bank) is being dragged: open a gap of `width` at
+   * the slot under the finger, or close it when the finger is off the line.
+   */
+  hoverAt: (pageX: number, pageY: number, width: number) => void;
+  /** The outside drag ended (dropped or cancelled): close any gap. */
+  clearHover: () => void;
+}
+
+/** The gap the line holds open while a word hovers over it. */
+interface Hover {
+  slot: number;
+  width: number;
+  /** Index of the placed word being dragged, when the drag started in the line. */
+  from: number | null;
 }
 
 export const OrderBuilder = forwardRef<
@@ -110,12 +129,33 @@ export const OrderBuilder = forwardRef<
     onHold?: (held: boolean) => void;
   }
 >(function OrderBuilder({ words, interactive, onRemoveAt, onReorder, onHold }, ref) {
+  const theme = useTheme();
   const wrapRef = useRef<View>(null);
   const rects = useRef(new Map<number, Rect>());
   const size = useRef({ w: 0, h: 0 });
+  const [hover, setHover] = useState<Hover | null>(null);
+  const hoverRef = useRef<Hover | null>(null);
+  function setGap(next: Hover | null) {
+    const cur = hoverRef.current;
+    if (cur?.slot === next?.slot && cur?.width === next?.width && cur?.from === next?.from) return;
+    hoverRef.current = next;
+    setHover(next);
+  }
 
   function registerRect(index: number, rect: Rect) {
     rects.current.set(index, rect);
+  }
+
+  /** Insertion index for a point in the line's own coordinates, or null when off the line. */
+  function slotFor(x: number, y: number, ww: number, wh: number): number | null {
+    const inside =
+      x >= -INSERT_SLACK_PT && x <= (ww || size.current.w) + INSERT_SLACK_PT &&
+      y >= -INSERT_SLACK_PT && y <= (wh || size.current.h) + INSERT_SLACK_PT;
+    if (!inside) return null;
+    const n = nearest(x, y);
+    if (!n) return words.length;
+    // Left half of the nearest word → before it; right half → after it.
+    return x < n.rect.x + n.rect.w / 2 ? n.index : n.index + 1;
   }
 
   /** Nearest placed word to a point in the line's own coordinates. */
@@ -142,22 +182,33 @@ export const OrderBuilder = forwardRef<
     slotAt(pageX, pageY, cb) {
       const node = wrapRef.current;
       if (!node) return cb(null);
+      node.measureInWindow((wx, wy, ww, wh) => cb(slotFor(pageX - wx, pageY - wy, ww, wh)));
+    },
+    hoverAt(pageX, pageY, width) {
+      const node = wrapRef.current;
+      if (!node) return;
       node.measureInWindow((wx, wy, ww, wh) => {
-        const x = pageX - wx;
-        const y = pageY - wy;
-        const inside =
-          x >= -INSERT_SLACK_PT && x <= (ww || size.current.w) + INSERT_SLACK_PT &&
-          y >= -INSERT_SLACK_PT && y <= (wh || size.current.h) + INSERT_SLACK_PT;
-        if (!inside) return cb(null);
-        const n = nearest(x, y);
-        if (!n) return cb(words.length);
-        // Left half of the nearest word → before it; right half → after it.
-        cb(x < n.rect.x + n.rect.w / 2 ? n.index : n.index + 1);
+        const slot = slotFor(pageX - wx, pageY - wy, ww, wh);
+        setGap(slot === null ? null : { slot, width, from: null });
       });
+    },
+    clearHover() {
+      setGap(null);
     },
   }));
 
+  /** A placed word drags over its own line: show where it would go. */
+  function handleMove(from: number, pageX: number, pageY: number) {
+    wrapRef.current?.measureInWindow((wx, wy, ww, wh) => {
+      const slot = slotFor(pageX - wx, pageY - wy, ww, wh);
+      // Beside itself is no move: no gap.
+      if (slot === null || slot === from || slot === from + 1) return setGap(null);
+      setGap({ slot, width: rects.current.get(from)?.w ?? 60, from });
+    });
+  }
+
   function handleDrop(from: number, pageX: number, pageY: number) {
+    setGap(null);
     // Fresh origin at release time — a cached one goes stale under scrolling.
     wrapRef.current?.measureInWindow((wx, wy, _ww, wh) => {
       const x = pageX - wx;
@@ -184,21 +235,45 @@ export const OrderBuilder = forwardRef<
         size.current = { w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height };
       }}
     >
+      {words.length === 0 && !hover ? (
+        <Text variant="body" color="inkFaint">
+          …
+        </Text>
+      ) : null}
       {words.map((word, i) => (
-        <DraggableChip
-          key={`${word}-${i}`}
-          label={word}
-          index={i}
-          interactive={interactive}
-          onTap={onRemoveAt}
-          onDrop={handleDrop}
-          onHold={onHold}
-          registerRect={registerRect}
-        />
+        <React.Fragment key={`${word}-${i}`}>
+          {hover?.slot === i ? <Gap width={hover.width} color={withAlpha(theme.accent, 0.18)} /> : null}
+          <DraggableChip
+            label={word}
+            index={i}
+            interactive={interactive}
+            onTap={onRemoveAt}
+            onDrop={handleDrop}
+            onHold={(held) => {
+              if (!held) setGap(null);
+              onHold?.(held);
+            }}
+            onMove={handleMove}
+            registerRect={registerRect}
+          />
+        </React.Fragment>
       ))}
+      {hover && hover.slot >= words.length ? <Gap width={hover.width} color={withAlpha(theme.accent, 0.18)} /> : null}
     </View>
   );
 });
+
+/** The space the line holds open for a word on its way in: the word's own width, faintly marked. */
+function Gap({ width, color }: { width: number; color: string }) {
+  return (
+    <Animated.View
+      layout={LinearTransition.duration(160)}
+      entering={FadeIn.duration(100)}
+      exiting={FadeOut.duration(80)}
+      style={[styles.gap, { width, backgroundColor: color }]}
+    />
+  );
+}
 
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, minHeight: 36 },
@@ -208,6 +283,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
+  gap: { height: 34, borderRadius: radius.pill },
   // The dragged chip must float over its siblings, not slide beneath them.
   lifted: { zIndex: 10, elevation: 10 },
 });

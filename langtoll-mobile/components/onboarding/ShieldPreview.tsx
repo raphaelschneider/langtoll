@@ -8,7 +8,7 @@
 // reads the app as "only for TikTok users".
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Canvas, RoundedRect, LinearGradient, Shadow, vec, rrect, rect, Group } from '@shopify/react-native-skia';
+import { Canvas, RoundedRect, LinearGradient, Shadow, vec, rrect, rect, Group, Mask, Rect } from '@shopify/react-native-skia';
 import { Text } from '@/components/ui/Text';
 import { Tolly } from '@/components/ui/Tolly';
 import { radius } from '@/design/theme';
@@ -42,23 +42,36 @@ export function ShieldPreview({ word, translation, width = 196 }: { word: string
   return (
     <View style={{ width: canvasW, height: canvasH, alignSelf: 'center' }}>
       <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-        {/* body: titanium gradient, soft drop shadow, a hairline sheen on the edge */}
-        <Group>
-          <RoundedRect x={M} y={M} width={bodyW} height={bodyH} r={bodyR}>
-            <LinearGradient start={vec(M, M)} end={vec(M + bodyW, M + bodyH)} colors={['#4A4F56', '#23272C', '#15181C', '#2C3137']} />
-            <Shadow dx={0} dy={10} blur={18} color="rgba(0,0,0,0.55)" />
-          </RoundedRect>
-          <RoundedRect x={M + 0.75} y={M + 0.75} width={bodyW - 1.5} height={bodyH - 1.5} r={bodyR - 0.75} style="stroke" strokeWidth={1}>
-            <LinearGradient start={vec(M, M)} end={vec(M, M + bodyH)} colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.25)']} />
-          </RoundedRect>
-          {/* side buttons: action + volume on the left, power on the right */}
-          <RoundedRect x={M - btnW} y={M + bodyH * 0.16} width={btnW} height={bodyH * 0.035} r={1} color="#2A2E33" />
-          <RoundedRect x={M - btnW} y={M + bodyH * 0.22} width={btnW} height={bodyH * 0.07} r={1} color="#2A2E33" />
-          <RoundedRect x={M - btnW} y={M + bodyH * 0.305} width={btnW} height={bodyH * 0.07} r={1} color="#2A2E33" />
-          <RoundedRect x={M + bodyW} y={M + bodyH * 0.24} width={btnW} height={bodyH * 0.11} r={1} color="#2A2E33" />
-          {/* screen: pure black under the content, its own rounded corners */}
-          <RoundedRect rect={rrect(rect(M + bezel, M + bezel, bodyW - bezel * 2, bodyH - bezel * 2), screenR, screenR)} color={SHIELD_BG} />
-        </Group>
+        {/* The body in the page's own night palette, lit by a teal edge, and
+            faded out towards the bottom so the phone rises out of the aurora
+            instead of sitting on it (founder, 2026-10-04: a grey titanium frame
+            "not blending with the background at all"). */}
+        <Mask
+          mode="alpha"
+          mask={
+            <Rect x={0} y={0} width={canvasW} height={canvasH}>
+              <LinearGradient start={vec(0, 0)} end={vec(0, canvasH)} colors={['white', 'white', 'rgba(255,255,255,0)']} positions={[0, 0.58, 0.98]} />
+            </Rect>
+          }
+        >
+          <Group>
+            <RoundedRect x={M} y={M} width={bodyW} height={bodyH} r={bodyR}>
+              <LinearGradient start={vec(M, M)} end={vec(M + bodyW, M + bodyH)} colors={['#1C242B', '#0F151A', '#0B1014']} />
+              <Shadow dx={0} dy={12} blur={22} color="rgba(0,0,0,0.5)" />
+              <Shadow dx={0} dy={0} blur={16} color="rgba(92,189,205,0.16)" />
+            </RoundedRect>
+            <RoundedRect x={M + 0.75} y={M + 0.75} width={bodyW - 1.5} height={bodyH - 1.5} r={bodyR - 0.75} style="stroke" strokeWidth={1}>
+              <LinearGradient start={vec(M, M)} end={vec(M, M + bodyH)} colors={['rgba(92,189,205,0.55)', 'rgba(92,189,205,0.12)', 'rgba(92,189,205,0.05)']} />
+            </RoundedRect>
+            {/* side buttons: action + volume on the left, power on the right */}
+            <RoundedRect x={M - btnW} y={M + bodyH * 0.16} width={btnW} height={bodyH * 0.035} r={1} color="#151B20" />
+            <RoundedRect x={M - btnW} y={M + bodyH * 0.22} width={btnW} height={bodyH * 0.07} r={1} color="#151B20" />
+            <RoundedRect x={M - btnW} y={M + bodyH * 0.305} width={btnW} height={bodyH * 0.07} r={1} color="#151B20" />
+            <RoundedRect x={M + bodyW} y={M + bodyH * 0.24} width={btnW} height={bodyH * 0.11} r={1} color="#151B20" />
+            {/* screen, its own rounded corners */}
+            <RoundedRect rect={rrect(rect(M + bezel, M + bezel, bodyW - bezel * 2, bodyH - bezel * 2), screenR, screenR)} color={SHIELD_BG} />
+          </Group>
+        </Mask>
       </Canvas>
     <View
       accessible
