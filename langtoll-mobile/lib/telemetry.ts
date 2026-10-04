@@ -69,6 +69,30 @@ export type TelemetryEvent =
   | 'subscribed'
   | 'unsubscribed';
 
+// Events go out one at a time, in the order they were tracked. As parallel
+// fire-and-forget requests, two events from the same second reached the server
+// swapped often enough that the admin timeline showed a back-arrow on a plain
+// forward tap (2026-10-04). A request that hangs is cut after SEND_TIMEOUT_MS so
+// it can never hold the rest of the queue.
+const SEND_TIMEOUT_MS = 8000;
+let queue: Promise<void> = Promise.resolve();
+
+function send(body: string): Promise<void> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), SEND_TIMEOUT_MS);
+  return fetch(`${API_BASE}/api/telemetry`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+    signal: ctl.signal,
+  })
+    .then(
+      () => undefined,
+      () => undefined,
+    )
+    .finally(() => clearTimeout(timer));
+}
+
 export function track(event: TelemetryEvent, data?: Record<string, unknown>): void {
   if (!API_BASE || !REPORTING_ENABLED) return;
   try {
@@ -76,18 +100,15 @@ export function track(event: TelemetryEvent, data?: Record<string, unknown>): vo
     // Pre-init window (initDeviceId not resolved yet): drop the event rather than
     // attribute it to a shared 'unknown' identity.
     if (deviceId === 'unknown') return;
-    fetch(`${API_BASE}/api/telemetry`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        deviceId,
-        event,
-        data,
-        platform: Platform.OS,
-        appVersion: Constants.expoConfig?.version ?? null,
-      }),
-    }).catch(() => {});
+    const body = JSON.stringify({
+      deviceId,
+      event,
+      data,
+      platform: Platform.OS,
+      appVersion: Constants.expoConfig?.version ?? null,
+    });
+    queue = queue.then(() => send(body)).catch(() => undefined);
   } catch {
-    // DB not open yet or other non-critical failure — drop the event.
+    // Serialisation or other non-critical failure — drop the event.
   }
 }
