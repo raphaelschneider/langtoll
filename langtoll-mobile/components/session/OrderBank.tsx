@@ -13,6 +13,7 @@
 // fresh window measurement of the line.
 import React, { useRef } from 'react';
 import { View, StyleSheet, Animated as RNAnimated } from 'react-native';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Text } from '@/components/ui/Text';
 import { useTheme, space, radius } from '@/design/theme';
 import { withAlpha } from '@/lib/color';
@@ -49,7 +50,15 @@ function BankChip({
   });
 
   return (
-    <View style={dragging ? styles.lifted : undefined} onLayout={(e) => (width.current = e.nativeEvent.layout.width)}>
+    <Animated.View
+      layout={LinearTransition.duration(160)}
+      entering={FadeIn.duration(140)}
+      exiting={FadeOut.duration(90)}
+      // The lift must be on the OUTER element, or the dragged chip slides under
+      // its sibling wrappers.
+      style={dragging ? styles.lifted : undefined}
+      onLayout={(e) => (width.current = e.nativeEvent.layout.width)}
+    >
       <RNAnimated.View
         {...panHandlers}
         accessible
@@ -58,17 +67,9 @@ function BankChip({
         accessibilityState={{ disabled: !interactive || used }}
         style={[
           styles.chip,
-          // A word that has gone up to the line leaves its SLOT behind: an empty
-          // tile of the same size, so the bank never reflows and the word has a
-          // place to come back to (Duolingo's bank; founder, 2026-10-04). The
-          // label stays in the layout, invisible, to hold the width.
-          used
-            ? { backgroundColor: withAlpha(theme.ink, 0.06), borderColor: 'transparent' }
-            : {
-                backgroundColor: dragging ? withAlpha(theme.accent, 0.2) : theme.surface,
-                borderColor: dragging ? withAlpha(theme.accent, 0.9) : theme.line,
-              },
           {
+            backgroundColor: dragging ? withAlpha(theme.accent, 0.2) : theme.surface,
+            borderColor: dragging ? withAlpha(theme.accent, 0.9) : theme.line,
             transform: [
               { translateX: pan.x },
               { translateY: pan.y },
@@ -77,11 +78,9 @@ function BankChip({
           },
         ]}
       >
-        <Text variant="bodyMedium" style={used ? { opacity: 0 } : undefined}>
-          {label}
-        </Text>
+        <Text variant="bodyMedium">{label}</Text>
       </RNAnimated.View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -95,7 +94,7 @@ export function OrderBank({
   onMove,
 }: {
   words: string[];
-  /** Indices already placed in the sentence — shown as empty slots, not draggable. */
+  /** Indices already placed in the sentence — not in the bank until they come back. */
   used: number[];
   interactive: boolean;
   onTap: (index: number) => void;
@@ -106,21 +105,26 @@ export function OrderBank({
   /** The finger while dragging, with the chip's width — the line opens a gap there. */
   onMove?: (index: number, pageX: number, pageY: number, width: number) => void;
 }) {
+  // A word that has gone up to the line is GONE from the bank, and the others
+  // slide in to close the gap; it fades back in where it was when it returns
+  // (founder, 2026-10-04: "make the pills disappear, not leave a blank").
   return (
     <View style={styles.wrap}>
-      {words.map((word, i) => (
-        <BankChip
-          key={`${word}-${i}`}
-          label={word}
-          index={i}
-          interactive={interactive}
-          used={used.includes(i)}
-          onTap={onTap}
-          onDrop={onDrop}
-          onHold={onHold}
-          onMove={onMove}
-        />
-      ))}
+      {words.map((word, i) =>
+        used.includes(i) ? null : (
+          <BankChip
+            key={`${word}-${i}`}
+            label={word}
+            index={i}
+            interactive={interactive}
+            used={false}
+            onTap={onTap}
+            onDrop={onDrop}
+            onHold={onHold}
+            onMove={onMove}
+          />
+        ),
+      )}
     </View>
   );
 }
