@@ -151,7 +151,10 @@ export function TasteFare({
         ) : (
           <>
             <Text variant="callout" color="inkSoft" style={{ marginTop: space.md }}>
-              {t('ob.tasteDoneNote')}
+              {/* Most answers wrong at a level they chose themselves: say the level
+                  is adjustable before the wall asks for money, or the wall reads as
+                  "pay for things you can't do" (founder, 2026-10-04). */}
+              {correct * 2 < exercises.length ? t('ob.tasteTooHard') : t('ob.tasteDoneNote')}
             </Text>
             <View style={styles.slot}>
               <Tolly mood="celebrate" size={184} />

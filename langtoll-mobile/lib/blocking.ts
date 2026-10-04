@@ -593,6 +593,18 @@ async function stageShieldIcon(m: any): Promise<boolean> {
   }
 }
 
+/**
+ * What the shield says. Language-neutral: this text is shown to every learner,
+ * and the shield is configured once at launch rather than per-pack, so naming a
+ * language here showed "Erst Deutsch" to someone studying Spanish. The hook
+ * screen's preview (components/onboarding/ShieldPreview) draws the same words.
+ */
+export const SHIELD_COPY = {
+  title: 'Locked until you practise.',
+  subtitle: 'Finish a quick session in LangToll to earn your pass.',
+  button: 'Practice now',
+} as const;
+
 /** Brand the shield — LangToll, on theme. Native only; call once on launch. */
 export async function configureShieldAppearance(): Promise<void> {
   const m = native();
@@ -601,12 +613,9 @@ export async function configureShieldAppearance(): Promise<void> {
     const hasTolly = await stageShieldIcon(m);
     m.updateShield(
       {
-        // Language-neutral: this text is shown to every learner, and the shield is
-        // configured once at launch rather than per-pack, so naming a language
-        // here showed "Erst Deutsch" to someone studying Spanish.
-        title: 'Locked until you practise.',
-        subtitle: 'Finish a quick session in LangToll to earn your pass.',
-        primaryButtonLabel: 'Practice now',
+        title: SHIELD_COPY.title,
+        subtitle: SHIELD_COPY.subtitle,
+        primaryButtonLabel: SHIELD_COPY.button,
         // Tolly, stern, collecting the fare — the operator IS the shield. SF-Symbol
         // fallback only if staging the image into the app group failed.
         ...(hasTolly

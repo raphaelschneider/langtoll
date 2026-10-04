@@ -93,10 +93,10 @@ export const en = {
   'session.back': 'Back to my phone',
 
   // onboarding
-  'ob.hookTitle': 'Turn your doomscroll into {lang}.',
-  'ob.hookFluency': 'Turn your doomscroll into fluency.',
-  'ob.hookSub': "Streaks didn't stick. Now endless scrolls pay a fare: a few quick exercises, and your apps open again.",
-  'ob.hookCta': "I'm in",
+  'ob.hookHeadline': 'You\'ll scroll today anyway. Make it teach you a language.',
+  'ob.hookSub': 'Lock the apps that eat your evenings. Five quick words open them again.',
+  'ob.hookTrust': 'Built on Apple Screen Time · {days} days free',
+  'ob.hookCta': 'Show me how',
   'ob.howTitle': 'The deal is simple.',
   'ob.how1': 'Your feeds get a lock',
   'ob.how1d': 'Instagram, TikTok — whatever eats your nights.',
@@ -131,6 +131,7 @@ export const en = {
   'ob.tasteDoneSub': '{n} of {of} right, in {secs} seconds. No games, no streak to babysit, no fluff.',
   'ob.tasteDoneSubTime': '{secs} seconds. No games, no streak to babysit, no fluff.',
   'ob.tasteDoneNote': 'A few real words, every time you reach for your phone. That is the whole road to fluent, and you just took the first step.',
+  'ob.tasteTooHard': 'Tougher than you expected? That\'s the level, not you. You can change it any time in Settings, and the next fare will feel right.',
   'ob.tasteCta': 'Make it stick',
   'ob.tasteCtaWait': 'Pay the fare first',
   'ob.fareTitle': 'Set your fare.',

@@ -40,6 +40,7 @@ import {
 } from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
 import { TasteFare } from '@/components/onboarding/TasteFare';
+import { ShieldPreview } from '@/components/onboarding/ShieldPreview';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band, opticalBias, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
@@ -389,6 +390,13 @@ export default function Onboarding() {
   const pack = packFor(language, derivedLevel);
   // The fare is played in the UI language's glosses, like a real session.
   const tastePack = React.useMemo(() => localizePack(pack, resolvedLocale()), [pack]);
+  // The hook's preview word: the first word of the course the picker will
+  // preselect, glossed in the phone's language.
+  const previewWord = React.useMemo(() => {
+    const course = learnableLanguages(resolvedLocale())[0] ?? 'de';
+    const v = localizePack(packFor(course, 'A1'), resolvedLocale()).vocab[0];
+    return { word: v?.de ?? 'hola', translation: v?.en?.[0] ?? 'hello' };
+  }, []);
   const [tasteDone, setTasteDone] = useState(false);
   const lang = t(`lang.${language}` as StringKey);
   // es/fr/it/pt write language names lowercase mid-sentence ("en español").
@@ -476,16 +484,23 @@ export default function Onboarding() {
                     languages ("…into Spanish." → "…into German."), and whoever caught
                     the wrong one first read it as "this app is for Spanish" and left
                     (8 of 62 installs quit on this screen; founder, 2026-10-01). */}
-                <Text variant="hero" style={{ marginTop: space.md }}>
-                  {t('ob.hookFluency')}
+                {/* Their day, not our concept: "scroll" names what everyone does and no
+                    single app, so nobody reads the screen as "for TikTok users" (founder,
+                    2026-10-04). */}
+                <Text variant="hero" style={{ marginTop: space.md, fontSize: 36, lineHeight: 40 }}>
+                  {t('ob.hookHeadline')}
                 </Text>
-                <Text variant="serif" color="inkSoft" style={{ marginTop: space.lg }}>
+                <Text variant="serif" color="inkSoft" style={{ marginTop: space.md }}>
                   {t('ob.hookSub')}
                 </Text>
-                {/* Tolly greets under the copy, matching the mirror step's composition —
-                    a still portrait (relift's lesson: motion on the hook reads as gimmick). */}
+                <Text variant="callout" color="inkFaint" style={{ marginTop: space.xs, fontSize: 13 }}>
+                  {t('ob.hookTrust', { days: TRIAL_DAYS })}
+                </Text>
+                {/* The mechanic, shown: a phone with the shield up and a word on the
+                    island. Replaces Tolly's portrait, which said nothing about what
+                    the app does (founder, 2026-10-04). */}
                 <View style={styles.tollySlot}>
-                  <Tolly mood="happy" size={144} />
+                  <ShieldPreview word={previewWord.word} translation={previewWord.translation} width={150} />
                 </View>
               </Entrance>
             )}
