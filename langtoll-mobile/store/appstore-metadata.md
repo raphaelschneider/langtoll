@@ -69,9 +69,11 @@ but stays in the subtitle as the visible qualifier, so the listing reads as a
 language app and not a pure blocker (Ralph: people searching focus/screen time
 "want to chill", not learn). "screen time" moves to the hidden field.
 
-**Name** (≤30, 28 used)
+**Name** (≤30, 28 used) — SUBMITTED with 1.0.5 (build 55), 2026-10-04. Vocabulary
+first: word order within a field has no proven ranking effect, this reads as a
+language app, and it was already in review.
 ```
-LangToll: Focus & Vocabulary
+LangToll: Vocabulary & Focus
 ```
 **Subtitle** (≤30, 28 used)
 ```
