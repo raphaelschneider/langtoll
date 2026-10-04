@@ -149,20 +149,19 @@ keyword characters**. Localize at minimum Name/Subtitle/Keywords.
 Note: these sell LangToll to speakers of that language who want to learn *another*
 one, so the subtitle must not imply "learn German" to a German reader.
 
-### German (de-DE)
-Astro, 2026-10-04: LangToll already ranks here (sprachen lernen #139 at 65/70,
-italienisch lernen #186, portugiesisch lernen #117, italienisch vokabeln #90), so the
-name stays. Nine terms pass Astro's thresholds, all formed by "lernen" in the name
-plus a word in the field: vokabeln lernen 62/64, englisch lernen kostenlos 62/65,
-englisch lernen 59/66, spanisch lernen 54/64, französisch lernen 53/61, italienisch
-lernen 52/56, englisch 46/68, vokabeltrainer 32/53. Fixed: "franzoesisch" (nobody
-types the ASCII form) → "französisch"; "deutsch" dropped (German speakers here learn
-another language). German blocker terms (bildschirmzeit, app sperren, handysucht,
-fokus app) are unmeasured as of this date.
+### German (de-DE) — LIVE, do not change (founder, 2026-10-04: the German campaign is the best so far)
 - Name: `LangToll: Sprachen lernen` (25)
-- Subtitle: `Vokabeltrainer mit App-Sperre` (29)
-- Keywords: `englisch,spanisch,französisch,italienisch,portugiesisch,vokabeln,kostenlos,bildschirmzeit,fokus` (95)
+- Subtitle: `App-Sperre gegen Vokabeln` (25)
+- Keywords: `spanisch,franzoesisch,italienisch,englisch,portugiesisch,deutsch,bildschirmzeit,fokus,wörter`
 - Promotional text: `Sechs Sprachen, eine Regel: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du übst.` (93)
+
+Astro, 2026-10-04, for the record only: LangToll ranks here (sprachen lernen #139 at
+65/70, italienisch lernen #186, portugiesisch lernen #117, italienisch vokabeln #90).
+Terms passing Astro's thresholds: vokabeln lernen 62/64, englisch lernen kostenlos
+62/65, englisch lernen 59/66, spanisch lernen 54/64, französisch lernen 53/61,
+italienisch lernen 52/56, englisch 46/68, vokabeltrainer 32/53. If the fields are
+ever revisited: "französisch" with the umlaut, "vokabeltrainer" and "vokabeln" in,
+"deutsch" out. Parked while the campaign performs.
 
 ### Spanish (es-ES / es-MX)
 - Name: `LangToll: Aprende idiomas` (25)
