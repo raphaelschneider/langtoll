@@ -27,7 +27,17 @@ interface PlanReport {
   period: Period | null;
   sandbox: boolean | null;
   rcUser: string | null;
+  /** When the store last charged for it (ISO), to tell a reinstall from a sale. */
+  latestPurchaseAt: string | null;
 }
+
+/**
+ * A listener grant whose purchase is older than this is not a sale made now: it
+ * is an existing subscription RevenueCat found on a fresh install (or a second
+ * device). On 2026-10-04 a monthly subscriber reinstalled and the admin counted
+ * a new 'subscribed' two seconds after app_open, before any paywall.
+ */
+const REINSTALL_GRACE_MS = 10 * 60 * 1000;
 
 /**
  * Where a plan change came from, for attribution. purchase() sets this while a
@@ -54,7 +64,9 @@ function applyPlan(plus: boolean, meta?: EntitlementMeta, report?: PlanReport, s
   scheduleTrialEndNotice();
   if (was === null) return;
   if (plus && was !== 'plus' && source !== null) {
-    track('subscribed', {
+    const bought = report?.latestPurchaseAt ? Date.parse(report.latestPurchaseAt) : NaN;
+    const preexisting = !pending && Number.isFinite(bought) && Date.now() - bought > REINSTALL_GRACE_MS;
+    track(preexisting ? 'restored' : 'subscribed', {
       period: pending?.period ?? report?.period ?? null,
       source: pending?.source ?? source,
       sandbox: report?.sandbox ?? null,
@@ -84,6 +96,7 @@ function planReport(info: any): PlanReport {
     period: PERIOD_BY_PRODUCT[e?.productIdentifier ?? ''] ?? null,
     sandbox: typeof e?.isSandbox === 'boolean' ? e.isSandbox : null,
     rcUser: typeof info?.originalAppUserId === 'string' ? info.originalAppUserId : null,
+    latestPurchaseAt: typeof e?.latestPurchaseDate === 'string' ? e.latestPurchaseDate : null,
   };
 }
 import { PLUS_ENTITLEMENT, PRODUCT_IDS, FALLBACK_PRICES, TRIAL_DAYS, type Period } from './plans';
