@@ -34,7 +34,7 @@ import { strictModeActive } from '@/lib/plans';
  * There is no "2 more minutes" button on the shield any more. Six builds of
  * it — per-app exemptions, then a whole-gate hatch closed by a clock ladder —
  * and on device the re-lock after a tap eventually just stopped arriving.
- * Founder call 2026-09-19: the shield lands and stays. One button: practise.
+ * Founder call 2026-09-19: the shield lands and stays. One button: practice.
  * Usage checkpoints stay as a backstop for a dropped deadline callback.
  */
 const RELOCK_GRACE_MINUTES = 2;
@@ -600,7 +600,7 @@ async function stageShieldIcon(m: any): Promise<boolean> {
  * screen's preview (components/onboarding/ShieldPreview) draws the same words.
  */
 export const SHIELD_COPY = {
-  title: 'Locked until you practise.',
+  title: 'Locked until you practice.',
   subtitle: 'Finish a quick session in LangToll to earn your pass.',
   button: 'Practice now',
 } as const;
@@ -650,7 +650,7 @@ export async function configureShieldAppearance(): Promise<void> {
           type: 'sendNotification',
           payload: {
             title: 'Your pass is expired',
-            body: 'Tap to practise and unlock your apps.',
+            body: 'Tap to practice and unlock your apps.',
             sound: 'default',
             interruptionLevel: 'timeSensitive',
             userInfo: { url: 'langtoll://session' },
