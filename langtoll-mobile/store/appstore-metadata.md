@@ -185,7 +185,7 @@ ever revisited: "französisch" with the umlaut, "vokabeltrainer" and "vokabeln" 
 - Name: `LangToll: Aprenda idiomas` (25)
 - Subtitle: `Vocabulário destrava seus apps` (30)
 - Keywords: `alemao,espanhol,frances,ingles,italiano,portugues,tela,tempo,bloqueio,concentracao,palavras,habito`
-- Promotional text: `Você vai ficar no celular mesmo. Que ele te ensine um idioma: os apps que devoram suas noites ficam bloqueados até você aprender umas palavras. Seis idiomas, 7 dias grátis.` (168)
+- Promotional text: `Você vai ficar no celular mesmo. Que ele te ensine um idioma: os apps que devoram suas noites ficam bloqueados até aprender umas palavras. Seis idiomas, 7 dias grátis.` (168)
 
 ---
 
