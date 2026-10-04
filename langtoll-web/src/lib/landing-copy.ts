@@ -1390,7 +1390,7 @@ const pt: LandingCopy = {
       { headline: 'Seu scroll infinito agora te ensina italiano.', lang: 'italiano', code: 'it' },
       { headline: 'Seu scroll infinito agora te ensina inglês.', lang: 'inglês', code: 'en' },
     ],
-    subBefore: 'Cansou de perder a sequência? Aqui, rolar o feed tem pedágio em ',
+    subBefore: 'Cansou de perder a sequência? Aqui, ficar no celular tem pedágio em ',
     subAfter: ': ',
     subStrong: 'alguns exercícios rápidos e seus apps liberam de novo.',
     subTail: '',
