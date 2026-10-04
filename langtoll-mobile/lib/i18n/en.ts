@@ -94,7 +94,7 @@ export const en = {
 
   // onboarding
   'ob.hookHeadline': 'You\'ll scroll today anyway. Make it teach you a language.',
-  'ob.hookSub': 'Lock the apps that eat your evenings. Five quick words open them again.',
+  'ob.hookSub': 'Lock the apps that eat your evenings. A few quick words open them again.',
   'ob.hookTrust': 'Built on Apple Screen Time · {days} days free',
   'ob.hookCta': 'Show me how',
   'ob.howTitle': 'The deal is simple.',
@@ -103,7 +103,7 @@ export const en = {
   'ob.how2': 'A few quick exercises pay the fare',
   'ob.how2d': 'Real vocabulary, 60–90 seconds. No streak guilt.',
   'ob.how3': 'Your pass opens the apps',
-  'ob.how3d': '30 minutes of phone time. Then the wall is back.',
+  'ob.how3d': 'As much phone time as you set. Then the wall is back.',
   'ob.nameTitle': "What's your name?",
   'ob.nameSub': 'It goes on your pass.',
   'ob.namePlaceholder': 'First name',
@@ -186,7 +186,7 @@ export const en = {
   'expiry.title': 'Your pass just expired.',
   'expiry.body': 'The gate closes in {mins} minutes — finish up, or top up with a quick session.',
   'nudge.title': 'This is usually your scroll hour.',
-  'nudge.body': 'Five quick exercises buy your phone time back.',
+  'nudge.body': 'A few quick exercises buy your phone time back.',
   'recap.notifTitle': 'Your week in {lang}',
   'recap.notifBody': '{fares} fares. {words} words. {hours} hours of scrolling paid for.',
   'recap.notifBodyMinutes': '{fares} fares. {words} words. {mins} minutes of scrolling paid for.',

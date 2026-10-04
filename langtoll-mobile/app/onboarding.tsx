@@ -40,7 +40,7 @@ import {
 } from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
 import { TasteFare } from '@/components/onboarding/TasteFare';
-import { ShieldPreview } from '@/components/onboarding/ShieldPreview';
+import { ShieldPreview, PHONE_ASPECT } from '@/components/onboarding/ShieldPreview';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band, opticalBias, opticalCenter } from '@/design/layout';
 import { withAlpha } from '@/lib/color';
@@ -392,6 +392,7 @@ export default function Onboarding() {
   const tastePack = React.useMemo(() => localizePack(pack, resolvedLocale()), [pack]);
   // The hook's preview word: the first word of the course the picker will
   // preselect, glossed in the phone's language.
+  const [hookSlotH, setHookSlotH] = useState(0);
   const previewWord = React.useMemo(() => {
     const course = learnableLanguages(resolvedLocale())[0] ?? 'de';
     const v = localizePack(packFor(course, 'A1'), resolvedLocale()).vocab[0];
@@ -499,8 +500,18 @@ export default function Onboarding() {
                 {/* The mechanic, shown: a phone with the shield up and a word on the
                     island. Replaces Tolly's portrait, which said nothing about what
                     the app does (founder, 2026-10-04). */}
-                <View style={styles.tollySlot}>
-                  <ShieldPreview word={previewWord.word} translation={previewWord.translation} width={150} />
+                {/* The mock takes whatever height the copy leaves and is sized to it,
+                    so there is no dead band above the button (layout rule: the
+                    illustration absorbs the slack). */}
+                <View
+                  style={[styles.tollySlot, { marginTop: space.md }]}
+                  onLayout={(e) => setHookSlotH(Math.round(e.nativeEvent.layout.height))}
+                >
+                  <ShieldPreview
+                    word={previewWord.word}
+                    translation={previewWord.translation}
+                    width={Math.max(140, Math.min(210, Math.floor((hookSlotH - 8) / PHONE_ASPECT)))}
+                  />
                 </View>
               </Entrance>
             )}

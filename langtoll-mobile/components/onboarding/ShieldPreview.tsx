@@ -22,9 +22,12 @@ const SHIELD_SUB = '#A2B2B6';
 const SHIELD_BTN = '#5CBDCD';
 const SHIELD_BTN_INK = '#0B1417';
 
+/** Phone aspect (6.1-inch class), used to size the mock from whichever edge is known. */
+export const PHONE_ASPECT = 2.05;
+
 export function ShieldPreview({ word, translation, width = 196 }: { word: string; translation: string; width?: number }) {
   const theme = useTheme();
-  const height = Math.round(width * 2.05);
+  const height = Math.round(width * PHONE_ASPECT);
   return (
     <View
       accessible
@@ -32,12 +35,13 @@ export function ShieldPreview({ word, translation, width = 196 }: { word: string
       accessibilityLabel={`${SHIELD_COPY.title} ${word}, ${translation}`}
       style={[styles.phone, { width, height, borderColor: withAlpha(theme.ink, 0.5), backgroundColor: SHIELD_BG }]}
     >
-      {/* the feed, dimmed behind the shield */}
+      {/* a sliver of the feed at the top, the rest under the shield, as on the phone */}
       <View style={styles.feed} pointerEvents="none">
         {[0, 1, 2].map((i) => (
           <View key={i} style={[styles.tile, { backgroundColor: withAlpha('#FFFFFF', i === 1 ? 0.07 : 0.045) }]} />
         ))}
       </View>
+      <View style={[styles.cover, { backgroundColor: withAlpha(SHIELD_BG, 0.94) }]} pointerEvents="none" />
       {/* Dynamic Island with the word of the moment */}
       <View style={[styles.island, { backgroundColor: '#000' }]}>
         <Text variant="caption" numberOfLines={1} style={{ color: SHIELD_TITLE, fontFamily: font.semibold, letterSpacing: 0, fontSize: 11 }}>
@@ -49,15 +53,15 @@ export function ShieldPreview({ word, translation, width = 196 }: { word: string
       </View>
       {/* the shield */}
       <View style={styles.shield}>
-        <Tolly mood="stern" size={Math.round(width * 0.3)} />
-        <Text variant="bodyMedium" center style={{ color: SHIELD_TITLE, fontSize: 13, lineHeight: 17, marginTop: 8 }}>
+        <Tolly mood="stern" size={Math.round(width * 0.36)} />
+        <Text variant="bodyMedium" center style={{ color: SHIELD_TITLE, fontSize: Math.round(width * 0.075), lineHeight: Math.round(width * 0.095), marginTop: 10 }}>
           {SHIELD_COPY.title}
         </Text>
-        <Text variant="caption" center style={{ color: SHIELD_SUB, fontFamily: font.body, letterSpacing: 0, fontSize: 10, lineHeight: 13, marginTop: 4 }}>
+        <Text variant="caption" center style={{ color: SHIELD_SUB, fontFamily: font.body, letterSpacing: 0, fontSize: Math.round(width * 0.056), lineHeight: Math.round(width * 0.074), marginTop: 6 }}>
           {SHIELD_COPY.subtitle}
         </Text>
-        <View style={[styles.btn, { backgroundColor: SHIELD_BTN }]}>
-          <Text variant="caption" style={{ color: SHIELD_BTN_INK, fontFamily: font.semibold, letterSpacing: 0, fontSize: 11 }}>
+        <View style={[styles.btn, { backgroundColor: SHIELD_BTN, paddingHorizontal: Math.round(width * 0.09), paddingVertical: Math.round(width * 0.045) }]}>
+          <Text variant="caption" style={{ color: SHIELD_BTN_INK, fontFamily: font.semibold, letterSpacing: 0, fontSize: Math.round(width * 0.062) }}>
             {SHIELD_COPY.button}
           </Text>
         </View>
@@ -81,6 +85,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     maxWidth: '78%',
   },
-  shield: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
-  btn: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
+  cover: { ...StyleSheet.absoluteFillObject, top: 46 },
+  shield: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  btn: { marginTop: 14, borderRadius: 999 },
 });
