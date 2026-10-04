@@ -62,18 +62,30 @@ word-builders own it; the pairs above are the foreign-language searches).
 No language is named in a visible field: naming one made learners of the others
 read the app as not for them (hook lesson, 2026-10-01).
 
-**Name** (≤30, 29 used)
+Second pass, 2026-10-04 (Ralph): "focus" alone is 62/58, better than "focus app"
+32/60 on both counts, and its results are Forest/Flora/Opal-type apps, the intent
+closest to ours. It goes first in the name. "learn languages" (37/81) will not rank
+but stays in the subtitle as the visible qualifier, so the listing reads as a
+language app and not a pure blocker (Ralph: people searching focus/screen time
+"want to chill", not learn). "screen time" moves to the hidden field.
+
+**Name** (≤30, 28 used)
 ```
-LangToll: Focus & Screen Time
+LangToll: Focus & Vocabulary
 ```
-**Subtitle** (≤30, 29 used)
+**Subtitle** (≤30, 28 used)
 ```
-App blocker, learn vocabulary
+App blocker, learn languages
 ```
-**Keywords** (≤100, 95 used) — no word repeats anything above.
+**Keywords** (≤100, 98 used) — no word repeats anything above.
 ```
-german,french,italian,spanish,portuguese,dopamine,detox,learning,doomscrolling,instagram,tiktok
+german,french,italian,spanish,portuguese,screen,time,dopamine,detox,doomscrolling,instagram,tiktok
 ```
+Forms: focus, focus app, app blocker, screen time, learn spanish/german/french/
+italian/portuguese, german/french/italian/spanish vocabulary, dopamine detox,
+digital detox (no: "digital" not in the field — add if three characters free up),
+instagram blocker, tiktok blocker, doomscrolling.
+
 Previous fields (launch, 2026-09-25), for the record: `LangToll: Learn Languages` /
 `App lock paid in vocabulary` / `german,spanish,french,italian,portuguese,screen,time,block,blocker,focus,habit,practice,words,study`.
 
