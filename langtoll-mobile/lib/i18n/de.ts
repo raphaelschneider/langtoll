@@ -225,7 +225,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'ob.lockCtaWait': 'Erst Apps wählen',
   'ob.notifyTitle': 'Erlaube Mitteilungen — wirklich.',
   'ob.notifyBody':
-    'Sie bringen dich von einer gesperrten App zurück zum Üben, liefern deine tägliche Erinnerung und warnen dich, bevor dein Pass abläuft.',
+    'Nur so können wir dich einen Tag vor Ende deiner Gratiswoche erinnern, dich von einer gesperrten App zurück zum Üben holen und dir deine tägliche Erinnerung schicken.',
   'ob.notifyCta': 'Mitteilungen erlauben',
   'ob.notifyOn': 'Mitteilungen an — passt',
   'ob.notifySettings': 'In den Einstellungen aktivieren',

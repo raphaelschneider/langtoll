@@ -225,7 +225,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'ob.lockCtaWait': 'Prima scegli le app',
   'ob.notifyTitle': 'Consenti le notifiche — davvero.',
   'ob.notifyBody':
-    'Ti riportano da un’app bloccata all’esercizio, ti portano il promemoria quotidiano e ti avvisano prima che il tuo pass scada.',
+    'Così ti avvisiamo il giorno prima che finisca la prova gratis, ti riportiamo da un’app bloccata all’esercizio e ti arriva il promemoria quotidiano.',
   'ob.notifyCta': 'Consenti le notifiche',
   'ob.notifyOn': 'Notifiche attive — a posto',
   'ob.notifySettings': 'Attivale nelle Impostazioni',

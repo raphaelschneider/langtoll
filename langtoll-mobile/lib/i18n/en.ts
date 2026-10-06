@@ -233,7 +233,7 @@ export const en = {
   'ob.lockCtaWait': 'Choose apps first',
   'ob.notifyTitle': 'Allow notifications — really.',
   'ob.notifyBody':
-    'They’re how a locked app hands you back to practice, how your daily reminder lands, and how you get a heads-up before your pass runs out.',
+    'They’re how we remind you the day before your free trial ends, how a locked app hands you back to practice, and how your daily reminder lands.',
   'ob.notifyCta': 'Allow notifications',
   'ob.notifyOn': 'Notifications on — you’re set',
   'ob.notifySettings': 'Turn them on in Settings',

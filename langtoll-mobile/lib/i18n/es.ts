@@ -225,7 +225,7 @@ export const es: Partial<Record<StringKey, string>> = {
   'ob.lockCtaWait': 'Elige apps primero',
   'ob.notifyTitle': 'Permite las notificaciones — en serio.',
   'ob.notifyBody':
-    'Te llevan de una app bloqueada de vuelta a practicar, traen tu recordatorio diario y te avisan antes de que se agote tu pase.',
+    'Así te avisamos el día antes de que termine tu prueba gratis, te llevamos de una app bloqueada de vuelta a practicar y te llega tu recordatorio diario.',
   'ob.notifyCta': 'Permitir notificaciones',
   'ob.notifyOn': 'Notificaciones activadas — listo',
   'ob.notifySettings': 'Actívalas en Ajustes',
