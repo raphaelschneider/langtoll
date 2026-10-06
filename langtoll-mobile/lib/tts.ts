@@ -317,7 +317,11 @@ function speakViaTts(text: string, locale: string, opts?: { force?: boolean; rat
     // (modules/langtoll-speech). expo-speech is the fallback for a stale binary
     // that predates the module — same voice, just unprocessed.
     if (isNativeSpeechAvailable()) {
-      void nativeStop(false);
+      // No separate stop here: the native speak cuts whatever is playing itself
+      // (LangTollSpeechModule.speak). As two bridge calls they could land out of
+      // order, and a stop arriving after playback had started cut the word a
+      // few milliseconds in — every word of the first fare, where nothing is
+      // downloaded yet and every play is synthesized (1.0.5, 2026-10-06).
       void nativeSpeak(text, { language: locale, voice: identifier, rate, pitch });
       return;
     }

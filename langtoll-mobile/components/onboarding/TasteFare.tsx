@@ -77,15 +77,25 @@ export function TasteFare({
   const wasRight = feedback && picked === ex?.answer;
   const mood: TollyMood = done ? 'celebrate' : !feedback ? 'stern' : wasRight ? 'happy' : 'sad';
   const shownAt = useRef(Date.now());
+  // The word is spoken a beat after it appears, not in the same frame. The root
+  // layout silences speech on every route change, and on a resume the redirect
+  // into onboarding and this first word land in the same commit, so the word
+  // was stopped before it sounded (1.0.5, 2026-10-06: "playing for a
+  // millisecond"). The beat also lets the word be read before it is heard.
+  const SPEAK_AFTER_MS = 350;
   useEffect(() => {
     shownAt.current = Date.now();
     // Hear the word as it appears when it is in the target language; the
     // English-prompt kind is spoken when the answer lands (below).
-    if (ex?.audio && ex.type !== 'mc_en_de') speakTaste(ex.audio, pack);
+    if (!ex?.audio || ex.type === 'mc_en_de') return;
+    const id = setTimeout(() => speakTaste(ex.audio!, pack), SPEAK_AFTER_MS);
+    return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx]);
   useEffect(() => {
-    if (feedback && ex?.audio && ex.type === 'mc_en_de') speakTaste(ex.audio, pack);
+    if (!feedback || !ex?.audio || ex.type !== 'mc_en_de') return;
+    const id = setTimeout(() => speakTaste(ex.audio!, pack), 120);
+    return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedback]);
   // Leaving the step silences it, whatever was mid-word.
