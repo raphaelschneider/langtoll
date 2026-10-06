@@ -369,11 +369,23 @@ public final class LangTollSpeechModule: Module {
     if !engine.isRunning { try engine.start() }
     player.stop()
     let epoch = currentEpoch()
-    player.scheduleBuffer(buffer, at: nil, options: [.interrupts]) { [weak self] in
+    // How long this utterance sounds. The release below must never come before
+    // it has: the old completion handler (data CONSUMED by the player, the
+    // legacy callback type) fired almost as soon as playback began on a phone,
+    // and 0.15 s later the session was released under the voice — "die Frist"
+    // played as "di" (1.0.5, 2026-10-06). Every word of the first fare is
+    // synthesized, so every word was cut; sessions mostly play downloaded files
+    // and hid it for weeks.
+    let seconds = Double(buffer.frameLength) / buffer.format.sampleRate
+    let startedAt = Date()
+    player.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionCallbackType: .dataPlayedBack) { [weak self] _ in
       guard let self = self else { return }
-      // Runs on the render thread when the buffer has been consumed. A newer
-      // utterance has its own completion; only the latest one releases.
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+      // Playback has finished (or was stopped). Release no earlier than the
+      // buffer's own length plus a beat, whatever the callback timing; a newer
+      // utterance has its own completion, and only the latest one releases.
+      let elapsed = Date().timeIntervalSince(startedAt)
+      let wait = max(0.15, seconds + 0.15 - elapsed)
+      DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
         if epoch == self.currentEpoch() { self.releaseSession() }
       }
     }
