@@ -21,6 +21,7 @@ import { JourneyLine, nextStop } from '@/components/home/JourneyLine';
 import { WeeklyRecap } from '@/components/home/WeeklyRecap';
 import { RenewalAsk } from '@/components/home/RenewalAsk';
 import { LapsedNotice } from '@/components/home/LapsedNotice';
+import { PreviewBanner } from '@/components/home/PreviewBanner';
 import { useTheme, space, radius } from '@/design/theme';
 import { useLayout, opticalCenter, MAX_WIDE_CONTENT } from '@/design/layout';
 import { TicketRow, ticketsForActivePack } from '@/components/wallet/TicketRow';
@@ -46,7 +47,7 @@ import {
   unlockRemainingMs,
   wordsSeen,
   wordsMastered,
-  lockNow, isLockPaused, resumeLock } from '@/lib/store';
+  lockNow, isLockPaused, resumeLock, expirePreview, hasRealPlus, markPreviewWallShown } from '@/lib/store';
 
 function Stat({ value, label, divider }: { value: number; label: string; divider?: boolean }) {
   const theme = useTheme();
@@ -72,6 +73,20 @@ export default function Home() {
   const langName = t(`lang.${pack.language}` as StringKey);
 
   const unlocked = isUnlocked(state, now);
+
+  // The free first fare ends with its pass (or after a day). The moment it does,
+  // the wall opens once, on its own, where the apps have just locked again.
+  // After that the card under the pass keeps the way back open.
+  useEffect(() => {
+    expirePreview(now);
+  }, [now]);
+  useEffect(() => {
+    if (!state.previewEnded || state.previewWallShown || hasRealPlus(state)) return;
+    markPreviewWallShown();
+    const id = setTimeout(() => openPaywall('first_fare'), 700);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.previewEnded]);
 
   // A night off: the shield is down without a pass (lib/store pauseLock).
 
@@ -210,6 +225,7 @@ export default function Home() {
   const secBanners = (
     <>
       {/* Renewal turned off: asked once, why. Renders nothing otherwise. */}
+      <PreviewBanner now={now} />
       <LapsedNotice />
       <RenewalAsk />
       {/* A night off is running: the shield is down without a pass. Tolly is

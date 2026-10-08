@@ -26,7 +26,6 @@ import { Chip } from '@/components/ui/Chip';
 import { OptionRow } from '@/components/ui/OptionRow';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
-import { PlusOffer } from '@/components/paywall/PlusOffer';
 import { LockSetup } from '@/components/blocking/LockSetup';
 import { lockNow } from '@/lib/blocking';
 import {
@@ -34,12 +33,9 @@ import {
   scheduleTrialEndNotice,
   requestNotificationPermission,
   notificationPermissionState,
-  scheduleComebackNotices,
-  cancelComebackNotices,
   openSystemSettings,
 } from '@/lib/notify';
 import { Tolly } from '@/components/ui/Tolly';
-import { TasteFare } from '@/components/onboarding/TasteFare';
 import { ShieldPreview, PHONE_ASPECT } from '@/components/onboarding/ShieldPreview';
 import { useTheme, space, radius, font } from '@/design/theme';
 import { useLayout, band, opticalBias, opticalCenter } from '@/design/layout';
@@ -48,7 +44,7 @@ import { levelForDifficulty, localizePack } from '@/lib/pack';
 import { estimateDailyMinutes, damage, projection, HORIZON_YEARS } from '@/lib/projection';
 import { learnableLanguages, soonLanguages, packFor } from '@/content';
 import type { Language } from '@/content/german/types';
-import { updateProfile, getState, isPlus, saveOnboardingDraft } from '@/lib/store';
+import { updateProfile, getState, saveOnboardingDraft, startPreview } from '@/lib/store';
 import { refreshGoalPack } from '@/lib/ai/topics';
 import {
   SPEAKER_FORM_EXAMPLES,
@@ -200,7 +196,7 @@ export default function Onboarding() {
       const i = STEPS.indexOf(jump as Step);
       if (i >= 0) return i;
     }
-    return draft ? resumeIndex(draft, stepsFor(draft.language), isPlus()) : 0;
+    return draft ? resumeIndex(draft, stepsFor(draft.language)) : 0;
   });
 
   // answers
@@ -285,7 +281,7 @@ export default function Onboarding() {
   // broken page rather than a pause. Everything else centres at iPad width in
   // BOTH orientations: the body scrolls, so a step taller than a short
   // landscape window scrolls instead of losing its top.
-  const centreStep = step === 'printing' || (L.regular && step !== 'paywall');
+  const centreStep = step === 'printing' || L.regular;
   const centreStyle = { justifyContent: 'center' as const, paddingBottom: opticalBias(L) };
 
   // printing-step stage ticker — pure theater, and FAST: the paywall must
@@ -337,12 +333,9 @@ export default function Onboarding() {
             ? 'ob.future12Brain'
             : 'ob.future12Generic';
 
-  // 'paywall' does NOT skip. The way past it is starting the trial (or
-  // restoring a purchase): founder call, 2026-09-16 — "they should at least
-  // select a trial". The free tier still exists, as what a lapsed trial falls
-  // back to, not as a door you can walk through on day one. HARD wall (founder,
-  // 2026-09-22): no safety valve either — a store that cannot sell shows its
-  // reason, and the user retries or restores. See canGoBack below for the arrow.
+  // Since 1.0.8 there is no wall in here: onboarding ends at the lock and the
+  // first fare is real and free (store.startPreview); the wall waits on home
+  // until that pass runs out.
   const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms'];
   const showSkip = skippable.includes(step);
   // Front-loaded: the early screens move the bar the most, where most people leave
@@ -360,32 +353,14 @@ export default function Onboarding() {
     // after the app picker closes, where the screen has just explained what they
     // are for (the shield's button). Asked on "when", nobody knew why the app
     // wanted them (founder, 2026-10-04: "I wouldn't allow it at that step").
-    // Cost accepted: a person who leaves on the paywall has not granted them
-    // yet, so the come-back notes only reach those who did later in Settings.
     setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   }
 
-  // The paywall left without a trial: plan the two come-back notes when the app
-  // goes to the background on it; clear them the moment the wall is passed.
-  useEffect(() => {
-    if (step !== 'paywall') {
-      void cancelComebackNotices();
-      return;
-    }
-    const hour = DAYPARTS.find((d) => d.key === daypart)?.hour ?? null;
-    const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'background' && !isPlus()) void scheduleComebackNotices(hour);
-      if (s === 'active') void cancelComebackNotices();
-    });
-    return () => sub.remove();
-  }, [step, daypart]);
-  // No way back once the wall is up: the paywall is the only door (founder call,
-  // 2026-09-16), and the lock step is only reached by someone who just paid, so
-  // backing into the offer again is nonsense. The arrow hid itself on 'printing'
-  // only, so on launch day (2026-09-22) an ad install tapped back on the paywall,
-  // landed on summary, tapped back again, and was bounced by the loader five times.
-  const canGoBack =
-    stepIdx > 0 && step !== 'printing' && step !== 'taste' && step !== 'paywall' && step !== 'lock';
+  // No way back from the lock: the plan is printed and the first fare is waiting.
+  // The arrow hid itself on 'printing' only, so on launch day (2026-09-22) an ad
+  // install tapped back from the end, landed on summary, tapped back again, and
+  // was bounced by the loader five times.
+  const canGoBack = stepIdx > 0 && step !== 'printing' && step !== 'lock';
   function back() {
     if (!canGoBack) return;
     setStepIdx((i) => {
@@ -399,7 +374,6 @@ export default function Onboarding() {
   const derivedLevel = levelForDifficulty(difficulty);
   const pack = packFor(language, derivedLevel);
   // The fare is played in the UI language's glosses, like a real session.
-  const tastePack = React.useMemo(() => localizePack(pack, resolvedLocale()), [pack]);
   // The hook's preview word: the first word of the course the picker will
   // preselect, glossed in the phone's language.
   const [hookSlotH, setHookSlotH] = useState(0);
@@ -408,7 +382,6 @@ export default function Onboarding() {
     const v = localizePack(packFor(course, 'A1'), resolvedLocale()).vocab[0];
     return { word: v?.de ?? 'hola', translation: v?.en?.[0] ?? 'hello' };
   }, []);
-  const [tasteDone, setTasteDone] = useState(false);
   const lang = t(`lang.${language}` as StringKey);
   // es/fr/it/pt write language names lowercase mid-sentence ("en español").
   const langMid = ['es', 'fr', 'it', 'pt'].includes(resolvedLocale()) ? lang.toLowerCase() : lang;
@@ -439,7 +412,10 @@ export default function Onboarding() {
     // Launch-time scheduling ran before notification permission existed; now it might.
     scheduleTrialEndNotice();
     lockNow(); // shield the chosen apps immediately so home lands in the "locked" state
-    track('onboarded', { language, level: derivedLevel, difficulty, exercises: fareEx, minutes: fareMin });
+    // The first fare is on us: full access for a day at most, cut to the first
+    // pass's expiry once it is paid. The wall waits on home for that moment.
+    startPreview();
+    track('onboarded', { language, level: derivedLevel, difficulty, exercises: fareEx, minutes: fareMin, preview: true });
     router.replace('/');
   }
 
@@ -452,9 +428,7 @@ export default function Onboarding() {
   // So on regular widths it travels WITH the content instead (founder call,
   // 2026-09-09: "I don't know about this button really down there").
   const footerCta =
-    // The taste has its own buttons until the fare is paid; a disabled 'Pay the
-    // fare first' under its 'Got it' was two buttons for one tap (2026-10-08).
-    step === 'printing' || step === 'paywall' || (step === 'taste' && !tasteDone) ? null : (
+    step === 'printing' ? null : (
       <View style={[styles.footer, band(L)]}>
         <Button
           label={
@@ -468,19 +442,15 @@ export default function Onboarding() {
                     ? !lockReady
                       ? t('ob.lockCtaWait')
                       : t('ob.lockCta')
-                    : step === 'taste'
-                      ? tasteDone
-                        ? t('ob.tasteCta')
-                        : t('ob.tasteCtaWait')
-                      : step === 'tease'
-                        ? t('ob.teaseCta')
-                        : step === 'future'
-                          ? t('ob.futureCta')
-                          : t('common.continue')
+                    : step === 'tease'
+                      ? t('ob.teaseCta')
+                      : step === 'future'
+                        ? t('ob.futureCta')
+                        : t('common.continue')
           }
           glow
           full
-          disabled={(step === 'lock' && !lockReady) || (step === 'taste' && !tasteDone)}
+          disabled={step === 'lock' && !lockReady}
           onPress={step === 'lock' ? finish : next}
         />
       </View>
@@ -1002,78 +972,6 @@ export default function Onboarding() {
               </Entrance>
             )}
 
-            {step === 'taste' && (
-              <Entrance key="taste" style={{ flex: 1 }}>
-                <TasteFare
-                  pack={tastePack}
-                  count={fareEx}
-                  onDone={() => setTasteDone(true)}
-                  pass={{
-                    unlockMinutes: fareMin,
-                    exercisesPerUnlock: fareEx,
-                    passenger: firstName,
-                    packLabel: `${pack.language.toUpperCase()} · ${derivedLevel}`,
-                  }}
-                />
-              </Entrance>
-            )}
-
-            {step === 'paywall' && (
-              <View style={{ flex: 1 }}>
-                {/* Title and the learner's own goal line ride INSIDE the offer's
-                    scroll, so a long goal can never push the plans or the legal
-                    links off the bottom. */}
-                {/* HARD paywall (founder, 2026-09-22): no onStoreUnavailable here.
-                    A failed purchase shows its reason and the user tries again
-                    or restores — nobody enters the app without Plus. */}
-                <PlusOffer
-                  onDone={next}
-                  source="onboarding"
-                  language={language}
-                  // Their plan, not a feature list: the apps they chose, the fare they
-                  // set, the course and level. The wall reads "activate what you built".
-                  pitch={t(apps.length ? 'ob.planPitch' : 'ob.planPitchNoApps', {
-                    // "TikTok, Instagram and YouTube": a sentence, not a list.
-                    apps:
-                      apps.length > 3
-                        ? `${apps.slice(0, 3).join(', ')}…`
-                        : apps.length > 1
-                          ? `${apps.slice(0, -1).join(', ')} ${t('common.and')} ${apps[apps.length - 1]}`
-                          : apps[0]!,
-                    ex: fareEx,
-                    min: formatDuration(fareMin),
-                    lang,
-                    level: derivedLevel,
-                  })}
-                  header={
-                    <>
-                      {/* Tolly celebrates beside the ask, as on the /paywall route: the
-                          wall should feel like an arrival (founder, 2026-09-29). */}
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={{ flex: 1 }}>
-                          <Text variant="overline" color="accent">
-                            {t('ob.payOver')}
-                          </Text>
-                          <Text variant="headline" style={{ marginTop: space.xs }}>
-                            {firstName
-                              ? t('ob.payTitleNamed', { name: firstName, lang })
-                              : t('ob.payTitle', { lang })}
-                          </Text>
-                        </View>
-                        <Tolly mood="celebrate" size={88} style={{ marginLeft: space.sm }} />
-                      </View>
-                      {/* Quote the dream back (relift's move): their own answer, at the moment of the ask. */}
-                      {goal && (
-                        <Text variant="callout" color="inkSoft" style={{ marginTop: space.sm }}>
-                          {t('ob.payDream', { goal: t(goal as StringKey) })}
-                        </Text>
-                      )}
-                    </>
-                  }
-                />
-              </View>
-            )}
-
             {step === 'lock' && (
               <Entrance key="lock">
                 <Text variant="overline" color="accent">
@@ -1084,6 +982,9 @@ export default function Onboarding() {
                 </Text>
                 <Text variant="serif" color="inkSoft" style={{ marginTop: space.md }}>
                   {t('ob.lockSub')}
+                </Text>
+                <Text variant="callout" color="accent" style={{ marginTop: space.sm }}>
+                  {t('preview.lockLine')}
                 </Text>
                 <View style={{ marginTop: space.xl }}>
                   <LockSetup apps={apps} onReady={setLockReady} />
@@ -1098,7 +999,7 @@ export default function Onboarding() {
 
   return (
     <View style={[styles.root, { backgroundColor: theme.paper }]}>
-      <AuroraBackground mood={step === 'paywall' || step === 'summary' ? 0.7 : 0.35} />
+      <AuroraBackground mood={step === 'summary' ? 0.7 : 0.35} />
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -1133,16 +1034,9 @@ export default function Onboarding() {
             )}
           </View>
 
-          {/* The paywall keeps a plain flex:1 View: PlusOffer fills it and pins
-              its own controls, and it scrolls its own list — nesting it in a
-              ScrollView would fight both. Every other step scrolls, which is
-              what lets the body centre when it fits and scroll when it does
-              not, in EITHER orientation, with no height guard. */}
-          {step === 'paywall' ? (
-            // Less headroom than the other steps: the wall is the one screen that
-            // must fit whole, legal links included (2026-10-02, "make this fit").
-            <View style={[styles.body, band(L), { paddingTop: space.md }]}>{stepBody}</View>
-          ) : (
+          {/* Every step scrolls, which is what lets the body centre when it fits and
+              scroll when it does not, in EITHER orientation, with no height guard. */}
+          {(
             <ScrollView
               ref={goalScrollRef}
               style={{ flex: 1 }}

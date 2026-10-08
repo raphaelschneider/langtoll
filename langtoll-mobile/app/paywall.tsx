@@ -44,10 +44,10 @@ export default function Paywall() {
           <View style={styles.headline}>
             <View style={{ flex: 1 }}>
               <Text variant="overline" color="accent">
-                {t('ob.payOver')}
+                {t(from === 'first_fare' ? 'preview.payOver' : 'ob.payOver')}
               </Text>
               <Text variant="hero" style={{ marginTop: space.md }}>
-                {t('plus.title')}
+                {t(from === 'first_fare' ? 'preview.payTitle' : 'plus.title')}
               </Text>
             </View>
             <Tolly mood="celebrate" size={112} style={{ marginLeft: space.sm }} />

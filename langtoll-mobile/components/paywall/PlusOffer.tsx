@@ -30,7 +30,7 @@ import {
 import { track } from '@/lib/telemetry';
 import { useT, resolvedLocale, type StringKey } from '@/lib/i18n';
 import type { PaywallSource } from '@/lib/paywall';
-import { isPlus, useAppState, getState } from '@/lib/store';
+import { hasRealPlus, useAppState, getState } from '@/lib/store';
 import type { Language } from '@/content/german/types';
 
 // Title only (2026-09-29, "so crowded"): the detail lines ran to six lines of grey
@@ -60,7 +60,7 @@ function HowRow({ icon, title }: { icon: any; title: string }) {
  */
 export function planDateLine(t: (k: StringKey, v?: Record<string, string | number>) => string): string | null {
   const s = getState();
-  if (!isPlus(s) || !s.plusExpiresAt) return null;
+  if (!hasRealPlus(s) || !s.plusExpiresAt) return null;
   const d = new Date(s.plusExpiresAt);
   if (Number.isNaN(d.getTime())) return null;
   const date = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -150,7 +150,7 @@ export function PlusOffer({
   useEffect(() => {
     // Tagged with the gate that opened it — the number that says which gate
     // converts. Purchases carry the same tag so the two can be joined.
-    track('paywall_viewed', { source, ...(isPlus() ? { plus: true } : {}) });
+    track('paywall_viewed', { source, ...(hasRealPlus() ? { plus: true } : {}) });
     getPackages().then((pkgs) => {
       setPackages(pkgs);
       if (pkgs.length && !pkgs.some((p) => p.period === 'yearly')) {
@@ -172,7 +172,9 @@ export function PlusOffer({
   // up on reinstall, a family member's purchase. The entitlement listener flips
   // the store; the wall must open on its own — a paid user who is told to pay
   // again is the worst outcome a hard paywall can produce.
-  const plus = isPlus(useAppState());
+  // The REAL entitlement: the free first fare makes isPlus() true without a
+  // subscription, and this wall must still sell during it.
+  const plus = hasRealPlus(useAppState());
   // Plus that is ALREADY active when the wall opens is a different case: the
   // wall used to call onDone() before its first frame, so a reinstall on an
   // Apple ID with a live subscription (a tester's sandbox one included) went

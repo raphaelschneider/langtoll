@@ -19,24 +19,29 @@ import { withAlpha } from '@/lib/color';
 import { useT } from '@/lib/i18n';
 import { openPaywall } from '@/lib/paywall';
 import { FREE_LEVELS } from '@/lib/plans';
-import { dismissLapsedNotice, isPlus, useAppState } from '@/lib/store';
+import { dismissLapsedNotice, dismissPreviewEnded, isPlus, useAppState } from '@/lib/store';
 
 export function LapsedNotice() {
   const theme = useTheme();
   const t = useT();
   const s = useAppState();
-  if (isPlus(s) || !s.lapsedAt) return null;
+  // The free first fare ran out: same card, its own words, and the wall it
+  // opens is tagged 'first_fare' so the admin can tell the two apart.
+  const preview = !!s.previewEnded;
+  if (isPlus(s) || (!s.lapsedAt && !preview)) return null;
 
   // The stored level is kept through a lapse; only the trained level falls to A1.
   const hadHigherLevel = !(FREE_LEVELS as readonly string[]).includes(s.level);
-  const body = hadHigherLevel
-    ? t('lapsed.bodyLevel', { level: s.level, free: FREE_LEVELS[0] })
-    : t('lapsed.body', { free: FREE_LEVELS[0] });
+  const body = preview
+    ? t('preview.endedBody', { free: FREE_LEVELS[0] })
+    : hadHigherLevel
+      ? t('lapsed.bodyLevel', { level: s.level, free: FREE_LEVELS[0] })
+      : t('lapsed.body', { free: FREE_LEVELS[0] });
 
   return (
     <Entrance delay={120}>
       <View style={[styles.card, { borderColor: withAlpha(theme.amber, 0.5), backgroundColor: withAlpha(theme.amber, 0.08) }]}>
-        <Text variant="bodyMedium">{t('lapsed.title')}</Text>
+        <Text variant="bodyMedium">{t(preview ? 'preview.endedTitle' : 'lapsed.title')}</Text>
         <Text variant="callout" color="inkSoft" style={{ marginTop: space.xs }}>
           {body}
         </Text>
@@ -46,9 +51,16 @@ export function LapsedNotice() {
           glow
           full
           style={{ marginTop: space.md }}
-          onPress={() => openPaywall('lapsed')}
+          onPress={() => openPaywall(preview ? 'first_fare' : 'lapsed')}
         />
-        <PressableScale onPress={dismissLapsedNotice} haptic={null} style={styles.notNow}>
+        <PressableScale
+          onPress={() => {
+            dismissPreviewEnded();
+            dismissLapsedNotice();
+          }}
+          haptic={null}
+          style={styles.notNow}
+        >
           <Text variant="callout" color="inkFaint" center>
             {t('lapsed.keepFree')}
           </Text>

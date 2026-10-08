@@ -12,7 +12,10 @@ import { SPEAKER_FORM_EXAMPLES } from '@/lib/plans';
 import type { Language } from '@/content/german/types';
 
 /** Bumped when STEPS is reordered; saved into the draft so a resume knows which order it came from. */
-export const STEP_ORDER = 2;
+export const STEP_ORDER = 3;
+// 1.0.8 (2026-10-09): no taste and no paywall. Onboarding ends at the lock, the
+// first fare is the real thing with full access, and the wall waits until that
+// pass runs out. Keep in sync with ONBOARDING_STEPS_1_0_8 in the admin.
 export const STEPS = [
   'hook',
   'how',
@@ -29,15 +32,20 @@ export const STEPS = [
   'forms',
   'printing',
   'summary',
-  'taste',
-  'paywall',
   'lock',
 ] as const;
 export type Step = (typeof STEPS)[number];
+/** Steps older builds saved drafts on that no longer exist. */
+type OldStep = 'taste' | 'paywall';
 
 /** The order builds before 1.0.4 saved drafts under (name third). For the resume test. */
-export const STEPS_ORDER_1: readonly Step[] = [
+export const STEPS_ORDER_1: readonly (Step | OldStep)[] = [
   'hook', 'how', 'name', 'language', 'difficulty', 'apps', 'mirror', 'when', 'fare',
+  'goal', 'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
+];
+/** 1.0.4 – 1.0.7: name before the mirror, with the taste and the paywall. */
+export const STEPS_ORDER_2: readonly (Step | OldStep)[] = [
+  'hook', 'how', 'language', 'difficulty', 'apps', 'name', 'mirror', 'when', 'fare',
   'goal', 'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
 ];
 
@@ -48,17 +56,18 @@ export function stepsFor(language: Language): readonly Step[] {
   return SPEAKER_FORM_EXAMPLES[language ?? 'de'] ? STEPS : STEPS.filter((x) => x !== 'forms');
 }
 
-// Where a relaunch picks up. Mid-loader goes to the summary it was loading, and
-// the lock step is only for someone who has paid: a draft that says 'lock'
-// without Plus (a lapse, a refund) goes back to the wall.
-export function resumeIndex(draft: { step: string; order?: number }, steps: readonly Step[], plus: boolean): number {
-  let s = draft.step as Step;
+// Where a relaunch picks up. Mid-loader goes to the summary it was loading. A
+// draft from a build with the taste or the paywall (before 1.0.8) that stopped
+// on either has answered everything: it resumes on the lock, and gets the free
+// first fare like everyone else.
+export function resumeIndex(draft: { step: string; order?: number }, steps: readonly Step[]): number {
+  let s = draft.step as Step | OldStep;
   if (s === 'printing') s = 'summary';
-  // A draft saved under the old order (name third, before 1.0.4) that stopped on
-  // the name field has not answered language, difficulty or apps yet; the moved
-  // 'name' now sits after them, so resume at 'language' rather than skip them.
-  if (s === 'name' && draft.order !== STEP_ORDER) s = 'language';
-  if (s === 'lock' && !plus) s = 'paywall';
-  const i = steps.indexOf(s);
+  if (s === 'taste' || s === 'paywall') s = 'lock';
+  // A draft saved under the first order (name third, before 1.0.4) that stopped
+  // on the name field has not answered language, difficulty or apps yet; the
+  // moved 'name' now sits after them, so resume at 'language' rather than skip them.
+  if (s === 'name' && (draft.order ?? 1) < 2) s = 'language';
+  const i = steps.indexOf(s as Step);
   return i >= 0 ? i : 0;
 }

@@ -26,6 +26,7 @@ import {
   completeSession,
   lockNow,
   isPlus,
+  hasRealPlus,
   isUnlocked,
   applyEntitlement,
   isLockPaused,
@@ -455,7 +456,7 @@ export default function Settings() {
               <View style={styles.planRow}>
                 <Ionicons name="checkmark-circle" size={20} color={theme.accent} />
                 <Text variant="bodyMedium" style={{ color: theme.accent }}>
-                  {t('settings.planPlus')}
+                  {hasRealPlus(state) ? t('settings.planPlus') : t('settings.planPreview')}
                 </Text>
               </View>
             ) : null}

@@ -16,7 +16,7 @@ import {
 import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono';
 import { ThemeProvider, useTheme } from '@/design/theme';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { hydrate, getState, isUnlocked, isLockPaused, expireLockPause } from '@/lib/store';
+import { hydrate, getState, isUnlocked, isLockPaused, expireLockPause, expirePreview } from '@/lib/store';
 import { initDeviceId } from '@/lib/device';
 import { syncPassActivity } from '@/lib/pass-activity';
 import { track } from '@/lib/telemetry';
@@ -42,6 +42,7 @@ setTimeout(() => {
 // re-arms the native re-lock for the pause's end, not for a pass.
 function relockUnlessPaused(): void {
   expireLockPause();
+  expirePreview();
   const s = getState();
   const paused = isLockPaused(s);
   maybeRelock(isUnlocked(s) || paused, paused ? s.lockPausedUntil : s.unlockExpiresAt);

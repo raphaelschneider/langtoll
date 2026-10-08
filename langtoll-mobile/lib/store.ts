@@ -175,6 +175,15 @@ export interface AppState {
    *  home screen. Cleared by the notice. Without it, a lapsed learner just saw A1
    *  exercises with no idea why (founder, 2026-10-08). */
   lapsedAt?: string | null;
+  /** The first fare is real and free: full access until this ms epoch (24 h from
+   *  the end of onboarding, cut to the first pass's expiry once it is paid). The
+   *  paywall step left onboarding for this (founder, 2026-10-09): pay for a
+   *  mechanic you have felt, not one you have read about. */
+  previewUntil?: number | null;
+  /** The preview ran out and the person has not yet been told on home. */
+  previewEnded?: boolean | null;
+  /** The wall was opened once for the ended preview; it is not opened again on its own. */
+  previewWallShown?: boolean | null;
 }
 
 const initialState: AppState = {
@@ -218,6 +227,9 @@ const initialState: AppState = {
   firstLaunchAt: null,
   lockPausedUntil: null,
   onboardingDraft: null,
+  previewUntil: null,
+  previewEnded: null,
+  previewWallShown: null,
   voiceOverride: null,
   voiceRate: null,
   voicePitch: null,
@@ -344,11 +356,15 @@ export function completeSession(totalMinutes: number): void {
     const yesterday = addDays(today, -1);
     streak = state.lastPassDate === yesterday ? streak + 1 : 1;
   }
+  const unlockExpiresAt = Date.now() + totalMinutes * 60_000;
   setState({
     sessionsCompleted: state.sessionsCompleted + 1,
-    unlockExpiresAt: Date.now() + totalMinutes * 60_000,
+    unlockExpiresAt,
     streak,
     lastPassDate: today,
+    // The free first fare is this one: full access lasts exactly as long as the
+    // pass it bought. When the apps lock again, the wall is waiting.
+    ...(previewActive(state) ? { previewUntil: Math.min(state.previewUntil!, unlockExpiresAt) } : {}),
   });
 }
 
@@ -488,8 +504,43 @@ export function saveOnboardingDraft(draft: OnboardingDraft | null): void {
   setState({ onboardingDraft: draft });
 }
 
-export function isPlus(s: AppState = state): boolean {
+/** A paid (or trialling) RevenueCat entitlement — not the free first fare. */
+export function hasRealPlus(s: AppState = state): boolean {
   return s.plan === 'plus';
+}
+
+/** The free first fare is running: full access without a subscription. */
+export function previewActive(s: AppState = state, nowMs = Date.now()): boolean {
+  return s.previewUntil != null && s.previewUntil > nowMs;
+}
+
+/** Every feature gate: Plus, or the free first fare still running. */
+export function isPlus(s: AppState = state): boolean {
+  return s.plan === 'plus' || previewActive(s);
+}
+
+/** Onboarding is done: the first fare is on us, for a day at most. */
+export function startPreview(hours = 24): void {
+  setState({ previewUntil: Date.now() + hours * 3_600_000, previewEnded: null, previewWallShown: null });
+}
+
+/**
+ * Forget a preview that has run out. Call before any gate decision (launch,
+ * foreground, the home tick). Returns true the one time it ends, so home can
+ * open the wall.
+ */
+export function expirePreview(nowMs = Date.now()): boolean {
+  if (state.previewUntil == null || state.previewUntil > nowMs) return false;
+  setState({ previewUntil: null, previewEnded: state.plan === 'plus' ? null : true });
+  return state.plan !== 'plus';
+}
+
+export function markPreviewWallShown(): void {
+  setState({ previewWallShown: true });
+}
+
+export function dismissPreviewEnded(): void {
+  setState({ previewEnded: null });
 }
 
 /**
@@ -506,6 +557,8 @@ export interface EntitlementMeta {
 export function applyEntitlement(active: boolean, meta?: EntitlementMeta): void {
   if (active) {
     setState({
+      previewUntil: null,
+      previewEnded: null,
       plan: 'plus',
       planSince: state.planSince ?? new Date().toISOString(),
       plusExpiresAt: meta?.expiresAt ?? null,

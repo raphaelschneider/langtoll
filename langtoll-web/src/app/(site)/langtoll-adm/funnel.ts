@@ -23,6 +23,12 @@ export const ONBOARDING_STEPS = [
   'hook', 'how', 'language', 'difficulty', 'apps', 'name', 'mirror', 'when', 'fare', 'goal',
   'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
 ] as const;
+// 1.0.8 (2026-10-09): no taste and no paywall in onboarding. The first fare is real and
+// free; the wall opens from home when that pass runs out (paywall source 'first_fare').
+export const ONBOARDING_STEPS_1_0_8 = [
+  'hook', 'how', 'language', 'difficulty', 'apps', 'name', 'mirror', 'when', 'fare', 'goal',
+  'tease', 'future', 'forms', 'printing', 'summary', 'lock',
+] as const;
 export const ONBOARDING_STEPS_BEFORE_1_0_4 = [
   'hook', 'how', 'name', 'language', 'difficulty', 'apps', 'mirror', 'when', 'fare', 'goal',
   'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
@@ -32,6 +38,8 @@ export function stepOrderFor(version: string | null | undefined): readonly strin
   const parts = String(version ?? '').split('.').map((x) => Number(x));
   if (parts.length === 0 || parts.some((n) => Number.isNaN(n))) return ONBOARDING_STEPS_BEFORE_1_0_4;
   const [a = 0, b = 0, c = 0] = parts;
+  const v108 = a > 1 || (a === 1 && (b > 0 || c >= 8));
+  if (v108) return ONBOARDING_STEPS_1_0_8;
   const newer = a > 1 || (a === 1 && (b > 0 || c >= 4));
   return newer ? ONBOARDING_STEPS : ONBOARDING_STEPS_BEFORE_1_0_4;
 }
@@ -469,7 +477,8 @@ export function buildReport(users: UserRow[], events: EventRow[], subs: SubRow[]
   // 4) Onboarding step by step — one table per step order (the name screen moved in 1.0.4).
   const stepDevices = devices.filter((d) => d.stepMax >= 0);
   for (const [key, title, order] of [
-    ['onboarding', 'Onboarding step by step (1.0.4+, name before the mirror)', ONBOARDING_STEPS],
+    ['onboarding-1.0.8', 'Onboarding step by step (1.0.8+, no taste, no paywall: the first fare is real and free)', ONBOARDING_STEPS_1_0_8],
+    ['onboarding', 'Onboarding step by step (1.0.4 – 1.0.7, name before the mirror)', ONBOARDING_STEPS],
     ['onboarding-before-1.0.4', 'Onboarding step by step (before 1.0.4, name third)', ONBOARDING_STEPS_BEFORE_1_0_4],
   ] as const) {
     const group = stepDevices.filter((d) => d.order === order);
