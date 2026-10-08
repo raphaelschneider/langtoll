@@ -101,6 +101,13 @@ export function TasteFare({
   // Leaving the step silences it, whatever was mid-word.
   useEffect(() => () => stopSpeaking(), []);
 
+  // The done screen rendered. Without this, a person who stops after the fifth
+  // answer and one whose app died before the screen look the same (2026-10-06).
+  useEffect(() => {
+    if (done) track('taste_done', { correct, of: exercises.length });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
+
   useEffect(() => {
     if (!feedback) return;
     // A tick needs a glance; a miss needs time to read the red and the right

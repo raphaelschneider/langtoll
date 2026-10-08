@@ -45,6 +45,10 @@ export type TelemetryEvent =
   // Funnel step views: one per onboarding screen seen (step: 'hook'…'lock').
   // Each answer in onboarding's three-question taste: n, correct, ms, type.
   | 'taste_answer'
+  // The taste's done screen rendered: a stop after the fifth answer is a choice, not a crash.
+  | 'taste_done'
+  // A language the picker does not have, tapped on the 'Another language?' row.
+  | 'language_wanted'
   | 'onboarding_step'
   // The lock step (onboarding) and the app picker: what Screen Time answered when asked
   // (result granted / denied / error, with Apple's error code) and whether apps were

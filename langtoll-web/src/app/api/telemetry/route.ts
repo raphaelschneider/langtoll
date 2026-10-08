@@ -35,6 +35,8 @@ const KNOWN_EVENTS = new Set([
   // the app had been sending listen_fallback_used for weeks.
   'listen_fallback_used',
   'taste_answer',
+  'taste_done',
+  'language_wanted',
   'notify_permission',
   'purchase_cancel_reason',
   'lock_auth',

@@ -73,6 +73,8 @@ import { LOCALE_ENDONYMS } from '@/lib/locales';
 import { STEPS, STEP_ORDER, stepsFor, resumeIndex, type Step } from '@/lib/onboarding-steps';
 
 const APPS = ['TikTok', 'Instagram', 'YouTube', 'Reddit', 'X', 'Games', 'Netflix'];
+/** The languages people usually come for that the picker does not have, in their own names. */
+const OTHER_LANGUAGES = ['日本語', '한국어', '中文', 'العربية', 'Русский', 'Türkçe', 'Nederlands', 'Polski'];
 
 // The damage and the other side are computed in lib/projection.ts (pure,
 // tested); this screen only shows the numbers.
@@ -234,6 +236,14 @@ export default function Onboarding() {
     prevStepRef.current = step;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+  // "Another language?" on the picker: open, which one, and the free field.
+  const [langOtherOpen, setLangOtherOpen] = useState(false);
+  const [langWanted, setLangWanted] = useState<string | null>(null);
+  const [langOtherText, setLangOtherText] = useState('');
+  function wantLanguage(name: string) {
+    setLangWanted(name);
+    track('language_wanted', { lang: name.slice(0, 40) });
+  }
   const [difficulty, setDifficulty] = useState(draft?.difficulty ?? 3);
   const [apps, setApps] = useState<string[]>(draft?.apps ?? ['TikTok', 'Instagram']);
   const [goal, setGoal] = useState<string | null>(draft?.goal ?? null);
@@ -584,6 +594,43 @@ export default function Onboarding() {
                       onPress={() => {}}
                     />
                   ))}
+                  {/* The language they came for is not here. Until 2026-10-06 that person
+                      bounced between the hook and this list and left, and we never learned
+                      which language it was. One row opens the usual asks and a field; a tap
+                      records language_wanted and says plainly it is not here yet. */}
+                  <OptionRow label={t('ob.langOther')} selected={false} onPress={() => setLangOtherOpen((o) => !o)} />
+                  {langOtherOpen && (
+                    <View style={{ gap: space.sm, paddingTop: space.xs }}>
+                      <Text variant="callout" color="inkSoft">
+                        {t('ob.langOtherHint')}
+                      </Text>
+                      <View style={styles.chipWrap}>
+                        {OTHER_LANGUAGES.map((name) => (
+                          <Chip
+                            key={name}
+                            label={name}
+                            selected={langWanted === name}
+                            onPress={() => wantLanguage(name)}
+                          />
+                        ))}
+                      </View>
+                      <TextInput
+                        value={langOtherText}
+                        onChangeText={setLangOtherText}
+                        onSubmitEditing={() => langOtherText.trim() && wantLanguage(langOtherText.trim())}
+                        placeholder={t('ob.langOtherField')}
+                        placeholderTextColor={theme.inkFaint}
+                        returnKeyType="done"
+                        autoCapitalize="words"
+                        style={[styles.input, { color: theme.ink, borderColor: theme.line, backgroundColor: theme.surface }]}
+                      />
+                      {langWanted ? (
+                        <Text variant="callout" color="accent">
+                          {t('ob.langOtherThanks')}
+                        </Text>
+                      ) : null}
+                    </View>
+                  )}
                 </View>
               </Entrance>
             )}
