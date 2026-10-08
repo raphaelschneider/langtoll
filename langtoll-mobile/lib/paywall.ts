@@ -16,6 +16,7 @@ export type PaywallSource =
   | 'session_voice'
   | 'wallet_voice'
   | 'onboarding'
+  | 'lapsed'
   | 'notification'
   | 'trial_end'
   | 'unknown';

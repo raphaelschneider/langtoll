@@ -171,6 +171,12 @@ export interface AppState {
   /** The plusExpiresAt we last asked "why did you turn off renewal?" for, so the
    *  question comes once per cancellation, not on every open. */
   renewalAskedFor?: string | null;
+  /** When Plus (or the free week) ended and the person has not yet been told on the
+   *  home screen. Cleared by the notice. Without it, a lapsed learner just saw A1
+   *  exercises with no idea why (founder, 2026-10-08). */
+  lapsedAt?: string | null;
+  /** Whether the lapse was the end of a free trial (vs a paid period), for the wording. */
+  lapsedFromTrial?: boolean | null;
 }
 
 const initialState: AppState = {
@@ -420,6 +426,11 @@ export function bumpRecap(words: number, minutes: number): void {
   });
 }
 
+/** The home screen has told the person their Plus ended. */
+export function dismissLapsedNotice(): void {
+  setState({ lapsedAt: null, lapsedFromTrial: null });
+}
+
 export function markRenewalAsked(expiresAt: string): void {
   setState({ renewalAskedFor: expiresAt });
 }
@@ -504,7 +515,10 @@ export function applyEntitlement(active: boolean, meta?: EntitlementMeta): void 
       plusIsTrial: meta?.isTrial ?? null,
     });
   } else {
-    setState({ plan: 'free', planSince: null, plusExpiresAt: null, plusWillRenew: null, plusIsTrial: null });
+    // Plus → free is a moment the person must be told about, on the next home
+    // screen: the lapse notice reads these two fields and clears them.
+    const lapse = state.plan === 'plus' ? { lapsedAt: new Date().toISOString(), lapsedFromTrial: state.plusIsTrial === true } : {};
+    setState({ plan: 'free', planSince: null, plusExpiresAt: null, plusWillRenew: null, plusIsTrial: null, ...lapse });
     // Lapse edge: a former Plus user may be blocking multiple apps / a whole category / websites,
     // which the free tier doesn't allow. A Family Controls selection is opaque, so we can't trim it
     // to one app — we clear it and let them re-pick a single app. No-op in stub/sim (counts null) and

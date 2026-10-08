@@ -20,6 +20,7 @@ import { FareGate, type FareGateTrigger } from '@/components/pass/FareGate';
 import { JourneyLine, nextStop } from '@/components/home/JourneyLine';
 import { WeeklyRecap } from '@/components/home/WeeklyRecap';
 import { RenewalAsk } from '@/components/home/RenewalAsk';
+import { LapsedNotice } from '@/components/home/LapsedNotice';
 import { useTheme, space, radius } from '@/design/theme';
 import { useLayout, opticalCenter, MAX_WIDE_CONTENT } from '@/design/layout';
 import { TicketRow, ticketsForActivePack } from '@/components/wallet/TicketRow';
@@ -209,6 +210,7 @@ export default function Home() {
   const secBanners = (
     <>
       {/* Renewal turned off: asked once, why. Renders nothing otherwise. */}
+      <LapsedNotice />
       <RenewalAsk />
       {/* A night off is running: the shield is down without a pass. Tolly is
           asleep, the time it returns is on the row, and the way back is one
