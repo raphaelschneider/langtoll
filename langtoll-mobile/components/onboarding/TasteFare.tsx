@@ -11,6 +11,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
+import { Button } from '@/components/ui/Button';
 import { Entrance } from '@/components/ui/Entrance';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
@@ -64,6 +65,13 @@ export function TasteFare({
   const seed = useRef(Math.floor(Math.random() * 2 ** 31)).current;
   const exercises = useMemo(() => pickTaste(pack, seed, count), [pack, seed, count]);
   const [idx, setIdx] = useState(0);
+  // Teach, then ask. Half of everyone who reached this screen quit on it, most
+  // after one or two answers, usually a wrong one: a recognition quiz on words
+  // they had never seen, right before the wall (admin, 7 days to 2026-10-08).
+  // Each word is now shown with its meaning and spoken first; the question that
+  // follows is one they can get right. The mechanic and the voice are still
+  // demonstrated, and nobody is made to feel stupid for money.
+  const [phase, setPhase] = useState<'teach' | 'ask'>('teach');
   const [picked, setPicked] = useState<string | null>(null);
   const [correct, setCorrect] = useState(0);
   const startedAt = useRef(Date.now()).current;
@@ -71,11 +79,13 @@ export function TasteFare({
 
   const ex = exercises[idx];
   const feedback = picked !== null;
+  const word = ex?.audio ?? (ex?.type === 'mc_de_en' ? ex?.prompt : ex?.answer) ?? '';
+  const meaning = (ex?.type === 'mc_de_en' ? ex?.answer : ex?.prompt) ?? '';
   // Tolly reacts to the answer, as he does in a real fare. He smiled at wrong
   // answers for a day (2026-10-01) and the founder could not tell whether they had
   // been right: "Tolly is smiling regardless, so no."
   const wasRight = feedback && picked === ex?.answer;
-  const mood: TollyMood = done ? 'celebrate' : !feedback ? 'stern' : wasRight ? 'happy' : 'sad';
+  const mood: TollyMood = done ? 'celebrate' : phase === 'teach' ? 'happy' : !feedback ? 'stern' : wasRight ? 'happy' : 'sad';
   const shownAt = useRef(Date.now());
   // The word is spoken a beat after it appears, not in the same frame. The root
   // layout silences speech on every route change, and on a resume the redirect
@@ -85,19 +95,12 @@ export function TasteFare({
   const SPEAK_AFTER_MS = 350;
   useEffect(() => {
     shownAt.current = Date.now();
-    // Hear the word as it appears when it is in the target language; the
-    // English-prompt kind is spoken when the answer lands (below).
-    if (!ex?.audio || ex.type === 'mc_en_de') return;
-    const id = setTimeout(() => speakTaste(ex.audio!, pack), SPEAK_AFTER_MS);
+    // Hear the word as its card appears.
+    if (!word) return;
+    const id = setTimeout(() => speakTaste(word, pack), SPEAK_AFTER_MS);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx]);
-  useEffect(() => {
-    if (!feedback || !ex?.audio || ex.type !== 'mc_en_de') return;
-    const id = setTimeout(() => speakTaste(ex.audio!, pack), 120);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [feedback]);
   // Leaving the step silences it, whatever was mid-word.
   useEffect(() => () => stopSpeaking(), []);
 
@@ -121,6 +124,7 @@ export function TasteFare({
         } else {
           setIdx(idx + 1);
           setPicked(null);
+          setPhase('teach');
         }
       },
       wasRight ? 900 : 2200,
@@ -191,6 +195,44 @@ export function TasteFare({
           </>
         )}
       </Entrance>
+    );
+  }
+
+  if (phase === 'teach') {
+    return (
+      <View style={{ flex: 1 }}>
+        <Text variant="overline" color="accent">
+          {t('ob.tasteTeachOver', { n: idx + 1, of: exercises.length })}
+        </Text>
+        <Entrance key={`teach:${ex.key}`} from={8}>
+          <PressableScale onPress={() => speakTaste(word, pack)} haptic={null} accessibilityRole="button" accessibilityLabel={word}>
+            <Text variant="hero" style={{ marginTop: space.lg, fontSize: 40, lineHeight: 46 }}>
+              {word}
+            </Text>
+          </PressableScale>
+          <Text variant="title" color="inkSoft" style={{ marginTop: space.sm }}>
+            {meaning}
+          </Text>
+          <Text variant="caption" color="inkFaint" style={{ marginTop: space.md }}>
+            {t('ob.tasteTeachHint')}
+          </Text>
+        </Entrance>
+        <View style={styles.slot} pointerEvents="none">
+          <Entrance key={`tolly:teach:${idx}`} from={6}>
+            <Tolly mood="happy" size={144} />
+          </Entrance>
+        </View>
+        <Button
+          label={t('ob.tasteTeachCta')}
+          glow
+          full
+          style={{ marginBottom: space.lg }}
+          onPress={() => {
+            shownAt.current = Date.now();
+            setPhase('ask');
+          }}
+        />
+      </View>
     );
   }
 

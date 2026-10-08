@@ -452,7 +452,9 @@ export default function Onboarding() {
   // So on regular widths it travels WITH the content instead (founder call,
   // 2026-09-09: "I don't know about this button really down there").
   const footerCta =
-    step === 'printing' || step === 'paywall' ? null : (
+    // The taste has its own buttons until the fare is paid; a disabled 'Pay the
+    // fare first' under its 'Got it' was two buttons for one tap (2026-10-08).
+    step === 'printing' || step === 'paywall' || (step === 'taste' && !tasteDone) ? null : (
       <View style={[styles.footer, band(L)]}>
         <Button
           label={
