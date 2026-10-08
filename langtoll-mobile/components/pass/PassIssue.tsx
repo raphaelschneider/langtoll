@@ -4,6 +4,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { playStamp } from '@/lib/sound';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,7 +22,12 @@ const STAMP_DELAY = 750;
 
 type PassCardProps = React.ComponentProps<typeof PassCard>;
 
-export function PassIssue(props: PassCardProps) {
+/**
+ * `sound`: play the stamp thunk with the slam. Off by default: in a session the
+ * fare gate that precedes this card already plays it. The onboarding's first
+ * fare has no gate, so its ticket stamped in silence (founder, 2026-10-08).
+ */
+export function PassIssue({ sound = false, ...props }: PassCardProps & { sound?: boolean }) {
   const theme = useTheme();
 
   // the ticket prints…
@@ -35,11 +41,12 @@ export function PassIssue(props: PassCardProps) {
       STAMP_DELAY,
       withSpring(1, { damping: 12, stiffness: 260, mass: 0.7 })
     );
-    const h = setTimeout(
-      () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy),
-      STAMP_DELAY + 60
-    );
+    const h = setTimeout(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      if (sound) playStamp();
+    }, STAMP_DELAY + 60);
     return () => clearTimeout(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rise, stamp]);
 
   const cardStyle = useAnimatedStyle(() => ({

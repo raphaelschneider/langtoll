@@ -167,6 +167,7 @@ export function TasteFare({
         {pass ? (
           <View style={{ marginTop: space.xl }}>
             <PassIssue
+              sound
               state="active"
               remainingMs={pass.unlockMinutes * 60_000}
               unlockMinutes={pass.unlockMinutes}
