@@ -175,8 +175,6 @@ export interface AppState {
    *  home screen. Cleared by the notice. Without it, a lapsed learner just saw A1
    *  exercises with no idea why (founder, 2026-10-08). */
   lapsedAt?: string | null;
-  /** Whether the lapse was the end of a free trial (vs a paid period), for the wording. */
-  lapsedFromTrial?: boolean | null;
 }
 
 const initialState: AppState = {
@@ -428,7 +426,7 @@ export function bumpRecap(words: number, minutes: number): void {
 
 /** The home screen has told the person their Plus ended. */
 export function dismissLapsedNotice(): void {
-  setState({ lapsedAt: null, lapsedFromTrial: null });
+  setState({ lapsedAt: null });
 }
 
 export function markRenewalAsked(expiresAt: string): void {
@@ -517,7 +515,7 @@ export function applyEntitlement(active: boolean, meta?: EntitlementMeta): void 
   } else {
     // Plus → free is a moment the person must be told about, on the next home
     // screen: the lapse notice reads these two fields and clears them.
-    const lapse = state.plan === 'plus' ? { lapsedAt: new Date().toISOString(), lapsedFromTrial: state.plusIsTrial === true } : {};
+    const lapse = state.plan === 'plus' ? { lapsedAt: new Date().toISOString() } : {};
     setState({ plan: 'free', planSince: null, plusExpiresAt: null, plusWillRenew: null, plusIsTrial: null, ...lapse });
     // Lapse edge: a former Plus user may be blocking multiple apps / a whole category / websites,
     // which the free tier doesn't allow. A Family Controls selection is opaque, so we can't trim it

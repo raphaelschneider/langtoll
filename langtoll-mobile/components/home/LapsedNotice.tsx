@@ -1,4 +1,6 @@
-// "Your free week has ended." The one screen that says what just happened.
+// "Your Plus has ended." The one screen that says what just happened: the free
+// week ran out, a subscription was cancelled and reached its end, a refund, a
+// failed renewal. One wording for all of them (founder, 2026-10-08).
 //
 // When Plus lapsed, the app quietly fell back to the free plan: A1 exercises,
 // one locked app. Nothing said why, so a learner who had been at B1 opened a
@@ -34,7 +36,7 @@ export function LapsedNotice() {
   return (
     <Entrance delay={120}>
       <View style={[styles.card, { borderColor: withAlpha(theme.amber, 0.5), backgroundColor: withAlpha(theme.amber, 0.08) }]}>
-        <Text variant="bodyMedium">{t(s.lapsedFromTrial ? 'lapsed.titleTrial' : 'lapsed.titlePaid')}</Text>
+        <Text variant="bodyMedium">{t('lapsed.title')}</Text>
         <Text variant="callout" color="inkSoft" style={{ marginTop: space.xs }}>
           {body}
         </Text>
