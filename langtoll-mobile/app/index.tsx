@@ -21,7 +21,6 @@ import { JourneyLine, nextStop } from '@/components/home/JourneyLine';
 import { WeeklyRecap } from '@/components/home/WeeklyRecap';
 import { RenewalAsk } from '@/components/home/RenewalAsk';
 import { LapsedNotice } from '@/components/home/LapsedNotice';
-import { PreviewBanner } from '@/components/home/PreviewBanner';
 import { TrialWall } from '@/components/home/TrialWall';
 import { useTheme, space, radius } from '@/design/theme';
 import { useLayout, opticalCenter, MAX_WIDE_CONTENT } from '@/design/layout';
@@ -48,7 +47,7 @@ import {
   unlockRemainingMs,
   wordsSeen,
   wordsMastered,
-  lockNow, isLockPaused, resumeLock, expirePreview, needsTrialWall } from '@/lib/store';
+  lockNow, isLockPaused, resumeLock, expirePreview, needsTrialWall, previewActive, hasRealPlus } from '@/lib/store';
 
 function Stat({ value, label, divider }: { value: number; label: string; divider?: boolean }) {
   const theme = useTheme();
@@ -74,6 +73,8 @@ export default function Home() {
   const langName = t(`lang.${pack.language}` as StringKey);
 
   const unlocked = isUnlocked(state, now);
+  // The free first fare, not yet paid: the ticket, the button and a caption say so.
+  const firstFreeFare = previewActive(state, now) && !hasRealPlus(state) && state.sessionsCompleted === 0;
 
   // The free first fare ends with its pass (or after a day). The moment it does,
   // for someone who never started a trial, home becomes the wall (below).
@@ -171,21 +172,16 @@ export default function Home() {
       </Entrance>
     </>
   );
-  const secHero = (
-    <>
-      {/* hero */}
-      <Entrance delay={60}>
-        <Text variant="hero" style={{ marginTop: space.xxl }}>
-          {unlocked ? pack.flavor.heroUnlocked : pack.flavor.heroLocked}
-        </Text>
-      </Entrance>
-    </>
-  );
+  // No hero line on home since 2026-10-09 (founder): it named an app they may
+  // not block and spent the biggest type on a sentence already read. The pass
+  // card is the first thing now; Tolly peeks over it as before.
   const secPass = (
     <>
       {/* the pass */}
       <Entrance delay={140}>
-        <View style={{ marginTop: space.xl }}>
+        {/* Room above the card for Tolly's head (44pt over the edge) now that no
+            headline sits between the brand row and the pass. */}
+        <View style={{ marginTop: space.xxl + space.lg }}>
           {/* Tolly at the booth, always — the original brief: happy when the toll is
               paid, sad when it isn't. Paws on the card's top edge, in the clear right
               third above it (the headline never reaches there). */}
@@ -205,6 +201,7 @@ export default function Home() {
             packLabel={`${pack.language.toUpperCase()} · ${pack.level}`}
             serial={state.sessionsCompleted}
             passenger={state.name}
+            firstFare={firstFreeFare}
           />
           {/* First-week express (lib/plans): the pass says 3, this says why,
               and when their own fare takes over. */}
@@ -220,7 +217,6 @@ export default function Home() {
   const secBanners = (
     <>
       {/* Renewal turned off: asked once, why. Renders nothing otherwise. */}
-      <PreviewBanner now={now} />
       <LapsedNotice />
       <RenewalAsk />
       {/* A night off is running: the shield is down without a pass. Tolly is
@@ -295,7 +291,9 @@ export default function Home() {
               ? t('home.topUp', { min: effectiveUnlockMinutes() })
               : paused
                 ? t('home.practiceAnyway')
-                : t('home.practice')
+                : firstFreeFare
+                  ? t('home.practiceFirst')
+                  : t('home.practice')
           }
           variant={unlocked ? 'pine' : 'primary'}
           icon={unlocked ? 'flash' : paused ? 'book' : 'lock-open'}
@@ -305,6 +303,11 @@ export default function Home() {
           style={{ marginTop: L.wide ? 0 : space.xl }}
         />
       </Entrance>
+      {firstFreeFare ? (
+        <Text variant="callout" color="inkSoft" center style={{ marginTop: space.sm }}>
+          {t('preview.tryLock')}
+        </Text>
+      ) : null}
     </>
   );
   const secWallet = (
@@ -410,7 +413,6 @@ export default function Home() {
                  lined up against the headline instead, and read as a caption
                  to it. Narrower windows keep the single column. */
               <>
-                {secHero}
                 <View style={styles.panes}>
                   <View style={styles.paneLeft}>{secPass}</View>
                   <View style={styles.paneRight}>
@@ -424,7 +426,6 @@ export default function Home() {
               </>
             ) : (
               <>
-                {secHero}
                 {secPass}
                 {secBanners}
                 {secCta}

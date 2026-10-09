@@ -61,6 +61,10 @@ interface Props {
   serial: number; // sessions completed → ticket number
   /** First name, embossed on the ticket. */
   passenger?: string | null;
+  /** The free first fare, not yet paid: the ticket says so where EXPIRED would be,
+   *  in the brand teal, so the deal lives on the pass and not in a box under it
+   *  (founder, 2026-10-09: "I don't like how this is looking"). */
+  firstFare?: boolean;
 }
 
 function formatMs(ms: number): string {
@@ -82,10 +86,12 @@ export function PassCard({
   packLabel,
   serial,
   passenger,
+  firstFare = false,
 }: Props) {
   const theme = useTheme();
   const active = state === 'active';
   const paused = state === 'paused';
+  const onUs = !active && !paused && firstFare;
   // The night-off chip and stamp: calm brand teal, never the danger red of
   // EXPIRED — nothing is wrong, the gate is open on purpose.
   const pausedColor = theme.accent;
@@ -96,7 +102,7 @@ export function PassCard({
   const activeColor = theme.pine;
   const progress = active ? Math.min(1, remainingMs / (unlockMinutes * 60_000)) : 0;
 
-  const chipColor = active ? activeColor : paused ? pausedColor : theme.danger;
+  const chipColor = active ? activeColor : paused || onUs ? pausedColor : theme.danger;
 
   const barcode = useMemo(() => BARCODE, []);
 
@@ -173,13 +179,13 @@ export function PassCard({
         {!active && (
           <View
             pointerEvents="none"
-            style={[styles.stamp, { borderColor: withAlpha(paused ? pausedColor : theme.danger, 0.4) }]}
+            style={[styles.stamp, { borderColor: withAlpha(paused || onUs ? pausedColor : theme.danger, 0.4) }]}
           >
             <Text
               variant="overline"
-              style={{ color: withAlpha(paused ? pausedColor : theme.danger, 0.55), fontSize: 15, letterSpacing: 3 }}
+              style={{ color: withAlpha(paused || onUs ? pausedColor : theme.danger, 0.55), fontSize: 15, letterSpacing: 3 }}
             >
-              {paused ? t('pass.nightOff') : t('pass.expired')}
+              {paused ? t('pass.nightOff') : onUs ? t('pass.firstFareStamp') : t('pass.expired')}
             </Text>
           </View>
         )}
@@ -201,7 +207,7 @@ export function PassCard({
             >
               <View style={[styles.dot, { backgroundColor: chipColor }]} />
               <Text variant="caption" style={{ color: chipColor, letterSpacing: 1 }}>
-                {active ? t('pass.active') : paused ? t('pass.nightOff') : t('pass.expired')}
+                {active ? t('pass.active') : paused ? t('pass.nightOff') : onUs ? t('pass.firstFare') : t('pass.expired')}
               </Text>
             </View>
           </View>
