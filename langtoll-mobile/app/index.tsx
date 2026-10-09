@@ -303,10 +303,23 @@ export default function Home() {
           style={{ marginTop: L.wide ? 0 : space.xl }}
         />
       </Entrance>
+      {/* The free first fare: a card, not a caption. The one thing a new install
+          should do before paying is meet the shield, so it reads as an
+          instruction in the accent, with the shield's own icon. */}
       {firstFreeFare ? (
-        <Text variant="callout" color="inkSoft" center style={{ marginTop: space.sm }}>
-          {t('preview.tryLock')}
-        </Text>
+        <Entrance delay={260}>
+          <View style={[styles.tryCard, { borderColor: withAlpha(theme.accent, 0.55), backgroundColor: withAlpha(theme.accent, 0.1) }]}>
+            <View style={[styles.tryIcon, { backgroundColor: withAlpha(theme.accent, 0.18) }]}>
+              <Ionicons name="shield-checkmark" size={22} color={theme.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text variant="bodyMedium">{t('preview.tryLockTitle')}</Text>
+              <Text variant="callout" color="inkSoft" style={{ marginTop: 2 }}>
+                {t('preview.tryLock')}
+              </Text>
+            </View>
+          </View>
+        </Entrance>
       ) : null}
     </>
   );
@@ -450,6 +463,17 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  tryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: space.md,
+    paddingHorizontal: space.md,
+    marginTop: space.md,
+  },
+  tryIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1 },
   safe: { flex: 1 },
   // The capped, centred content column — the whole iPad story in three lines.
