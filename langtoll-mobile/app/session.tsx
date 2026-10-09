@@ -29,6 +29,7 @@ import {
   unlockRemainingMs,
   updateProfile,
   bumpRecap,
+  needsTrialWall,
 } from '@/lib/store';
 import { playMessageChime } from '@/lib/sound';
 import { releaseAudioSession, speakTarget, stopSpeaking } from '@/lib/tts';
@@ -57,6 +58,11 @@ const ORDER_TOLLY_MAX = 132;
 const ORDER_TOLLY_MIN = 88;
 
 export default function Session() {
+  // The free first fare is spent and no trial was started: the wall on home is
+  // the only screen, including for the shield's "Practice now" deep link.
+  useEffect(() => {
+    if (needsTrialWall(getState())) router.replace('/');
+  }, []);
   const theme = useTheme();
   const L = useLayout();
   const t = useT();

@@ -38,6 +38,7 @@ const KNOWN_EVENTS = new Set([
   'taste_done',
   'language_wanted',
   'lock_tried',
+  'lock_released',
   'notify_permission',
   'purchase_cancel_reason',
   'lock_auth',

@@ -417,6 +417,8 @@ export const en = {
   'preview.endedBody': 'You felt the whole thing: the lock, the fare, the pass. From here the free plan is the {free} course and one locked app. Plus keeps everything you just used.',
   'preview.payOver': 'Your first fare was on us',
   'preview.payTitle': 'Keep the whole app.',
+  'preview.wallPitch': 'You’ve felt the whole thing: the lock, the fare, the pass. Start your free week to keep going. No commitment, cancel anytime.',
+  'preview.wallUnlock': 'Not now, just unlock my apps',
   'lapsed.title': 'Your Plus has ended.',
   'lapsed.bodyLevel': 'You’re on the free plan now: the {free} course and one locked app. Your {level} course, your fare and your apps are saved, and they come back the moment Plus does.',
   'lapsed.body': 'You’re on the free plan now: the {free} course and one locked app. Your fare and your apps are saved, and they come back the moment Plus does.',

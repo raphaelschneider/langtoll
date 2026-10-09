@@ -51,6 +51,8 @@ export type TelemetryEvent =
   | 'language_wanted'
   // 'See the lock' on the first-fare banner: the person went to meet the shield.
   | 'lock_tried'
+  // On the trial wall: 'Not now, just unlock my apps' — the shield is released, the wall stays.
+  | 'lock_released'
   | 'onboarding_step'
   // The lock step (onboarding) and the app picker: what Screen Time answered when asked
   // (result granted / denied / error, with Apple's error code) and whether apps were

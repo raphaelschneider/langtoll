@@ -406,6 +406,8 @@ export const es: Partial<Record<StringKey, string>> = {
   'preview.endedBody': 'Ya lo has vivido entero: el bloqueo, la tarifa, el pase. A partir de aquí, el plan gratis es el curso {free} y una app bloqueada. Con Plus te quedas con todo lo que acabas de usar.',
   'preview.payOver': 'La primera tarifa corrió de nuestra cuenta',
   'preview.payTitle': 'Quédate con toda la app.',
+  'preview.wallPitch': 'Ya lo has vivido entero: el bloqueo, la tarifa, el pase. Empieza tu semana gratis para seguir. Sin compromiso, cancela cuando quieras.',
+  'preview.wallUnlock': 'Ahora no, solo desbloquea mis apps',
   'lapsed.title': 'Tu Plus ha terminado.',
   'lapsed.bodyLevel': 'Ahora estás en el plan gratis: el curso {free} y una app bloqueada. Tu curso {level}, tu tarifa y tus apps quedan guardados y vuelven en cuanto vuelva Plus.',
   'lapsed.body': 'Ahora estás en el plan gratis: el curso {free} y una app bloqueada. Tu tarifa y tus apps quedan guardados y vuelven en cuanto vuelva Plus.',

@@ -184,6 +184,10 @@ export interface AppState {
   previewEnded?: boolean | null;
   /** The wall was opened once for the ended preview; it is not opened again on its own. */
   previewWallShown?: boolean | null;
+  /** A real entitlement has existed on this install at least once (a trial counts).
+   *  Without it, the end of the free first fare is a wall, not the free plan
+   *  (founder, 2026-10-09: "we are not downgrading them to A1 unless they start a trial"). */
+  everHadPlus?: boolean | null;
 }
 
 const initialState: AppState = {
@@ -230,6 +234,7 @@ const initialState: AppState = {
   previewUntil: null,
   previewEnded: null,
   previewWallShown: null,
+  everHadPlus: null,
   voiceOverride: null,
   voiceRate: null,
   voicePitch: null,
@@ -533,10 +538,19 @@ export function expirePreview(nowMs = Date.now()): boolean {
   if (state.previewUntil == null || state.previewUntil > nowMs) return false;
   const ended = state.plan !== 'plus';
   setState({ previewUntil: null, previewEnded: ended ? true : null });
-  // The free plan locks one app: a wider selection from the free fare is cleared,
-  // as it is when a subscription lapses (the picker offers a single app again).
-  if (ended) enforceFreeSelection();
+  // No trim here: someone who never started a trial meets the wall, with the
+  // apps still locked; someone who had Plus before falls to the free plan, and
+  // the lapse path trims the selection then.
+  if (ended && state.everHadPlus) enforceFreeSelection();
   return ended;
+}
+
+/**
+ * The free first fare is over and no trial was ever started: the app is a wall
+ * until one is. The free plan is only for people whose Plus lapsed.
+ */
+export function needsTrialWall(s: AppState = state): boolean {
+  return !hasRealPlus(s) && !s.everHadPlus && !!s.previewEnded;
 }
 
 export function markPreviewWallShown(): void {
@@ -563,6 +577,7 @@ export function applyEntitlement(active: boolean, meta?: EntitlementMeta): void 
     setState({
       previewUntil: null,
       previewEnded: null,
+      everHadPlus: true,
       plan: 'plus',
       planSince: state.planSince ?? new Date().toISOString(),
       plusExpiresAt: meta?.expiresAt ?? null,
