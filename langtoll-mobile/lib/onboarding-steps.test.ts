@@ -1,7 +1,7 @@
 // Drafts saved by older builds reopened on this one: every old step must resume
 // on a step that exists, never skip an unanswered question, and never lose the
-// answers already given. 1.0.3 had the name third; 1.0.4–1.0.7 had the taste and
-// the paywall; 1.0.8 ends at the lock.
+// answers already given. 1.0.3 had the name third; 1.0.4–1.0.6 had the taste and
+// the paywall; 1.0.7 ends at the lock.
 import { resumeIndex, stepsFor, STEPS, STEPS_ORDER_1, STEPS_ORDER_2, STEP_ORDER } from './onboarding-steps';
 import { FARE_MINUTE_STOPS, FARE_EXERCISES } from './plans';
 
@@ -32,7 +32,7 @@ function checkOldOrder(oldOrder: readonly string[], order: number | undefined) {
 
 describe('resume across versions', () => {
   it('1.0.3 drafts (name third, no order field)', () => checkOldOrder(STEPS_ORDER_1, undefined));
-  it('1.0.4–1.0.7 drafts (order 2, taste and paywall)', () => checkOldOrder(STEPS_ORDER_2, 2));
+  it('1.0.4–1.0.6 drafts (order 2, taste and paywall)', () => checkOldOrder(STEPS_ORDER_2, 2));
 
   it('a current draft resumes exactly where it stopped', () => {
     const withForms = langs.find((l) => stepsFor(l as any).includes('forms'))!;

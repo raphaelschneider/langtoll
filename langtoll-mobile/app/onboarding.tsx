@@ -333,7 +333,7 @@ export default function Onboarding() {
             ? 'ob.future12Brain'
             : 'ob.future12Generic';
 
-  // Since 1.0.8 there is no wall in here: onboarding ends at the lock and the
+  // Since 1.0.7 there is no wall in here: onboarding ends at the lock and the
   // first fare is real and free (store.startPreview); the wall waits on home
   // until that pass runs out.
   const skippable: Step[] = ['name', 'apps', 'when', 'goal', 'forms'];

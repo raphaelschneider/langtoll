@@ -13,9 +13,9 @@ import type { Language } from '@/content/german/types';
 
 /** Bumped when STEPS is reordered; saved into the draft so a resume knows which order it came from. */
 export const STEP_ORDER = 3;
-// 1.0.8 (2026-10-09): no taste and no paywall. Onboarding ends at the lock, the
+// 1.0.7 (2026-10-09): no taste and no paywall. Onboarding ends at the lock, the
 // first fare is the real thing with full access, and the wall waits until that
-// pass runs out. Keep in sync with ONBOARDING_STEPS_1_0_8 in the admin.
+// pass runs out. Keep in sync with ONBOARDING_STEPS_1_0_7 in the admin.
 export const STEPS = [
   'hook',
   'how',
@@ -43,7 +43,7 @@ export const STEPS_ORDER_1: readonly (Step | OldStep)[] = [
   'hook', 'how', 'name', 'language', 'difficulty', 'apps', 'mirror', 'when', 'fare',
   'goal', 'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
 ];
-/** 1.0.4 – 1.0.7: name before the mirror, with the taste and the paywall. */
+/** 1.0.4 – 1.0.6: name before the mirror, with the taste and the paywall. */
 export const STEPS_ORDER_2: readonly (Step | OldStep)[] = [
   'hook', 'how', 'language', 'difficulty', 'apps', 'name', 'mirror', 'when', 'fare',
   'goal', 'tease', 'future', 'forms', 'printing', 'summary', 'taste', 'paywall', 'lock',
@@ -57,7 +57,7 @@ export function stepsFor(language: Language): readonly Step[] {
 }
 
 // Where a relaunch picks up. Mid-loader goes to the summary it was loading. A
-// draft from a build with the taste or the paywall (before 1.0.8) that stopped
+// draft from a build with the taste or the paywall (before 1.0.7) that stopped
 // on either has answered everything: it resumes on the lock, and gets the free
 // first fare like everyone else.
 export function resumeIndex(draft: { step: string; order?: number }, steps: readonly Step[]): number {
