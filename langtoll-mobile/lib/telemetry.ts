@@ -49,6 +49,8 @@ export type TelemetryEvent =
   | 'taste_done'
   // A language the picker does not have, tapped on the 'Another language?' row.
   | 'language_wanted'
+  // 'See the lock' on the first-fare banner: the person went to meet the shield.
+  | 'lock_tried'
   | 'onboarding_step'
   // The lock step (onboarding) and the app picker: what Screen Time answered when asked
   // (result granted / denied / error, with Apple's error code) and whether apps were

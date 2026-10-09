@@ -401,6 +401,7 @@ export const de: Partial<Record<StringKey, string>> = {
   'preview.lockLine': 'Dein erster Fahrpreis geht auf uns: die ganze App, bis dein erster Pass abläuft.',
   'preview.banner': 'Dein erster Fahrpreis geht auf uns. Voller Zugang bis {time}.',
   'preview.bannerOpen': 'Dein erster Fahrpreis geht auf uns. Zahl ihn, und die ganze App gehört dir, bis der Pass abläuft.',
+  'preview.tryLock': 'Sperre ansehen: {app} öffnen',
   'preview.endedTitle': 'Dein erster Fahrpreis ist abgefahren.',
   'preview.endedBody': 'Du hast das Ganze erlebt: die Sperre, den Fahrpreis, den Pass. Ab jetzt heißt gratis: der {free}-Kurs und eine gesperrte App. Mit Plus bleibt alles, was du gerade benutzt hast.',
   'preview.payOver': 'Dein erster Fahrpreis ging auf uns',

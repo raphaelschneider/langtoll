@@ -401,6 +401,7 @@ export const es: Partial<Record<StringKey, string>> = {
   'preview.lockLine': 'La primera tarifa corre de nuestra cuenta: toda la app, hasta que se agote tu primer pase.',
   'preview.banner': 'La primera tarifa corre de nuestra cuenta. Acceso completo hasta las {time}.',
   'preview.bannerOpen': 'La primera tarifa corre de nuestra cuenta. Págala y toda la app es tuya hasta que se agote el pase.',
+  'preview.tryLock': 'Mira el bloqueo: abre {app}',
   'preview.endedTitle': 'Tu primera tarifa gratis ya pasó.',
   'preview.endedBody': 'Ya lo has vivido entero: el bloqueo, la tarifa, el pase. A partir de aquí, el plan gratis es el curso {free} y una app bloqueada. Con Plus te quedas con todo lo que acabas de usar.',
   'preview.payOver': 'La primera tarifa corrió de nuestra cuenta',

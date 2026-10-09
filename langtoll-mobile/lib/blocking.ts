@@ -663,3 +663,27 @@ export async function configureShieldAppearance(): Promise<void> {
     console.warn('[blocking] shield config failed', e);
   }
 }
+
+/**
+ * URL schemes of the apps the picker names, so the first-fare banner can send
+ * the person INTO a locked app and let the shield make the argument (founder,
+ * 2026-10-09: "the user would actually know exactly what he would encounter").
+ * Games has no app. openURL does not need the schemes declared; canOpenURL would.
+ */
+export const APP_SCHEMES: Record<string, string> = {
+  TikTok: 'tiktok://',
+  Instagram: 'instagram://app',
+  YouTube: 'youtube://',
+  Reddit: 'reddit://',
+  X: 'twitter://',
+  Netflix: 'nflx://',
+};
+
+/** The first chosen app that can be opened by scheme, or null. */
+export function firstOpenableApp(apps: readonly string[]): { name: string; url: string } | null {
+  for (const name of apps) {
+    const url = APP_SCHEMES[name];
+    if (url) return { name, url };
+  }
+  return null;
+}
