@@ -91,7 +91,13 @@ instagram blocker, tiktok blocker, doomscrolling.
 Previous fields (launch, 2026-09-25), for the record: `LangToll: Learn Languages` /
 `App lock paid in vocabulary` / `german,spanish,french,italian,portuguese,screen,time,block,blocker,focus,habit,practice,words,study`.
 
-**Promotional text** (≤170, editable any time without review) — 1.0.5, 2026-10-04: the hook's line, no fixed fare numbers, no single language named
+**Promotional text** (≤170, editable any time without review) — 1.0.8, 2026-10-09: the hook's line, no fixed fare numbers, no single language named; the closer is the free first fare, not '7 days free'
+```
+You'll scroll anyway. Make it teach you a language: the apps that eat your evenings stay locked until you've learned a few words. Six languages. First fare on us.
+```
+(162)
+
+1.0.5, 2026-10-04, for the record:
 ```
 You'll scroll anyway. Make it teach you a language: the apps that eat your evenings stay locked until you've learned a few words. Six languages, 7 days free.
 ```
@@ -167,7 +173,7 @@ one, so the subtitle must not imply "learn German" to a German reader.
 - Name: `LangToll: Sprachen lernen` (25)
 - Subtitle: `App-Sperre gegen Vokabeln` (25)
 - Keywords: `spanisch,franzoesisch,italienisch,englisch,portugiesisch,deutsch,bildschirmzeit,fokus,wörter`
-- Promotional text: `Du scrollst sowieso. Dann lern dabei eine Sprache: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du ein paar Wörter kannst. Sechs Sprachen, 7 Tage gratis.` (166)
+- Promotional text (1.0.8, 2026-10-09; promo text needs no review, the frozen fields above are untouched): `Du scrollst eh. Dann lern dabei eine Sprache: Die Apps, die deine Abende fressen, bleiben gesperrt, bis du ein paar Wörter kannst. Sechs Sprachen, erste Fahrt gratis.` (166)
 
 Astro, 2026-10-04, for the record only: LangToll ranks here (sprachen lernen #139 at
 65/70, italienisch lernen #186, portugiesisch lernen #117, italienisch vokabeln #90).
@@ -181,25 +187,25 @@ ever revisited: "französisch" with the umlaut, "vokabeltrainer" and "vokabeln" 
 - Name: `LangToll: Aprende idiomas` (25)
 - Subtitle: `El vocabulario abre tus apps` (28)
 - Keywords: `aleman,frances,italiano,ingles,portugues,espanol,pantalla,tiempo,bloqueo,concentracion,palabras`
-- Promotional text: `Vas a hacer scroll igual. Pues que te enseñe un idioma: las apps que se comen tus tardes siguen bloqueadas hasta que aprendas unas palabras. Seis idiomas, 7 días gratis.` (169)
+- Promotional text (1.0.8, 2026-10-09; promo text needs no review, the frozen fields above are untouched): `Vas a hacer scroll igual. Que te enseñe un idioma: las apps que se comen tus tardes siguen bloqueadas hasta que aprendas unas palabras. Seis idiomas, primer viaje gratis.` (170)
 
 ### French (fr-FR)
 - Name: `LangToll : Apprends une langue` (30)
 - Subtitle: `Le vocabulaire ouvre tes apps` (29)
 - Keywords: `allemand,espagnol,italien,anglais,portugais,francais,ecran,temps,blocage,concentration,mots,habitude`
-- Promotional text: `Tu scrolleras de toute façon. Autant apprendre une langue : les apps qui mangent tes soirées restent fermées jusqu'à quelques mots appris. Six langues, 7 jours gratuits.` (169)
+- Promotional text (1.0.8, 2026-10-09; promo text needs no review, the frozen fields above are untouched): `Tu scrolleras quand même. Autant apprendre une langue : les apps qui mangent tes soirées restent fermées jusqu'à quelques mots appris. Six langues, premier trajet offert.` (170)
 
 ### Italian (it-IT)
 - Name: `LangToll: Impara le lingue` (26)
 - Subtitle: `Blocco app pagato in vocaboli` (29)
 - Keywords: `tedesco,spagnolo,francese,inglese,portoghese,italiano,schermo,tempo,concentrazione,parole,abitudine`
-- Promotional text: `Scrollerai comunque. Fatti insegnare una lingua: le app che ti mangiano le serate restano bloccate finché non impari qualche parola. Sei lingue, 7 giorni gratis.` (161)
+- Promotional text (1.0.8, 2026-10-09; promo text needs no review, the frozen fields above are untouched): `Scrollerai comunque. Fatti insegnare una lingua: le app che ti mangiano le serate restano bloccate finché non impari qualche parola. Sei lingue, prima corsa gratis.` (164)
 
 ### Portuguese (pt-BR)
 - Name: `LangToll: Aprenda idiomas` (25)
 - Subtitle: `Vocabulário destrava seus apps` (30)
 - Keywords: `alemao,espanhol,frances,ingles,italiano,portugues,tela,tempo,bloqueio,concentracao,palavras,habito`
-- Promotional text: `Você vai ficar no celular mesmo. Que ele te ensine um idioma: os apps que devoram suas noites ficam bloqueados até aprender umas palavras. Seis idiomas, 7 dias grátis.` (168)
+- Promotional text (1.0.8, 2026-10-09; promo text needs no review, the frozen fields above are untouched): `Você vai ficar no celular mesmo. Que ele te ensine um idioma: os apps que comem suas noites ficam bloqueados até aprender umas palavras. Seis idiomas, 1º pedágio grátis.` (169)
 
 ---
 
