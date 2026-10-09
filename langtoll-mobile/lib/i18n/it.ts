@@ -401,7 +401,7 @@ export const it: Partial<Record<StringKey, string>> = {
   'preview.lockLine': 'La prima tariffa la offriamo noi: tutta l’app, finché il tuo primo pass non scade.',
   'preview.banner': 'La prima tariffa la offriamo noi. Accesso completo fino alle {time}.',
   'preview.bannerOpen': 'La prima tariffa la offriamo noi. Pagala, e tutta l’app è tua finché il pass non scade.',
-  'preview.tryLock': 'Guarda il blocco: apri {app}',
+  'preview.tryLock': 'Provalo subito: apri una delle tue app bloccate e vedrai la sbarra.',
   'preview.endedTitle': 'La tua prima tariffa gratis è passata.',
   'preview.endedBody': 'Hai provato tutto: il blocco, la tariffa, il pass. Da qui in poi il piano gratis è il corso {free} e un’app bloccata. Con Plus tieni tutto quello che hai appena usato.',
   'preview.payOver': 'La prima tariffa l’abbiamo offerta noi',

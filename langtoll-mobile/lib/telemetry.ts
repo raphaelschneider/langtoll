@@ -49,8 +49,6 @@ export type TelemetryEvent =
   | 'taste_done'
   // A language the picker does not have, tapped on the 'Another language?' row.
   | 'language_wanted'
-  // 'See the lock' on the first-fare banner: the person went to meet the shield.
-  | 'lock_tried'
   // On the trial wall: 'Not now, just unlock my apps' — the shield is released, the wall stays.
   | 'lock_released'
   | 'onboarding_step'

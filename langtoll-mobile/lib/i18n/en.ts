@@ -412,7 +412,7 @@ export const en = {
   'preview.lockLine': 'Your first fare is on us: the whole app, until your first pass runs out.',
   'preview.banner': 'Your first fare is on us. Full access until {time}.',
   'preview.bannerOpen': 'Your first fare is on us. Pay it, and the whole app is yours until the pass runs out.',
-  'preview.tryLock': 'See the lock: open {app}',
+  'preview.tryLock': 'Try it first: open one of your locked apps and meet the shield.',
   'preview.endedTitle': 'Your free first fare is done.',
   'preview.endedBody': 'You felt the whole thing: the lock, the fare, the pass. From here the free plan is the {free} course and one locked app. Plus keeps everything you just used.',
   'preview.payOver': 'Your first fare was on us',

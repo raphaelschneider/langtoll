@@ -401,7 +401,7 @@ export const fr: Partial<Record<StringKey, string>> = {
   'preview.lockLine': 'Ton premier tarif est pour nous : toute l’app, jusqu’à la fin de ton premier pass.',
   'preview.banner': 'Ton premier tarif est pour nous. Accès complet jusqu’à {time}.',
   'preview.bannerOpen': 'Ton premier tarif est pour nous. Paie-le, et toute l’app est à toi jusqu’à la fin du pass.',
-  'preview.tryLock': 'Vois le verrou : ouvre {app}',
+  'preview.tryLock': 'Essaie tout de suite : ouvre une de tes apps verrouillées et tu verras le péage.',
   'preview.endedTitle': 'Ton premier tarif offert est passé.',
   'preview.endedBody': 'Tu as tout vécu : le verrou, le tarif, le pass. À partir d’ici, l’offre gratuite, c’est le cours {free} et une app verrouillée. Plus garde tout ce que tu viens d’utiliser.',
   'preview.payOver': 'Ton premier tarif était pour nous',
